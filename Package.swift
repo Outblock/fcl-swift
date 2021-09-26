@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "FCL",
     platforms: [
-        .iOS(.v13)
+        .iOS(.v13),
     ],
     products: [
         .library(
@@ -15,19 +15,19 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/zed-io/flow-swift.git", from: "0.0.3-beta"),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0")
+        .package(name: "Flow", url: "https://github.com/zed-io/flow-swift.git", from: "0.0.3-beta"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
     ],
     targets: [
         .target(
             name: "FCL",
-            dependencies: [.product(name: "Flow", package: "flow-swift"),
-                           .product(name: "AsyncHTTPClient", package: "async-http-client") ],
+            dependencies: ["Flow",
+                           .product(name: "AsyncHTTPClient", package: "async-http-client")],
             path: "Sources/FCL"
         ),
         .testTarget(
             name: "FCLTests",
-            dependencies: ["FCL", .product(name: "Flow", package: "flow-swift")],
+            dependencies: ["FCL"],
             path: "Tests"
         ),
     ]
