@@ -5,7 +5,7 @@
 //  Created by lmcmz on 23/7/21.
 //
 
-import Flow
+import FlowFoundation
 import Foundation
 
 extension FCL {
@@ -18,7 +18,7 @@ extension FCL {
         case stakingProxy = "0xSTAKINGPROXY"
         case nonFungibleToken = "0xNONFUNGIBLETOKEN"
 
-        func address(chain: Flow.ChainID) -> Flow.Address? {
+        func address(chain: Flow.ChainId) -> Flow.Address? {
             switch (self, chain) {
             // Mainnet
             case (.fungibleToken, .mainnet):

@@ -5,13 +5,13 @@
 //  Created by lmcmz on 23/7/21.
 //
 
-import Flow
+import FlowFoundation
 import Foundation
 
 public class AddressRegistry {
-    var defaultChainId: Flow.ChainID = Flow.ChainID.mainnet
+    var defaultChainId: Flow.ChainId = Flow.ChainId.mainnet
 
-    private var scriptTokenDict = [Flow.ChainID: [String: Flow.Address]]()
+    private var scriptTokenDict = [Flow.ChainId: [String: Flow.Address]]()
 
     init() {
         registerDefaults()
@@ -19,12 +19,12 @@ public class AddressRegistry {
 
     func registerDefaults() {
         let addresses = [
-            Flow.ChainID.emulator: [
+            Flow.ChainId.emulator: [
                 FCL.ScriptAddress.fungibleToken,
                 FCL.ScriptAddress.flowToken,
                 FCL.ScriptAddress.flowFees,
             ],
-            Flow.ChainID.testnet: [
+            Flow.ChainId.testnet: [
                 FCL.ScriptAddress.fungibleToken,
                 FCL.ScriptAddress.flowToken,
                 FCL.ScriptAddress.flowFees,
@@ -33,7 +33,7 @@ public class AddressRegistry {
                 FCL.ScriptAddress.stakingProxy,
                 FCL.ScriptAddress.nonFungibleToken,
             ],
-            Flow.ChainID.mainnet: [
+            Flow.ChainId.mainnet: [
                 FCL.ScriptAddress.fungibleToken,
                 FCL.ScriptAddress.flowToken,
                 FCL.ScriptAddress.flowFees,
@@ -44,7 +44,7 @@ public class AddressRegistry {
             ],
         ]
 
-        addresses.forEach { (chainId: Flow.ChainID, value: [FCL.ScriptAddress]) in
+        addresses.forEach { (chainId: Flow.ChainId, value: [FCL.ScriptAddress]) in
             value.forEach { scriptAddress in
                 guard let address = scriptAddress.address(chain: chainId) else { return }
                 register(chainId: chainId, contract: scriptAddress.rawValue, address: address)
@@ -56,7 +56,7 @@ public class AddressRegistry {
         return addressOf(contract: contract, chainId: defaultChainId)
     }
 
-    func addressOf(contract: String, chainId: Flow.ChainID) -> Flow.Address? {
+    func addressOf(contract: String, chainId: Flow.ChainId) -> Flow.Address? {
         return scriptTokenDict[chainId]?.first { $0.key == contract }?.value
     }
 
@@ -64,7 +64,7 @@ public class AddressRegistry {
         return processScript(script: script, chainId: defaultChainId)
     }
 
-    func processScript(script: String, chainId _: Flow.ChainID) -> String {
+    func processScript(script: String, chainId _: Flow.ChainId) -> String {
         var ret = script
 //        scriptTokenDict[chainId]?.forEach {
 //            ret = ret.replacingOccurrences(of: $0.key,
@@ -73,8 +73,8 @@ public class AddressRegistry {
         return ret
     }
 
-    func deregister(contract: String, chainId: Flow.ChainID? = nil) {
-        var chains = Flow.ChainID.allCases
+    func deregister(contract: String, chainId: Flow.ChainId? = nil) {
+        var chains = Flow.ChainId.allCases
         if let chainId = chainId {
             chains = [chainId]
         }
@@ -85,7 +85,7 @@ public class AddressRegistry {
         scriptTokenDict.removeAll()
     }
 
-    func register(chainId: Flow.ChainID, contract: String, address: Flow.Address) {
+    func register(chainId: Flow.ChainId, contract: String, address: Flow.Address) {
         scriptTokenDict[chainId]?[contract] = address
     }
 }

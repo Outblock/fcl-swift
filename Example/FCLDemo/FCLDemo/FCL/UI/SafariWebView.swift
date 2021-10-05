@@ -14,20 +14,20 @@ extension FCL {
         var safariVC: SFSafariViewController?
         var onClose: (() -> Void)?
 
-        static func openSafariWebView(service _: Service, dismiss _: (() -> Void)?) {
-//            guard let url = service.endpoint else {
-//                return
-//            }
-//            SafariWebViewManager.shared.onClose = dismiss
-//            DispatchQueue.main.async {
-//                hideLoading {
-//                    let vc = SFSafariViewController(url: url)
-//                    vc.delegate = SafariWebViewManager.shared
-//                    vc.modalPresentationStyle = .formSheet
-//                    SafariWebViewManager.shared.safariVC = vc
-            ////                    UIApplication.shared.topMostViewController?.present(vc, animated: true, completion: nil)
-//                }
-//            }
+        static func openSafariWebView(service: Service, dismiss: (() -> Void)?) {
+            guard let url = URL(string: service.endpoint) else {
+                return
+            }
+            SafariWebViewManager.shared.onClose = dismiss
+            DispatchQueue.main.async {
+                hideLoading {
+                    let vc = SFSafariViewController(url: url)
+                    vc.delegate = SafariWebViewManager.shared
+                    vc.modalPresentationStyle = .formSheet
+                    SafariWebViewManager.shared.safariVC = vc
+//                    UIApplication.shared.topMostViewController?.present(vc, animated: true, completion: nil)
+                }
+            }
         }
 
         static func dismiss() {
