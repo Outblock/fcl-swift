@@ -21,15 +21,22 @@ extension API {
         if let location = fcl.config.get(key: .location) {
             request.addValue(location, forHTTPHeaderField: "referer")
         }
-        
+
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        // TODO: Need to check extract config
         let config = URLSessionConfiguration.default
         return URLSession(configuration: config).dataTaskPublisher(for: request)
             .map { $0.data }
             .decode(type: AuthnResponse.self, decoder: decoder)
             .eraseToAnyPublisher()
+    }
+
+    func execHttpPost(service: Service?, data: Data? = nil) -> Future<AuthnResponse, Error> {
+        guard let ser = service, let url = ser.endpoint, let param = ser.params else {
+            return Future { $0(.failure(FCLError.generic)) }
+        }
+
+        return execHttpPost(url: url, params: param, data: data)
     }
 
     func execHttpPost(url: URL, params: [String: String]? = [:], data: Data? = nil) -> Future<AuthnResponse, Error> {

@@ -33,19 +33,19 @@ struct ContentView: View {
                 }
 
                 Section {
-                    Button("PreAuthz") {
-                        viewModel.preauthz()
+                    Button("Authz") {
+                        viewModel.authz()
                     }
 
                     Text(verbatim: viewModel.preAuthz)
-                }
 
-                Section {
-                    Button("Authz") {
-                        viewModel.authenz()
+                    if !viewModel.preAuthz.isEmpty {
+                        Button("View on flow scan") {
+                            viewModel.isShowWeb.toggle()
+                        }.sheet(isPresented: $viewModel.isShowWeb, onDismiss: nil) {
+                            SafariView(url: URL(string: "https://flowscan.org/transaction/\(viewModel.preAuthz)")!)
+                        }
                     }
-
-                    Text(verbatim: viewModel.authz)
                 }
             }.navigationTitle("FCL-Swift Demo")
         }

@@ -179,8 +179,6 @@ class API {
 
 func buildURL(url: URL, params: [String: String]?) -> URL? {
     let paramLocation = "l6n"
-
-    print(params)
     guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
         return nil
     }

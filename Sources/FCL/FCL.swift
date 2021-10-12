@@ -1,4 +1,5 @@
 import AuthenticationServices
+import BigInt
 import Combine
 import Flow
 import SafariServices
@@ -22,7 +23,7 @@ public final class FCL: NSObject {
 
     private lazy var defaultAddressRegistry = AddressRegistry()
 
-    private var cancellables = Set<AnyCancellable>()
+    internal var cancellables = Set<AnyCancellable>()
 
     // MARK: - Back Channel
 
@@ -60,7 +61,7 @@ public final class FCL: NSObject {
         }
     }
 
-    public func preauthz() -> Future<FCLResponse, Error> {
+    public func authz() -> Future<String, Error> {
         return Future { [weak self] promise in
             guard let self = self, let currentUser = self.currentUser, currentUser.loggedIn else {
                 promise(.failure(Flow.FError.unauthenticated))
@@ -76,98 +77,77 @@ public final class FCL: NSObject {
 
             call.whenSuccess { block in
                 let blockId = block.id.hex
-
-                let preSignable = PreSignable(fType: "PreSignable",
-                                              fVsn: "1.0.1",
-                                              roles: Role(proposer: true, authorizer: false, payer: true, param: false),
-                                              cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
-                                              args: [],
-                                              interaction: Interaction(tag: "TRANSACTION",
-                                                                       assigns: [String: String](),
-                                                                       status: "OK",
-                                                                       reason: nil,
-                                                                       accounts: Accounts(currentUser: CurrentUser(kind: "ACCOUNT",
-                                                                                                                   tempID: "CURRENT_USER",
-                                                                                                                   addr: nil,
-                                                                                                                   signature: nil,
-                                                                                                                   keyID: nil,
-                                                                                                                   sequenceNum: nil,
-                                                                                                                   signingFunction: nil,
-                                                                                                                   role: Role(proposer: true,
-                                                                                                                              authorizer: false,
-                                                                                                                              payer: true,
-                                                                                                                              param: false))),
-                                                                       params: [String: String](),
-                                                                       arguments: [String: String](),
-                                                                       message: Message(cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
-                                                                                        refBlock: blockId,
-                                                                                        computeLimit: 10,
-                                                                                        proposer: nil,
-                                                                                        payer: nil,
-                                                                                        authorizations: [],
-                                                                                        params: [],
-                                                                                        arguments: []),
-                                                                       proposer: "CURRENT_USER",
-                                                                       authorizations: [],
-                                                                       payer: "CURRENT_USER",
-                                                                       events: Events(eventType: nil,
-                                                                                      start: nil,
-                                                                                      end: nil,
-                                                                                      blockIDS: []),
-                                                                       transaction: Id(id: nil),
-                                                                       block: Block(id: nil, height: nil, isSealed: nil),
-                                                                       account: Account(addr: nil),
-                                                                       collection: Id(id: nil)),
-                                              voucher: Voucher(cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
-                                                               refBlock: blockId,
-                                                               computeLimit: 10,
-                                                               arguments: [],
-                                                               proposalKey: ProposalKey(address: nil, keyID: nil, sequenceNum: nil),
-                                                               payer: nil,
-                                                               authorizers: [],
-                                                               payloadSigs: []))
-
-                let data = try! JSONEncoder().encode(preSignable)
-
+                var preSignableObject = self.preSignableObject(blockId: blockId)
+                let data = try! JSONEncoder().encode(preSignableObject)
                 self.api.execHttpPost(url: endpoint, params: service.params, data: data)
-                    .map { response -> FCLResponse in
-                        FCLResponse(address: response.data?.addr)
-                    }
-                    .sink { completion in
-                        if case let .failure(error) = completion {
-                            promise(.failure(error))
+                    .flatMap { response -> AnyPublisher<Interaction, Error> in
+                        let signableUsers = self.resolvePreAuthz(resp: response)
+                        var accounts = [String: SignableUser]()
+                        signableUsers.forEach { user in
+                            let tempID = [user.addr!, String(user.keyID!)].joined(separator: "-")
+                            var temp = user
+                            temp.tempID = tempID
+                            accounts[tempID] = temp
+
+                            if user.role.proposer {
+                                preSignableObject.interaction.proposer = tempID
+                            }
+
+                            if user.role.payer {
+                                preSignableObject.interaction.payer = tempID
+                            }
                         }
-                    } receiveValue: { model in
-                        promise(.success(model))
-                    }
-                    .store(in: &self.cancellables)
+
+                        preSignableObject.interaction.accounts = accounts
+                        return resolveSignatures(interaction: preSignableObject.interaction).eraseToAnyPublisher()
+                    }.sink { completion in
+                        if case let .failure(error) = completion {
+                            print(error)
+                        }
+                    } receiveValue: { ix in
+                        guard let tx = toFlowTransaction(ix: ix),
+                            let txId = try? flow.sendTransaction(signedTrnaction: tx).wait() else {
+                            return
+                        }
+                        print(txId.hex)
+                        promise(.success(txId.hex))
+                    }.store(in: &self.cancellables)
             }
         }
     }
 
-    func resolvePreAuthz(reponse: AuthnResponse) -> Future<AuthnResponse, Error> {
-        return Future { _ in
-            var axs: [(role: String, az: Service)] = []
-            if let proposer = reponse.data?.proposer {
-                axs.append(("PROPOSER", proposer))
+    public func authorization() {
+        let authz = serviceOfType(services: currentUser?.services, type: .authz)
+        if let preAuthz = serviceOfType(services: currentUser?.services, type: .preAuthz) {}
+    }
+
+    func resolvePreAuthz(resp: AuthnResponse) -> [SignableUser] {
+        var axs = [(role: String, service: Service)]()
+        if let proposer = resp.data?.proposer {
+            axs.append(("PROPOSER", proposer))
+        }
+        for az in resp.data?.payer ?? [] {
+            axs.append(("PAYER", az))
+        }
+        for az in resp.data?.authorization ?? [] {
+            axs.append(("AUTHORIZER", az))
+        }
+
+        return axs.compactMap { role, service in
+
+            guard let address = service.identity?.address,
+                let keyId = service.identity?.keyId else {
+                return nil
             }
 
-            if let payers = reponse.data?.payer {
-                payers.forEach { payer in
-                    axs.append(("PAYER", payer))
-                }
-            }
-
-            if let authorizations = reponse.data?.authorization {
-                authorizations.forEach { authorization in
-                    axs.append(("AUTHORIZER", authorization))
-                }
-            }
-
-            axs.map { _, az in
-                let tempId = ([az.identity?.address, "\(az.identity?.keyId)"] as [String?]).compactMap { $0 }.joined(separator: "|")
-                let addr = az.identity?.address
-                let keyId = az.identity?.keyId
+            return SignableUser(tempID: [address, String(keyId)].joined(separator: "|"),
+                                addr: address,
+                                keyID: keyId,
+                                role: Role(proposer: role == "PROPOSER",
+                                           authorizer: role == "AUTHORIZER",
+                                           payer: role == "PAYER",
+                                           param: nil)) { data in
+                fcl.api.execHttpPost(service: service, data: data).eraseToAnyPublisher()
             }
         }
     }
@@ -259,5 +239,27 @@ extension FCL: ASWebAuthenticationPresentationContextProviding {
             return anchor
         }
         return ASPresentationAnchor()
+    }
+}
+
+extension FCL {
+    func preSignableObject(blockId: String) -> PreSignable {
+        return PreSignable(
+            roles: Role(proposer: true, authorizer: false, payer: true, param: false),
+            cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
+            interaction: Interaction(tag: "TRANSACTION",
+                                     status: "OK",
+                                     accounts: ["CURRENT_USER": SignableUser(kind: "ACCOUNT",
+                                                                             tempID: "CURRENT_USER",
+                                                                             role: Role(proposer: true,
+                                                                                        authorizer: false,
+                                                                                        payer: true,
+                                                                                        param: false))],
+                                     message: Message(cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
+                                                      refBlock: blockId,
+                                                      computeLimit: 10),
+                                     proposer: "CURRENT_USER",
+                                     payer: "CURRENT_USER")
+        )
     }
 }

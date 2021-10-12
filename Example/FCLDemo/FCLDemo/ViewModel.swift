@@ -8,15 +8,17 @@ import Combine
 import CryptoKit
 import FCL
 import Foundation
+import SafariServices
+import SwiftUI
 
 class ViewModel: NSObject, ObservableObject {
     @Published var address: String = ""
 
     @Published var preAuthz: String = ""
 
-    @Published var authz: String = ""
-
     @Published var provider: Provider = .dapper
+
+    @Published var isShowWeb: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -47,38 +49,18 @@ class ViewModel: NSObject, ObservableObject {
             }.store(in: &cancellables)
     }
 
-    func preauthz() {
-        fcl.preauthz()
+    func authz() {
+        fcl.authz()
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 if case let .failure(error) = completion {
                     self.preAuthz = error.localizedDescription
                 }
-            } receiveValue: { _ in
-//                guard let payer = result.data?.payer?.first,
-//                    let proposer = result.data?.proposer else {
-//                    self.preAuthz = "Empty payer, proposer or authorization"
-//                    return
-//                }
-//
-//                self.preAuthz = """
-//                payer: \(payer.identity?.address ?? "")
-//                proposer: \(proposer.identity?.address ?? "")
-//                """
+            } receiveValue: { txId in
+
+                self.preAuthz = txId
 
             }.store(in: &cancellables)
-    }
-
-    func authenz() {
-//        Flow.shared.authorization()
-//            .receive(on: DispatchQueue.main)
-//            .sink { completion in
-//                if case let .failure(error) = completion {
-//                    self.authz = error.localizedDescription
-//                }
-//            } receiveValue: { result in
-//                self.authz = "signature: \(result.data?.signature ?? "")"
-//            }.store(in: &cancellables)
     }
 }
 
@@ -94,4 +76,14 @@ enum Provider: Int {
             return "https://flow-wallet.blocto.app/api/flow/authn"
         }
     }
+}
+
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context _: UIViewControllerRepresentableContext<SafariView>) -> SFSafariViewController {
+        return SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_: SFSafariViewController, context _: UIViewControllerRepresentableContext<SafariView>) {}
 }
