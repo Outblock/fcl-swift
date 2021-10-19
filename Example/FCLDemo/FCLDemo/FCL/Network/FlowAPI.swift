@@ -172,7 +172,7 @@ func decodeToModel<T: Decodable>(body: ByteBuffer?) -> T? {
     }
 
     guard let data = body,
-        let model = try? decoder.decode(T.self, from: data) else {
+          let model = try? decoder.decode(T.self, from: data) else {
         return nil
     }
 

@@ -19,7 +19,7 @@ struct Signable: Encodable {
     let addr: String?
     let roles: Role
     let cadence: String?
-    let args: [String]
+    let args: [Flow.Argument]
     var interaction: Interaction = Interaction()
 
     enum CodingKeys: String, CodingKey {
@@ -29,16 +29,16 @@ struct Signable: Encodable {
     }
 
     var voucher: Voucher {
-        let insideSigners: [Singature] = findInsideSigners(ix: interaction).compactMap { id in
+        let insideSigners: [Singature] = interaction.findInsideSigners.compactMap { id in
             guard let account = interaction.accounts[id] else { return nil }
-            return Singature(address: account.addr,
+            return Singature(address: account.addr?.sansPrefix(),
                              keyId: account.keyID,
                              sig: account.signature)
         }
 
-        let outsideSigners: [Singature] = findOutsideSigners(ix: interaction).compactMap { id in
+        let outsideSigners: [Singature] = interaction.findOutsideSigners.compactMap { id in
             guard let account = interaction.accounts[id] else { return nil }
-            return Singature(address: account.addr,
+            return Singature(address: account.addr?.sansPrefix(),
                              keyId: account.keyID,
                              sig: account.signature)
         }
@@ -46,12 +46,14 @@ struct Signable: Encodable {
         return Voucher(cadence: interaction.message.cadence,
                        refBlock: interaction.message.refBlock,
                        computeLimit: interaction.message.computeLimit,
-                       arguments: interaction.message.arguments,
+                       arguments: interaction.message.arguments.compactMap { tempId in
+                        interaction.arguments[tempId]?.asArgument
+                       },
                        proposalKey: interaction.createProposalKey(),
-                       payer: interaction.accounts[interaction.payer ?? ""]?.addr,
+                       payer: interaction.accounts[interaction.payer ?? ""]?.addr?.sansPrefix(),
                        authorizers: interaction.authorizations
-                           .compactMap { cid in interaction.accounts[cid]?.addr }
-                           .uniqued(),
+                        .compactMap { cid in interaction.accounts[cid]?.addr?.sansPrefix() }
+                        .uniqued(),
                        payloadSigs: insideSigners,
                        envelopeSigs: outsideSigners)
     }
@@ -77,19 +79,19 @@ struct PreSignable: Encodable {
     let fVsn: String = "1.0.1"
     let roles: Role
     let cadence: String
-    var args: [String] = []
+    var args: [Flow.Argument] = []
     let data: [String: String] = [String: String]()
     var interaction: Interaction = Interaction()
 
     var voucher: Voucher {
-        let insideSigners: [Singature] = findInsideSigners(ix: interaction).compactMap { id in
+        let insideSigners: [Singature] = interaction.findInsideSigners.compactMap { id in
             guard let account = interaction.accounts[id] else { return nil }
             return Singature(address: account.addr,
                              keyId: account.keyID,
                              sig: account.signature)
         }
 
-        let outsideSigners: [Singature] = findOutsideSigners(ix: interaction).compactMap { id in
+        let outsideSigners: [Singature] = interaction.findOutsideSigners.compactMap { id in
             guard let account = interaction.accounts[id] else { return nil }
             return Singature(address: account.addr,
                              keyId: account.keyID,
@@ -99,12 +101,14 @@ struct PreSignable: Encodable {
         return Voucher(cadence: interaction.message.cadence,
                        refBlock: interaction.message.refBlock,
                        computeLimit: interaction.message.computeLimit,
-                       arguments: interaction.message.arguments,
+                       arguments: interaction.message.arguments.compactMap { tempId in
+                        interaction.arguments[tempId]?.asArgument
+                       },
                        proposalKey: interaction.createProposalKey(),
                        payer: interaction.payer,
                        authorizers: interaction.authorizations
-                           .compactMap { cid in interaction.accounts[cid]?.addr }
-                           .uniqued(),
+                        .compactMap { cid in interaction.accounts[cid]?.addr }
+                        .uniqued(),
                        payloadSigs: insideSigners,
                        envelopeSigs: outsideSigners)
     }
@@ -128,6 +132,34 @@ struct PreSignable: Encodable {
     }
 }
 
+struct Argument: Encodable {
+    var kind: String
+    var tempId: String
+    var value: Flow.Cadence.FValue
+    var asArgument: Flow.Argument
+    var xform: Xform
+}
+
+struct Xform: Codable {
+    var label: String
+}
+
+extension Flow.Argument {
+    func toFCLArgument() -> Argument {
+
+        func randomString(length: Int) -> String {
+            let letters = "abcdefghijklmnopqrstuvwxyz0123456789"
+            return String((0..<length).map { _ in letters.randomElement()! })
+        }
+
+        return Argument(kind: "ARGUMENT",
+                        tempId: randomString(length: 10),
+                        value: value,
+                        asArgument: self,
+                        xform: Xform(label: type.rawValue))
+    }
+}
+
 struct Interaction: Encodable {
     var tag: String = "UNKNOWN"
     var assigns: [String: String] = [String: String]()
@@ -135,7 +167,7 @@ struct Interaction: Encodable {
     var reason: String?
     var accounts: [String: SignableUser] = [String: SignableUser]()
     var params: [String: String] = [String: String]()
-    var arguments: [String: String] = [String: String]()
+    var arguments: [String: Argument] = [String: Argument]()
     var message: Message = Message()
     var proposer: String?
     var authorizations: [String] = [String]()
@@ -146,22 +178,43 @@ struct Interaction: Encodable {
     var account: Account = Account()
     var collection: Id = Id()
 
+    var findInsideSigners: [String] {
+        // Inside Signers Are: (authorizers + proposer) - payer
+        var inside = Set(authorizations)
+        if let proposer = proposer {
+            inside.insert(proposer)
+        }
+        if let payer = payer {
+            inside.remove(payer)
+        }
+        return Array(inside)
+    }
+
+    var findOutsideSigners: [String] {
+        // Outside Signers Are: (payer)
+        guard let payer = payer else {
+            return []
+        }
+        let outside = Set([payer])
+        return Array(outside)
+    }
+
     func createProposalKey() -> ProposalKey {
         guard let proposer = proposer,
-            let account = accounts[proposer] else {
+              let account = accounts[proposer] else {
             return ProposalKey()
         }
 
-        return ProposalKey(address: account.addr,
+        return ProposalKey(address: account.addr?.sansPrefix(),
                            keyID: account.keyID,
                            sequenceNum: account.sequenceNum)
     }
 
     func createFlowProposalKey() -> Flow.TransactionProposalKey? {
         guard let proposer = proposer,
-            var account = accounts[proposer],
-            let address = account.addr,
-            let keyID = account.keyID else {
+              var account = accounts[proposer],
+              let address = account.addr,
+              let keyID = account.keyID else {
             return nil
         }
 
@@ -171,7 +224,7 @@ struct Interaction: Encodable {
             guard let accountData = try? flow.accessAPI.getAccountAtLatestBlock(address: flowAddress).wait() else {
                 return nil
             }
-//            accounts[proposer]?.sequenceNum = account.keys[keyID].sequenceNumber
+            //            accounts[proposer]?.sequenceNum = account.keys[keyID].sequenceNumber
             account.sequenceNum = accountData.keys[keyID].sequenceNumber
         }
 
@@ -222,7 +275,7 @@ struct Voucher: Encodable {
     let cadence: String?
     let refBlock: String?
     let computeLimit: Int?
-    let arguments: [String]
+    let arguments: [Flow.Argument]
     let proposalKey: ProposalKey
     var payer: String?
     let authorizers: [String]?
@@ -253,8 +306,8 @@ struct SignableUser: Encodable {
     var signature: String?
     var keyID: Int?
     var sequenceNum: Int?
-//    var signingFunction: Int?
-    let role: Role
+    //    var signingFunction: Int?
+    var role: Role
 
     var signingFunction: ((Data) -> AnyPublisher<AuthnResponse, Error>)?
 
@@ -277,8 +330,8 @@ struct SignableUser: Encodable {
         try container.encode(role, forKey: .role)
     }
 
-//    func signingFunction(id: String) -> AnyPublisher<String, Error> {
-//    }
+    //    func signingFunction(id: String) -> AnyPublisher<String, Error> {
+    //    }
 }
 
 struct ProposalKey: Encodable {
@@ -294,8 +347,14 @@ struct ProposalKey: Encodable {
 }
 
 struct Role: Encodable {
-    let proposer, authorizer, payer: Bool
-    let param: Bool?
+    var proposer, authorizer, payer: Bool
+    var param: Bool?
+
+    mutating func merge(role: Role) {
+        proposer = proposer || role.proposer
+        authorizer = authorizer || role.authorizer
+        payer = payer || role.payer
+    }
 }
 
 @propertyWrapper

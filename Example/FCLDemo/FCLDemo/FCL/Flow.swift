@@ -8,7 +8,7 @@ public final class FCL {
 
     public var config = FCL.Config()
 
-    @Published var currentUser: User? = nil
+    @Published var currentUser: User?
 
     private let api = API()
 

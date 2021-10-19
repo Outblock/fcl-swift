@@ -15,7 +15,6 @@ extension FCL {
         let addr: Flow.Address
         var loggedIn: Bool = false
         var services: [Service]? = []
-//        let cid: String
-//        let expiresAt: Date
+
     }
 }

@@ -19,7 +19,7 @@ public final class FCL: NSObject {
 
     private let api = API()
 
-    @Published var currentUser: User? = nil
+    @Published var currentUser: User?
 
     private lazy var defaultAddressRegistry = AddressRegistry()
 
@@ -69,7 +69,7 @@ public final class FCL: NSObject {
             }
 
             guard let service = self.serviceOfType(services: currentUser.services, type: .preAuthz),
-                let endpoint = service.endpoint else {
+                  let endpoint = service.endpoint else {
                 return
             }
 
@@ -83,10 +83,15 @@ public final class FCL: NSObject {
                     .flatMap { response -> AnyPublisher<Interaction, Error> in
                         let signableUsers = self.resolvePreAuthz(resp: response)
                         var accounts = [String: SignableUser]()
+                        preSignableObject.interaction.authorizations.removeAll()
                         signableUsers.forEach { user in
                             let tempID = [user.addr!, String(user.keyID!)].joined(separator: "-")
                             var temp = user
                             temp.tempID = tempID
+
+                            if accounts.keys.contains(tempID) {
+                                accounts[tempID]?.role.merge(role: temp.role)
+                            }
                             accounts[tempID] = temp
 
                             if user.role.proposer {
@@ -96,29 +101,30 @@ public final class FCL: NSObject {
                             if user.role.payer {
                                 preSignableObject.interaction.payer = tempID
                             }
+
+                            if user.role.authorizer {
+                                preSignableObject.interaction.authorizations.append(tempID)
+                            }
                         }
 
                         preSignableObject.interaction.accounts = accounts
-                        return resolveSignatures(interaction: preSignableObject.interaction).eraseToAnyPublisher()
+                        return self.resolveSignatures(interaction: preSignableObject.interaction).eraseToAnyPublisher()
                     }.sink { completion in
                         if case let .failure(error) = completion {
                             print(error)
                         }
                     } receiveValue: { ix in
-                        guard let tx = toFlowTransaction(ix: ix),
-                            let txId = try? flow.sendTransaction(signedTrnaction: tx).wait() else {
-                            return
+                        do {
+                            let tx = try self.toFlowTransaction(ix: ix)
+                            let txId = try flow.sendTransaction(signedTrnaction: tx!).wait()
+                            print(txId.hex)
+                            promise(.success(txId.hex))
+                        } catch {
+                            print(error)
                         }
-                        print(txId.hex)
-                        promise(.success(txId.hex))
                     }.store(in: &self.cancellables)
             }
         }
-    }
-
-    public func authorization() {
-        let authz = serviceOfType(services: currentUser?.services, type: .authz)
-        if let preAuthz = serviceOfType(services: currentUser?.services, type: .preAuthz) {}
     }
 
     func resolvePreAuthz(resp: AuthnResponse) -> [SignableUser] {
@@ -136,7 +142,7 @@ public final class FCL: NSObject {
         return axs.compactMap { role, service in
 
             guard let address = service.identity?.address,
-                let keyId = service.identity?.keyId else {
+                  let keyId = service.identity?.keyId else {
                 return nil
             }
 
@@ -160,7 +166,7 @@ public final class FCL: NSObject {
             }
 
             guard let service = self.serviceOfType(services: currentUser.services, type: .authz),
-                let url = service.endpoint else {
+                  let url = service.endpoint else {
                 return
             }
 
@@ -179,7 +185,7 @@ public final class FCL: NSObject {
     public func authn() -> Future<FCLResponse, Error> {
         return Future { promise in
             guard let endpoint = self.config.get(key: .authn),
-                let url = URL(string: endpoint) else {
+                  let url = URL(string: endpoint) else {
                 return promise(.failure(Flow.FError.urlEmpty))
             }
             self.api.execHttpPost(url: url)
@@ -200,7 +206,7 @@ public final class FCL: NSObject {
 
     internal func openAuthenticationSession(service: Service) throws {
         guard let endpoint = service.endpoint,
-            let url = buildURL(url: endpoint, params: service.params) else {
+              let url = buildURL(url: endpoint, params: service.params) else {
             throw FCLError.invalidSession
         }
 
@@ -212,7 +218,7 @@ public final class FCL: NSObject {
             }
             self.session = session
             session.presentationContextProvider = self
-            session.prefersEphemeralWebBrowserSession = false
+            session.prefersEphemeralWebBrowserSession = !url.path.contains("authn")
             session.start()
         }
     }
@@ -244,9 +250,24 @@ extension FCL: ASWebAuthenticationPresentationContextProviding {
 
 extension FCL {
     func preSignableObject(blockId: String) -> PreSignable {
+        let cadence = """
+           transaction(test: String, testInt: Int) {
+               prepare(signer: AuthAccount) {
+                    log(signer.address)
+                    log(test)
+                    log(testInt)
+               }
+           }
+        """
+        let argument1 = Flow.Argument(value: .string("Test"))
+        let arg1 = argument1.toFCLArgument()
+        let argument2 = Flow.Argument(value: .int(1))
+        let arg2 = argument2.toFCLArgument()
+
         return PreSignable(
             roles: Role(proposer: true, authorizer: false, payer: true, param: false),
-            cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
+            cadence: cadence,
+            args: [argument1, argument2],
             interaction: Interaction(tag: "TRANSACTION",
                                      status: "OK",
                                      accounts: ["CURRENT_USER": SignableUser(kind: "ACCOUNT",
@@ -255,10 +276,13 @@ extension FCL {
                                                                                         authorizer: false,
                                                                                         payer: true,
                                                                                         param: false))],
-                                     message: Message(cadence: "transaction {\n  execute {\n    log(\"A transaction happened\")\n  }\n}\n",
+                                     arguments: [arg1.tempId: arg1, arg2.tempId: arg2],
+                                     message: Message(cadence: cadence,
                                                       refBlock: blockId,
-                                                      computeLimit: 10),
+                                                      computeLimit: 1000,
+                                                      arguments: [arg1.tempId, arg2.tempId]),
                                      proposer: "CURRENT_USER",
+                                     authorizations: ["CURRENT_USER"],
                                      payer: "CURRENT_USER")
         )
     }

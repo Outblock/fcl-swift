@@ -22,7 +22,7 @@ public class AddressRegistry {
             Flow.ChainId.emulator: [
                 FCL.ScriptAddress.fungibleToken,
                 FCL.ScriptAddress.flowToken,
-                FCL.ScriptAddress.flowFees,
+                FCL.ScriptAddress.flowFees
             ],
             Flow.ChainId.testnet: [
                 FCL.ScriptAddress.fungibleToken,
@@ -31,7 +31,7 @@ public class AddressRegistry {
                 FCL.ScriptAddress.flowTablesTaking,
                 FCL.ScriptAddress.lockedTokens,
                 FCL.ScriptAddress.stakingProxy,
-                FCL.ScriptAddress.nonFungibleToken,
+                FCL.ScriptAddress.nonFungibleToken
             ],
             Flow.ChainId.mainnet: [
                 FCL.ScriptAddress.fungibleToken,
@@ -40,8 +40,8 @@ public class AddressRegistry {
                 FCL.ScriptAddress.flowTablesTaking,
                 FCL.ScriptAddress.lockedTokens,
                 FCL.ScriptAddress.stakingProxy,
-                FCL.ScriptAddress.nonFungibleToken,
-            ],
+                FCL.ScriptAddress.nonFungibleToken
+            ]
         ]
 
         addresses.forEach { (chainId: Flow.ChainId, value: [FCL.ScriptAddress]) in
@@ -66,10 +66,10 @@ public class AddressRegistry {
 
     func processScript(script: String, chainId _: Flow.ChainId) -> String {
         var ret = script
-//        scriptTokenDict[chainId]?.forEach {
-//            ret = ret.replacingOccurrences(of: $0.key,
-//                                           with: $0.value.hexValue.addHexPrefix())
-//        }
+        //        scriptTokenDict[chainId]?.forEach {
+        //            ret = ret.replacingOccurrences(of: $0.key,
+        //                                           with: $0.value.hexValue.addHexPrefix())
+        //        }
         return ret
     }
 

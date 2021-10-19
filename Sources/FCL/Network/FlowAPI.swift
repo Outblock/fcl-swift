@@ -92,9 +92,9 @@ class API {
                 case .pending:
                     self.canContinue = true
                     guard let local = result.local, let updates = result.updates else { return }
-//                    SafariWebViewManager.openSafariWebView(service: local) {
-//                        self.canContinue = false
-//                    }
+                    //                    SafariWebViewManager.openSafariWebView(service: local) {
+                    //                        self.canContinue = false
+                    //                    }
                     self.poll(service: updates, canContinue: self.canContinue).sink { completion in
                         // TODO: Handle special error
                         if case let .failure(error) = completion {
@@ -169,7 +169,7 @@ class API {
         }
 
         guard let data = body,
-            let model = try? decoder.decode(T.self, from: data) else {
+              let model = try? decoder.decode(T.self, from: data) else {
             return nil
         }
 

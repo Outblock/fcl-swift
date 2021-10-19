@@ -21,8 +21,8 @@ struct ContentView: View {
                         }).onChange(of: viewModel.provider, perform: { _ in
                             viewModel.changeWallet()
                         })
-                            .pickerStyle(SegmentedPickerStyle())
-                            .padding()
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding()
                     }
 
                     Button("Auth") {

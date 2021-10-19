@@ -16,7 +16,7 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var preAuthz: String = ""
 
-    @Published var provider: Provider = .dapper
+    @Published var provider: Provider = .blocto
 
     @Published var isShowWeb: Bool = false
 
@@ -31,11 +31,10 @@ class ViewModel: NSObject, ObservableObject {
                    accessNode: "https://access-testnet.onflow.org",
                    scope: "email",
                    authn: provider.endpoint)
-//                   authn: "https://flow-wallet.blocto.app/api/flow/authn")
     }
 
     func changeWallet() {
-        fcl.config.put(key: .authn, value: provider.endpoint)
+        _ = fcl.config.put(key: .authn, value: provider.endpoint)
     }
 
     func authn() {

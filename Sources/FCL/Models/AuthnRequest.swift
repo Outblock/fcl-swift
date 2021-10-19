@@ -13,6 +13,6 @@ public struct AuthnRequest: Codable {
     let type: String?
     let endpoint: String
     let method: String
-//    var data: Dictionary<String, String>?
-//    var parameter: Dictionary<String, String>?
+    //    var data: Dictionary<String, String>?
+    //    var parameter: Dictionary<String, String>?
 }
