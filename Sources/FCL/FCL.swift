@@ -61,7 +61,7 @@ public final class FCL: NSObject {
         }
     }
 
-    public func authz() -> Future<String, Error> {
+    func authz(presignable: PreSignable) -> Future<String, Error> {
         return Future { [weak self] promise in
             guard let self = self, let currentUser = self.currentUser, currentUser.loggedIn else {
                 promise(.failure(Flow.FError.unauthenticated))
@@ -74,10 +74,12 @@ public final class FCL: NSObject {
             }
 
             let call = flow.accessAPI.getLatestBlock(sealed: true)
-
+            
             call.whenSuccess { block in
                 let blockId = block.id.hex
-                var preSignableObject = self.preSignableObject(blockId: blockId)
+                var object = presignable
+                object.interaction.message.refBlock = blockId
+                var preSignableObject = object
                 let data = try! JSONEncoder().encode(preSignableObject)
                 self.api.execHttpPost(url: endpoint, params: service.params, data: data)
                     .flatMap { response -> AnyPublisher<Interaction, Error> in
@@ -245,45 +247,5 @@ extension FCL: ASWebAuthenticationPresentationContextProviding {
             return anchor
         }
         return ASPresentationAnchor()
-    }
-}
-
-extension FCL {
-    func preSignableObject(blockId: String) -> PreSignable {
-        let cadence = """
-           transaction(test: String, testInt: Int) {
-               prepare(signer: AuthAccount) {
-                    log(signer.address)
-                    log(test)
-                    log(testInt)
-               }
-           }
-        """
-        let argument1 = Flow.Argument(value: .string("Test"))
-        let arg1 = argument1.toFCLArgument()
-        let argument2 = Flow.Argument(value: .int(1))
-        let arg2 = argument2.toFCLArgument()
-
-        return PreSignable(
-            roles: Role(proposer: true, authorizer: false, payer: true, param: false),
-            cadence: cadence,
-            args: [argument1, argument2],
-            interaction: Interaction(tag: "TRANSACTION",
-                                     status: "OK",
-                                     accounts: ["CURRENT_USER": SignableUser(kind: "ACCOUNT",
-                                                                             tempID: "CURRENT_USER",
-                                                                             role: Role(proposer: true,
-                                                                                        authorizer: false,
-                                                                                        payer: true,
-                                                                                        param: false))],
-                                     arguments: [arg1.tempId: arg1, arg2.tempId: arg2],
-                                     message: Message(cadence: cadence,
-                                                      refBlock: blockId,
-                                                      computeLimit: 1000,
-                                                      arguments: [arg1.tempId, arg2.tempId]),
-                                     proposer: "CURRENT_USER",
-                                     authorizations: ["CURRENT_USER"],
-                                     payer: "CURRENT_USER")
-        )
     }
 }

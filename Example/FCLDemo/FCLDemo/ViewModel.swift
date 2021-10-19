@@ -10,6 +10,7 @@ import FCL
 import Foundation
 import SafariServices
 import SwiftUI
+import Flow
 
 class ViewModel: NSObject, ObservableObject {
     @Published var address: String = ""
@@ -49,17 +50,35 @@ class ViewModel: NSObject, ObservableObject {
     }
 
     func authz() {
-        fcl.authz()
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    self.preAuthz = error.localizedDescription
-                }
-            } receiveValue: { txId in
-
-                self.preAuthz = txId
-
-            }.store(in: &cancellables)
+        fcl.mutate {
+            cadence {
+                """
+                           transaction(test: String, testInt: Int) {
+                               prepare(signer: AuthAccount) {
+                                    log(signer.address)
+                                    log(test)
+                                    log(testInt)
+                               }
+                           }
+                """
+            }
+            
+            arguments {
+                [.string("Test2"), .int(1)]
+            }
+            
+            gasLimit {
+                1000
+            }
+        }
+        .receive(on: DispatchQueue.main)
+        .sink { completion in
+            if case let .failure(error) = completion {
+                self.preAuthz = error.localizedDescription
+            }
+        } receiveValue: { txId in
+            self.preAuthz = txId
+        }.store(in: &cancellables)
     }
 }
 
