@@ -54,7 +54,8 @@ extension API {
                         promise(.failure(FCLError.declined))
                     case .pending:
                         self.canContinue = true
-                        guard let local = result.local, let updates = result.updates else {
+                        guard let local = result.local,
+                              let updates = result.updates ?? result.authorizationUpdates else {
                             promise(.failure(FCLError.generic))
                             return
                         }

@@ -164,7 +164,7 @@ struct Interaction: Encodable {
     var tag: String = "UNKNOWN"
     var assigns: [String: String] = [String: String]()
     var status: String = "OK"
-    var reason: String? = nil
+    var reason: String?
     var accounts: [String: SignableUser] = [String: SignableUser]()
     var params: [String: String] = [String: String]()
     var arguments: [String: Argument] = [String: Argument]()

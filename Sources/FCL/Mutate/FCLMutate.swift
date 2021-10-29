@@ -12,11 +12,11 @@ import Combine
 
 extension FCL {
     public func mutate(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<String, Error> {
-        
+
         var script: Flow.Script = .init(data: Data())
         var args: [Flow.Argument] = []
         var gasLimit = BigUInt(100)
-        
+
         builder().forEach { txValue in
             switch txValue {
             case let .script(value):
@@ -29,11 +29,11 @@ extension FCL {
                 break
             }
         }
-        
+
         let cadenceString = String(data: script.data, encoding: .utf8)!
-        
+
         let fclArgs = args.toFCLArguments()
-        
+
         let object = PreSignable(
             roles: Role(proposer: true, authorizer: false, payer: true, param: false),
             cadence: cadenceString,
@@ -48,13 +48,12 @@ extension FCL {
                                      proposer: nil,
                                      authorizations: [],
                                      payer: nil
-                                    )
+            )
         )
-        
+
         return fcl.authz(presignable: object)
     }
 }
-
 
 extension Array where Element == Flow.Argument {
     func toFCLArguments() -> [String: Argument] {
@@ -63,7 +62,7 @@ extension Array where Element == Flow.Argument {
             let fclArg = arg.toFCLArgument()
             dict[fclArg.tempId] = fclArg
         }
-        
+
         return dict
     }
 }

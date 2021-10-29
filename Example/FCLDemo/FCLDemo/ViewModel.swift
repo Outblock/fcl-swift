@@ -53,20 +53,20 @@ class ViewModel: NSObject, ObservableObject {
         fcl.mutate {
             cadence {
                 """
-                           transaction(test: String, testInt: Int) {
-                               prepare(signer: AuthAccount) {
-                                    log(signer.address)
-                                    log(test)
-                                    log(testInt)
-                               }
-                           }
+                   transaction(test: String, testInt: Int) {
+                       prepare(signer: AuthAccount) {
+                            log(signer.address)
+                            log(test)
+                            log(testInt)
+                       }
+                   }
                 """
             }
-            
+
             arguments {
                 [.string("Test2"), .int(1)]
             }
-            
+
             gasLimit {
                 1000
             }

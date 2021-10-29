@@ -74,7 +74,7 @@ public final class FCL: NSObject {
             }
 
             let call = flow.accessAPI.getLatestBlock(sealed: true)
-            
+
             call.whenSuccess { block in
                 let blockId = block.id.hex
                 var object = presignable
