@@ -32,13 +32,49 @@ extension FCL {
         return call.toFuture()
     }
 
-    public func verifyUserSignatures() {
+    //    public func verifyUserSignatures(message: String, signatures: [Flow.TransactionSignature]) -> Future<Bool, Error> {
+    //        let call = try flow.verifyUserSignature(message: message, signatures: signatures)
+    //        call.whenSuccess { response in
+    //            response.fields?.value.toBool()
+    //        }
+    //    }
 
+    func send(ix: Interaction? = nil ) -> Future<Interaction, Error> {
+        return Future { promise in
+
+            let resolvers: [Resolver] = [CadenceResolver(),
+                                         AccountsResolver(),
+                                         RefBlockResolver(),
+                                         SequenceNumberResolver(),
+                                         SignatureResolver()]
+
+            self.pipe(ix: ix ?? Interaction(), resolvers: resolvers).sink { completion  in
+                if case let .failure(error) = completion {
+                    promise(.failure(error))
+                }
+            } receiveValue: { ix in
+                promise(.success(ix))
+            }.store(in: &fcl.cancellables)
+
+        }
     }
 
-    //    public func send(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<Flow.ID, Error> {
-    ////        flow.sendTransaction(signers: <#T##[FlowSigner]#>, builder: <#T##() -> [Flow.TransactionBuild]#>)
-    //    }
+    func pipe(ix: Interaction, resolvers: [Resolver]) -> Future<Interaction, Error> {
+
+        if let resolver = resolvers.first {
+            return resolver.resolve(ix: ix).flatMap { newIX in
+                self.pipe(ix: newIX, resolvers: Array(resolvers.dropFirst()))
+            }.asFuture()
+        } else {
+            return Future { $0(.success(ix))  }
+        }
+    }
+
+    func sendIX(ix: Interaction) -> Future<Flow.ID, Error> {
+        return ix.toFlowTransaction().flatMap { tx in
+            flow.accessAPI.sendTransaction(transaction: tx).toFuture()
+        }.asFuture()
+    }
 
     public func mutate(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<String, Error> {
 
@@ -60,26 +96,30 @@ extension FCL {
         }
 
         let cadenceString = String(data: script.data, encoding: .utf8)!
-
         let fclArgs = args.toFCLArguments()
 
-        let object = PreSignable(
-            roles: Role(proposer: true, authorizer: false, payer: true, param: false),
-            cadence: cadenceString,
-            args: args,
-            interaction: Interaction(tag: .transaction,
-                                     status: .ok,
-                                     arguments: fclArgs,
-                                     message: Message(cadence: cadenceString,
-                                                      refBlock: "",
-                                                      computeLimit: Int(gasLimit),
-                                                      arguments: Array(fclArgs.keys)),
-                                     proposer: nil,
-                                     authorizations: [],
-                                     payer: nil
-            )
-        )
+        var ix = Interaction()
+        ix.tag = .transaction
+        ix.message.cadence = cadenceString
+        ix.status = .ok
+        ix.arguments = fclArgs
 
-        return fcl.authz(presignable: object)
+        //        let object = PreSignable(
+        //            roles: Role(proposer: true, authorizer: false, payer: true, param: false),
+        //            cadence: cadenceString,
+        //            args: args,
+        //            interaction: Interaction(tag: .transaction,
+        //                                     status: .ok,
+        //                                     arguments: fclArgs,
+        //                                     message: Message(cadence: cadenceString,
+        //                                                      refBlock: "",
+        //                                                      computeLimit: Int(gasLimit),
+        //                                                      arguments: Array(fclArgs.keys)),
+        //                                     proposer: nil,
+        //                                     authorizations: [],
+        //                                     payer: nil
+        //            )
+        //        )
+        return send(ix: ix).flatMap { self.sendIX(ix: $0) }.map { $0.hex }.asFuture()
     }
 }

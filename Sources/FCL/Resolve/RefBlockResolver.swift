@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import Flow
 
-final class ResolveRefBlock: Resolver {
+final class RefBlockResolver: Resolver {
     func resolve(ix: Interaction) -> Future<Interaction, Error> {
         return Future { promise in
             let call = flow.accessAPI.getLatestBlock(sealed: true)

@@ -9,11 +9,11 @@ import Foundation
 import Combine
 import Flow
 
-final class ResolveSequenceNumber: Resolver {
+final class SequenceNumberResolver: Resolver {
     func resolve(ix: Interaction) -> Future<Interaction, Error> {
         return Future { promise in
 
-            guard let proposer = ix.message.proposer,
+            guard let proposer = ix.proposer,
                   let account = ix.accounts[proposer],
                   let address = account.addr,
                   let keyID = account.keyID else {

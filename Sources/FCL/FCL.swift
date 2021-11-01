@@ -17,7 +17,7 @@ public final class FCL: NSObject {
 
     private var session: ASWebAuthenticationSession?
 
-    private let api = API()
+    internal let api = API()
 
     @Published var currentUser: User?
 
@@ -115,15 +115,15 @@ public final class FCL: NSObject {
                         if case let .failure(error) = completion {
                             print(error)
                         }
-                    } receiveValue: { ix in
-                        do {
-                            let tx = try ix.toFlowTransaction()
-                            let txId = try flow.sendTransaction(signedTransaction: tx!).wait()
-                            print(txId.hex)
-                            promise(.success(txId.hex))
-                        } catch {
-                            print(error)
-                        }
+                    } receiveValue: { _ in
+                        //                        do {
+                        //                            let tx = try ix.toFlowTransaction()
+                        //                            let txId = try flow.sendTransaction(signedTransaction: tx!).wait()
+                        //                            print(txId.hex)
+                        //                            promise(.success(txId.hex))
+                        //                        } catch {
+                        //                            print(error)
+                        //                        }
                     }.store(in: &self.cancellables)
             }
         }
@@ -227,14 +227,14 @@ public final class FCL: NSObject {
 
     // MARK: - Util
 
-    private func buildUser(authn: AuthnResponse) -> User? {
+    internal func buildUser(authn: AuthnResponse) -> User? {
         guard let address = authn.data?.addr else { return nil }
         return User(addr: Flow.Address(hex: address),
                     loggedIn: true,
                     services: authn.data?.services)
     }
 
-    private func serviceOfType(services: [Service]?, type: FCLServiceType) -> Service? {
+    internal func serviceOfType(services: [Service]?, type: FCLServiceType) -> Service? {
         return services?.first(where: { service in
             service.type == type
         })
