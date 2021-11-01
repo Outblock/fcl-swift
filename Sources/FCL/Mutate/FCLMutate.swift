@@ -103,25 +103,8 @@ extension FCL {
         ix.status = .ok
         ix.message.cadence = cadenceString
         ix.message.computeLimit = Int(gasLimit)
-        ix.message.arguments = Array(fclArgs.keys)
-        ix.arguments = fclArgs
-
-        //        let object = PreSignable(
-        //            roles: Role(proposer: true, authorizer: false, payer: true, param: false),
-        //            cadence: cadenceString,
-        //            args: args,
-        //            interaction: Interaction(tag: .transaction,
-        //                                     status: .ok,
-        //                                     arguments: fclArgs,
-        //                                     message: Message(cadence: cadenceString,
-        //                                                      refBlock: "",
-        //                                                      computeLimit: Int(gasLimit),
-        //                                                      arguments: Array(fclArgs.keys)),
-        //                                     proposer: nil,
-        //                                     authorizations: [],
-        //                                     payer: nil
-        //            )
-        //        )
+        ix.message.arguments = Array(fclArgs.map{ $0.0 })
+        ix.arguments = fclArgs.reduce(into: [:]) { $0[$1.0] = $1.1 }
         return send(ix: ix).flatMap { self.sendIX(ix: $0) }.map { $0.hex }.asFuture()
     }
 }
