@@ -11,6 +11,35 @@ import BigInt
 import Combine
 
 extension FCL {
+    /// Submit scripts to query the blockchain.
+    /// - parameters:
+    ///     - signers: A list of `FlowSigner` to sign the transaction
+    /// - returns: Future<`Flow.ScriptResponse`, Error>.
+    public func `query`(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<Flow.ScriptResponse, Error> {
+        var script: Flow.Script = .init(data: Data())
+        var args: [Flow.Argument] = []
+        builder().forEach { txValue in
+            switch txValue {
+            case let .script(value):
+                script = value
+            case let .argument(value):
+                args = value
+            default:
+                break
+            }
+        }
+        let call = flow.accessAPI.executeScriptAtLatestBlock(script: script, arguments: args)
+        return call.toFuture()
+    }
+
+    public func verifyUserSignatures() {
+
+    }
+
+    //    public func send(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<Flow.ID, Error> {
+    ////        flow.sendTransaction(signers: <#T##[FlowSigner]#>, builder: <#T##() -> [Flow.TransactionBuild]#>)
+    //    }
+
     public func mutate(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<String, Error> {
 
         var script: Flow.Script = .init(data: Data())
@@ -52,17 +81,5 @@ extension FCL {
         )
 
         return fcl.authz(presignable: object)
-    }
-}
-
-extension Array where Element == Flow.Argument {
-    func toFCLArguments() -> [String: Argument] {
-        var dict = [String: Argument]()
-        forEach { arg in
-            let fclArg = arg.toFCLArgument()
-            dict[fclArg.tempId] = fclArg
-        }
-
-        return dict
     }
 }

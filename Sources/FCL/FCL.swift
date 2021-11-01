@@ -82,7 +82,7 @@ public final class FCL: NSObject {
                 var preSignableObject = object
                 let data = try! JSONEncoder().encode(preSignableObject)
                 self.api.execHttpPost(url: endpoint, params: service.params, data: data)
-                    .flatMap { response -> AnyPublisher<Interaction, Error> in
+                    .flatMap { response -> Future<Interaction, Error> in
                         let signableUsers = self.resolvePreAuthz(resp: response)
                         var accounts = [String: SignableUser]()
                         preSignableObject.interaction.authorizations.removeAll()
@@ -110,15 +110,15 @@ public final class FCL: NSObject {
                         }
 
                         preSignableObject.interaction.accounts = accounts
-                        return self.resolveSignatures(interaction: preSignableObject.interaction).eraseToAnyPublisher()
+                        return SignatureResolver().resolve(ix: preSignableObject.interaction)
                     }.sink { completion in
                         if case let .failure(error) = completion {
                             print(error)
                         }
                     } receiveValue: { ix in
                         do {
-                            let tx = try self.toFlowTransaction(ix: ix)
-                            let txId = try flow.sendTransaction(signedTrnaction: tx!).wait()
+                            let tx = try ix.toFlowTransaction()
+                            let txId = try flow.sendTransaction(signedTransaction: tx!).wait()
                             print(txId.hex)
                             promise(.success(txId.hex))
                         } catch {

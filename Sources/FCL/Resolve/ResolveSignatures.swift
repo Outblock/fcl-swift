@@ -9,8 +9,8 @@ import Combine
 import Flow
 import Foundation
 
-extension FCL {
-    func resolveSignatures(interaction: Interaction) -> Future<Interaction, Error> {
+class SignatureResolver: Resolver {
+    func resolve(ix interaction: Interaction) -> Future<Interaction, Error> {
         return Future { promise in
             var ix = interaction
 
@@ -37,29 +37,22 @@ extension FCL {
                 self.fetchSignature(ix: ix, payload: insidePayload, id: address)
             }.compactMap { $0 }
 
-            let combined = Publishers.MergeMany(publishers).collect()
+            Publishers.MergeMany(publishers).collect()
+                .flatMap { list -> Publishers.Collect<Publishers.MergeMany<AnyPublisher<(String, String), Error>>> in
+                    list.forEach { id, signature in
+                        ix.accounts[id]?.signature = signature
+                    }
 
-            combined.sink { completion in
-                print(completion)
-            } receiveValue: { list in
+                    let outsideSigners = ix.findOutsideSigners
+                    var outPublishers: [AnyPublisher<(String, String), Error>] = []
+                    if let outsidePayload = self.encodeOutsideMessage(transaction: tx, ix: ix, insideSigners: insideSigners) {
+                        outPublishers = outsideSigners.map { address in
+                            self.fetchSignature(ix: ix, payload: outsidePayload, id: address)
+                        }.compactMap { $0.eraseToAnyPublisher() }
 
-                list.forEach { id, signature in
-                    ix.accounts[id]?.signature = signature
-                }
-
-                let outsideSigners = ix.findOutsideSigners
-                guard let outsidePayload = self.encodeOutsideMessage(transaction: tx, ix: ix, insideSigners: insideSigners) else {
-                    promise(.failure(FCLError.generic))
-                    return
-                }
-
-                let outPublishers = outsideSigners.map { address in
-                    self.fetchSignature(ix: ix, payload: outsidePayload, id: address)
-                }.compactMap { $0.eraseToAnyPublisher() }
-
-                let OutCombined = Publishers.MergeMany(outPublishers).collect()
-
-                OutCombined.sink { completion in
+                    }
+                    return Publishers.MergeMany(outPublishers).collect()
+                }.sink { completion in
                     if case let .failure(error) = completion {
                         print(error)
                     }
@@ -69,8 +62,6 @@ extension FCL {
                     }
                     promise(.success(ix))
                 }.store(in: &fcl.cancellables)
-
-            }.store(in: &fcl.cancellables)
         }
     }
 
@@ -117,7 +108,7 @@ extension FCL {
             return nil
         }
 
-        var tx = try flow.buildTransaction(fetchSequenceNumber: false) {
+        var tx = try flow.buildTransaction {
             cadence {
                 ix.message.cadence ?? ""
             }

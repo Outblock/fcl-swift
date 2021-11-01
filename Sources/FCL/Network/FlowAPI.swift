@@ -12,7 +12,7 @@ import Foundation
 import NIO
 import NIOHTTP1
 
-class API {
+final class API {
     internal let defaultUserAgent = "Flow SWIFT SDK"
     internal var cancellables = Set<AnyCancellable>()
     let client = HTTPClient(eventLoopGroupProvider: .createNew)

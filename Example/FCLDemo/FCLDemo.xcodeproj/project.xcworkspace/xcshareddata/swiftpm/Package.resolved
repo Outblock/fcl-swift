@@ -32,8 +32,8 @@
         "package": "flow-swift",
         "repositoryURL": "https://github.com/zed-io/flow-swift.git",
         "state": {
-          "branch": null,
-          "revision": "75814ba057e8fbef4a1eaef3bedfbabb9cda0953",
+          "branch": "de8e14e0e",
+          "revision": "de8e14e0e56603793e806970a7afe684964e60e9",
           "version": null
         }
       },

@@ -230,7 +230,52 @@ struct Interaction: Encodable {
 
         return Flow.TransactionProposalKey(address: Flow.Address(hex: address),
                                            keyIndex: keyID,
-                                           sequenceNumber: BigUInt(account.sequenceNum ?? 0))
+                                           sequenceNumber: BigInt(account.sequenceNum ?? 0))
+    }
+
+    func toFlowTransaction() throws -> Flow.Transaction? {
+        guard let proposalKey = createFlowProposalKey(),
+              let payerAddress = accounts[payer ?? ""]?.addr else {
+            return nil
+        }
+
+        var tx = Flow.Transaction(script: Flow.Script(script: message.cadence ?? ""),
+                                  arguments: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument},
+                                  referenceBlockId: Flow.ID(hex: message.refBlock ?? ""),
+                                  gasLimit: BigUInt(message.computeLimit ?? 100),
+                                  proposalKey: proposalKey,
+                                  payerAddress: Flow.Address(hex: payerAddress),
+                                  authorizers: authorizations
+                                    .compactMap { cid in accounts[cid]?.addr }
+                                    .uniqued()
+                                    .compactMap { Flow.Address(hex: $0) })
+
+        let insideSigners = findInsideSigners
+        insideSigners.forEach { address in
+            if let account = accounts[address],
+               let address = account.addr,
+               let keyId = account.keyID,
+               let signature = account.signature {
+                tx.addPayloadSignature(address: Flow.Address(hex: address),
+                                       keyIndex: keyId,
+                                       signature: Data(signature.hexValue))
+            }
+        }
+
+        let outsideSigners = findOutsideSigners
+
+        outsideSigners.forEach { address in
+            if let account = accounts[address],
+               let address = account.addr,
+               let keyId = account.keyID,
+               let signature = account.signature {
+                tx.addEnvelopeSignature(address: Flow.Address(hex: address),
+                                        keyIndex: keyId,
+                                        signature: Data(signature.hexValue))
+            }
+        }
+
+        return tx
     }
 }
 
