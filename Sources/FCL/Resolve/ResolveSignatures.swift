@@ -14,7 +14,7 @@ class SignatureResolver: Resolver {
         return Future { promise in
             var ix = interaction
 
-            guard ix.tag == "TRANSACTION" else {
+            guard ix.tag == .transaction else {
                 promise(.failure(FCLError.generic))
                 return
             }

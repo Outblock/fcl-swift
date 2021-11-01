@@ -6,11 +6,24 @@
 //
 
 import Foundation
+import Combine
 
-extension FCL {
+final class ResolveAccounts: Resolver {
+
+    func resolve(ix: Interaction) -> Future<Interaction, Error> {
+        return Future { promise in
+
+            if (ix.isTransaction || ix.isScript) {
+                // TODO: Implement this
+
+            }
+            promise(.success(ix))
+        }
+    }
+
     func resolveAccounts(interaction: Interaction) {
         var ix = interaction
-        guard ix.tag == "TRANSACTION" else {
+        guard ix.tag == .transaction else {
             //        promise(.failure(FCLError.generic))
             return
         }

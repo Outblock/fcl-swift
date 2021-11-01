@@ -27,6 +27,7 @@ public class Config {
         return dict[key.rawValue] ?? nil
     }
 
+    @discardableResult
     public func put(key: Key, value: String?) -> Self {
         if let valueString = value {
             dict[key.rawValue] = valueString
@@ -34,6 +35,7 @@ public class Config {
         return self
     }
 
+    @discardableResult
     public func remove(key: Key) -> Config {
         dict.removeValue(forKey: key.rawValue)
         return self
@@ -43,6 +45,7 @@ public class Config {
         return dict[key] ?? nil
     }
 
+    @discardableResult
     public func put(key: String, value: String?) -> Self {
         if let valueString = value {
             dict[key] = valueString
@@ -50,11 +53,13 @@ public class Config {
         return self
     }
 
+    @discardableResult
     public func remove(key: String) -> Config {
         dict.removeValue(forKey: key)
         return self
     }
 
+    @discardableResult
     public func clear() -> Config {
         dict.removeAll()
         return self

@@ -161,9 +161,9 @@ extension Flow.Argument {
 }
 
 struct Interaction: Encodable {
-    var tag: String = "UNKNOWN"
+    var tag: Tag = .unknown
     var assigns: [String: String] = [String: String]()
-    var status: String = "OK"
+    var status: Status = .ok
     var reason: String?
     var accounts: [String: SignableUser] = [String: SignableUser]()
     var params: [String: String] = [String: String]()
@@ -177,6 +177,36 @@ struct Interaction: Encodable {
     var block: Block = Block()
     var account: Account = Account()
     var collection: Id = Id()
+
+    enum Status: String, CaseIterable, Codable {
+        case ok = "OK"
+        case bad = "BAD"
+    }
+
+    enum Tag: String, CaseIterable, Codable {
+        case unknown = "UNKNOWN"
+        case script = "SCRIPT"
+        case transaction = "TRANSACTION"
+        case getTransactionStatus = "GET_TRANSACTION_STATUS"
+        case getAccount = "GET_ACCOUNT"
+        case getEvents = "GET_EVENTS"
+        case getLatestBlock = "GET_LATEST_BLOCK"
+        case ping = "PING"
+        case getTransaction = "GET_TRANSACTION"
+        case getBlockById = "GET_BLOCK_BY_ID"
+        case getBlockByHeight = "GET_BLOCK_BY_HEIGHT"
+        case getBlock = "GET_BLOCK"
+        case getBlockHeader = "GET_BLOCK_HEADER"
+        case getCollection = "GET_COLLECTION"
+    }
+
+    var isUnknown: Bool { self.is(.unknown) }
+    var isScript: Bool { self.is(.script) }
+    var isTransaction: Bool { self.is(.transaction) }
+
+    func `is`(_ tag: Tag) -> Bool {
+        self.tag == tag
+    }
 
     var findInsideSigners: [String] {
         // Inside Signers Are: (authorizers + proposer) - payer
