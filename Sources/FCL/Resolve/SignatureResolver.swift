@@ -21,6 +21,7 @@ final class SignatureResolver: Resolver {
 
             let insideSigners = interaction.findInsideSigners
 
+            // TODO: Use FlatMap here
             ix.toFlowTransaction().sink { completion in
                 if case let .failure(error) = completion {
                     promise(.failure(error))
@@ -79,14 +80,7 @@ final class SignatureResolver: Resolver {
         }.eraseToAnyPublisher()
     }
 
-    //    func encodeInsideMessage(ix: inout Interaction) -> String? {
-    //        guard let tx = try? toFlowTransaction(ix: ix) else { return nil }
-    //        ix.accounts[ix.proposer ?? ""]?.sequenceNum = Int(tx.proposalKey.sequenceNumber)
-    //        return tx.signablePlayload?.hexValue
-    //    }
-
     func encodeOutsideMessage(transaction: Flow.Transaction, ix: Interaction, insideSigners: [String]) -> String? {
-        //    guard var tx = toFlowTransaction(ix: ix) else { return nil }
         var tx = transaction
         insideSigners.forEach { address in
             if let account = ix.accounts[address],
@@ -101,77 +95,7 @@ final class SignatureResolver: Resolver {
 
         return tx.signableEnvelope?.hexValue
     }
-
-    //    // TODO: Move it to Interaction
-    //    func toFlowTransaction(ix: Interaction) throws -> Flow.Transaction? {
-    //        guard let proposalKey = ix.createFlowProposalKey(),
-    //              let payerAddress = ix.accounts[ix.payer ?? ""]?.addr else {
-    //            return nil
-    //        }
-    //
-    //        var tx = try flow.buildTransaction {
-    //            cadence {
-    //                ix.message.cadence ?? ""
-    //            }
-    //
-    //            refBlock {
-    //                ix.message.refBlock ?? ""
-    //            }
-    //
-    //            gasLimit {
-    //                ix.message.computeLimit ?? 100
-    //            }
-    //
-    //            arguments {
-    //                ix.message.arguments.compactMap { tempId in
-    //                    ix.arguments[tempId]?.asArgument
-    //                }
-    //            }
-    //
-    //            proposer {
-    //                proposalKey
-    //            }
-    //
-    //            payer {
-    //                payerAddress
-    //            }
-    //
-    //            authorizers {
-    //                ix.authorizations
-    //                    .compactMap { cid in ix.accounts[cid]?.addr }
-    //                    .uniqued()
-    //                    .compactMap { Flow.Address(hex: $0) }
-    //            }
-    //        }
-    //
-    //        let insideSigners = ix.findInsideSigners
-    //        insideSigners.forEach { address in
-    //            if let account = ix.accounts[address],
-    //               let address = account.addr,
-    //               let keyId = account.keyID,
-    //               let signature = account.signature {
-    //                tx.addPayloadSignature(address: Flow.Address(hex: address),
-    //                                       keyIndex: keyId,
-    //                                       signature: Data(signature.hexValue))
-    //            }
-    //        }
-    //
-    //        let outsideSigners = ix.findOutsideSigners
-    //
-    //        outsideSigners.forEach { address in
-    //            if let account = ix.accounts[address],
-    //               let address = account.addr,
-    //               let keyId = account.keyID,
-    //               let signature = account.signature {
-    //                tx.addEnvelopeSignature(address: Flow.Address(hex: address),
-    //                                        keyIndex: keyId,
-    //                                        signature: Data(signature.hexValue))
-    //            }
-    //        }
-    //
-    //        return tx
-    //    }
-
+    
     func buildSignable(ix: Interaction, payload: String, account: SignableUser) -> Signable? {
         return Signable(message: payload,
                         keyId: account.keyID,

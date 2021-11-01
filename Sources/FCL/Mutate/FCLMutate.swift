@@ -100,8 +100,10 @@ extension FCL {
 
         var ix = Interaction()
         ix.tag = .transaction
-        ix.message.cadence = cadenceString
         ix.status = .ok
+        ix.message.cadence = cadenceString
+        ix.message.computeLimit = Int(gasLimit)
+        ix.message.arguments = Array(fclArgs.keys)
         ix.arguments = fclArgs
 
         //        let object = PreSignable(
