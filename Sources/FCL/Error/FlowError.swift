@@ -15,6 +15,12 @@ public enum FCLError: String, Error, LocalizedError {
     case invalidResponse
     case decodeFailure
     case unauthenticated
+    case missingPreAuthz
+    case missingPayer
+    case encodeFailure
+    case convertToTxFailure
+    case invaildProposer
+    case fetchAccountFailure
 
     public var errorDescription: String? {
         return rawValue

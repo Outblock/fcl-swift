@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-final class ResolveCadence: Resolver {
+final class CadenceResolver: Resolver {
     func resolve( ix: Interaction) -> Future<Interaction, Error> {
         return Future { promise in
             if (ix.isTransaction || ix.isScript) {
