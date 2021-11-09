@@ -71,7 +71,6 @@ Configuration keys that start with `0x` will be used to find-and-replace their v
 This allows you to write your script or transaction once and not have to update code when you point your application at a different Flow network.
 
 ```swift
-import * as fcl from "@onflow/fcl";
 
 fcl.config
     .put(key: "0xFungibleToken", value: "0xf233dcee88fe0abe")
@@ -113,7 +112,6 @@ Calling this method will authenticate the current user via any wallet that suppo
 #### Usage
 
 ```swift
-import * as fcl from "@onflow/fcl";
 fcl
   .config()
   .put("accessNode.api", "https://access-testnet.onflow.org")
