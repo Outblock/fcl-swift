@@ -50,7 +50,6 @@ final class SignatureResolver: Resolver {
                             outPublishers = outsideSigners.map { address in
                                 self.fetchSignature(ix: ix, payload: outsidePayload, id: address)
                             }.compactMap { $0.eraseToAnyPublisher() }
-
                         }
                         return Publishers.MergeMany(outPublishers).collect()
                     }.sink { completion in
@@ -95,7 +94,7 @@ final class SignatureResolver: Resolver {
 
         return tx.signableEnvelope?.hexValue
     }
-    
+
     func buildSignable(ix: Interaction, payload: String, account: SignableUser) -> Signable? {
         return Signable(message: payload,
                         keyId: account.keyID,
@@ -107,5 +106,4 @@ final class SignatureResolver: Resolver {
                         }, // TODO: Add args
                         interaction: ix)
     }
-
 }

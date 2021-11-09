@@ -61,6 +61,40 @@ public final class FCL: NSObject {
         }
     }
 
+    public func signUserMessage(message: String) -> Future<String, Error> {
+        return Future { [weak self] promise in
+            guard let self = self, let currentUser = self.currentUser, currentUser.loggedIn else {
+                promise(.failure(Flow.FError.unauthenticated))
+                return
+            }
+
+            guard let service = self.serviceOfType(services: currentUser.services, type: .userSignature),
+                  let endpoint = service.endpoint else {
+                promise(.failure(FCLError.invaildService))
+                return
+            }
+
+            struct SignableMessage: Codable {
+                let message: String
+            }
+
+            guard let messageData = message.data(using: .utf8),
+                  let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue)) else {
+                promise(.failure(FCLError.encodeFailure))
+                return
+            }
+
+            self.api.execHttpPost(url: endpoint, method: .get, params: service.params)
+                .sink { completion in
+                    if case let .failure(error) = completion {
+                        print(error)
+                    }
+                } receiveValue: { response in
+                    print(response)
+                }.store(in: &self.cancellables)
+        }
+    }
+
     func authz(presignable: PreSignable) -> Future<String, Error> {
         return Future { [weak self] promise in
             guard let self = self, let currentUser = self.currentUser, currentUser.loggedIn else {
@@ -208,7 +242,7 @@ public final class FCL: NSObject {
 
     internal func openAuthenticationSession(service: Service) throws {
         guard let endpoint = service.endpoint,
-              let url = buildURL(url: endpoint, params: service.params) else {
+              let url = api.buildURL(url: endpoint, params: service.params) else {
             throw FCLError.invalidSession
         }
 

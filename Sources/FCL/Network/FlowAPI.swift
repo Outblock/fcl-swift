@@ -1,202 +1,154 @@
 //
 //  File.swift
+//  File
 //
-//
-//  Created by lmcmz on 29/8/21.
+//  Created by lmcmz on 4/10/21.
 //
 
-import AsyncHTTPClient
 import Combine
-import Flow
 import Foundation
-import NIO
-import NIOHTTP1
 
 final class API {
     internal let defaultUserAgent = "Flow SWIFT SDK"
     internal var cancellables = Set<AnyCancellable>()
-    let client = HTTPClient(eventLoopGroupProvider: .createNew)
+
+    enum HTTPMethod: String {
+        case get = "GET"
+        case post = "POST"
+    }
 
     // TODO: Improve this
     internal var canContinue = true
 
-    func fetchService<T>(url: URL, method: HTTPMethod) -> EventLoopFuture<T> where T: Decodable {
-        let eventLoop = EmbeddedEventLoop()
-        let promise = eventLoop.makePromise(of: T.self)
-        guard var request = try? HTTPClient.Request(url: url, method: method)
-        else {
-            promise.fail(Flow.FError.urlInvaild)
-            return promise.futureResult
+    func fetchService(url: URL, method: HTTPMethod = .get, params: [String: String]? = [:], data: Data? = nil) -> AnyPublisher<AuthnResponse, Error> {
+        guard let fullURL = buildURL(url: url, params: params) else {
+            return Result.Publisher(FCLError.generic).eraseToAnyPublisher()
         }
-        request.headers.add(name: "User-Agent", value: defaultUserAgent)
+        var request = URLRequest(url: fullURL)
+        request.httpMethod = method.rawValue
 
-        let call = client.execute(request: request)
-        call.whenSuccess { response in
-            let decodeModel: T? = self.decodeToModel(body: response.body)
-            guard let model = decodeModel else {
-                promise.fail(Flow.FError.decodeFailure)
-                return
-            }
-            promise.succeed(model)
+        if let httpBody = data {
+            request.httpBody = httpBody
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
         }
-        call.whenFailure { error in
-            promise.fail(error)
+
+        if let location = fcl.config.get(key: .location) {
+            request.addValue(location, forHTTPHeaderField: "referer")
         }
-        return promise.futureResult
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let config = URLSessionConfiguration.default
+        return URLSession(configuration: config).dataTaskPublisher(for: request)
+            .map { $0.data }
+            .decode(type: AuthnResponse.self, decoder: decoder)
+            .eraseToAnyPublisher()
     }
 
-    func fetchService<T, V>(url: URL, method: HTTPMethod, body: V? = nil) -> EventLoopFuture<T> where T: Decodable, V: Encodable {
-        let eventLoop = EmbeddedEventLoop()
-        let promise = eventLoop.makePromise(of: T.self)
-        guard let encodeModel = body, let data = try? JSONEncoder().encode(encodeModel) else {
-            promise.fail(Flow.FError.encodeFailure)
-            return promise.futureResult
+    func execHttpPost(service: Service?, data: Data? = nil) -> Future<AuthnResponse, Error> {
+        guard let ser = service, let url = ser.endpoint, let param = ser.params else {
+            return Future { $0(.failure(FCLError.generic)) }
         }
-        guard var request = try? HTTPClient.Request(url: url, method: method, body: HTTPClient.Body.data(data))
-        else {
-            promise.fail(Flow.FError.urlInvaild)
-            return promise.futureResult
-        }
-        request.headers.add(name: "User-Agent", value: defaultUserAgent)
 
-        let call = client.execute(request: request)
-        call.whenSuccess { response in
-            let decodeModel: T? = self.decodeToModel(body: response.body)
-            guard let model = decodeModel else {
-                promise.fail(Flow.FError.decodeFailure)
-                return
-            }
-            promise.succeed(model)
-        }
-        call.whenFailure { error in
-            promise.fail(error)
-        }
-        return promise.futureResult
+        return execHttpPost(url: url, params: param, data: data)
     }
 
-    func execHttpPost(url: String, method: HTTPMethod = .POST) -> Future<AuthnResponse, Error> {
+    func execHttpPost(url: URL, method: HTTPMethod = .post, params: [String: String]? = [:], data: Data? = nil) -> Future<AuthnResponse, Error> {
         return Future { promise in
-
-            guard let url = URL(string: url) else {
-                promise(.failure(Flow.FError.urlInvaild))
-                return
-            }
-
-            let call: EventLoopFuture<AuthnResponse> = self.fetchService(url: url, method: method)
-            call.whenSuccess { result in
-                switch result.status {
-                case .approved:
-                    promise(.success(result))
-                case .declined:
-                    promise(.failure(Flow.FError.declined))
-                case .pending:
-                    self.canContinue = true
-                    guard let local = result.local, let updates = result.updates else { return }
-                    //                    SafariWebViewManager.openSafariWebView(service: local) {
-                    //                        self.canContinue = false
-                    //                    }
-                    self.poll(service: updates, canContinue: self.canContinue).sink { completion in
-                        // TODO: Handle special error
-                        if case let .failure(error) = completion {
+            self.fetchService(url: url, method: method, params: params, data: data)
+                .sink { completion in
+                    if case let .failure(error) = completion {
+                        print(error)
+                    }
+                } receiveValue: { result in
+                    switch result.status {
+                    case .approved:
+                        promise(.success(result))
+                    case .declined:
+                        promise(.failure(FCLError.declined))
+                    case .pending:
+                        self.canContinue = true
+                        guard let local = result.local,
+                              let updates = result.updates ?? result.authorizationUpdates else {
+                            promise(.failure(FCLError.generic))
+                            return
+                        }
+                        do {
+                            try fcl.openAuthenticationSession(service: local)
+                        } catch {
                             promise(.failure(error))
                         }
-                    } receiveValue: { result in
-                        promise(.success(result))
-                    }.store(in: &self.cancellables)
-                }
-            }
+
+                        self.poll(service: updates) { result in
+                            switch result {
+                            case let .success(response):
+                                promise(.success(response))
+                            case let .failure(error):
+                                promise(.failure(error))
+                            }
+                        }
+                    }
+                }.store(in: &self.cancellables)
         }
     }
 
-    func poll(service: Service, canContinue _: Bool) -> Future<AuthnResponse, Error> {
-        return Future { promise in
+    private func poll(service: Service, completion: @escaping (Result<AuthnResponse, Error>) -> Void) {
+        if !canContinue {
+            completion(Result.failure(FCLError.declined))
+            return
+        }
 
-            if !self.canContinue {
-                promise(.failure(Flow.FError.declined))
-                return
-            }
+        guard let url = service.endpoint else {
+            completion(Result.failure(FCLError.invaildURL))
+            return
+        }
 
-            guard let url = service.endpoint else {
-                promise(.failure(Flow.FError.urlInvaild))
-                return
-            }
+        fetchService(url: url, method: .get, params: service.params)
+            .sink { complete in
+                if case let .failure(error) = complete {
+                    completion(Result<AuthnResponse, Error>.failure(error))
+                }
 
-            guard let method = service.method?.http else {
-                promise(.failure(Flow.FError.generic))
-                return
-            }
-
-            let call: EventLoopFuture<AuthnResponse> = self.fetchService(url: url, method: method)
-
-            call.whenSuccess { result in
-                print("polling ---> \(result.status.rawValue)")
+            } receiveValue: { result in
                 switch result.status {
                 case .approved:
-                    promise(.success(result))
+                    fcl.closeSession()
+                    completion(Result<AuthnResponse, Error>.success(result))
                 case .declined:
-                    // TODO: Need to discuss here, whether decline is an error case or not
-                    promise(.success(result))
+                    completion(Result.failure(FCLError.declined))
                 case .pending:
                     // TODO: Improve this
                     DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(500)) {
-                        self.poll(service: service, canContinue: self.canContinue)
-                            .sink { completion in
-                                if case let .failure(error) = completion {
-                                    promise(.failure(error))
-                                }
-                            } receiveValue: { result in
-                                promise(.success(result))
-                            }
-                            .store(in: &self.cancellables)
+                        self.poll(service: service) { response in
+                            completion(response)
+                        }
                     }
                 }
-            }
-
-            call.whenFailure { error in
-                promise(.failure(error))
-            }
-        }
+            }.store(in: &cancellables)
     }
 
-    func decodeToModel<T: Decodable>(body: ByteBuffer?) -> T? {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-
-        do {
-            _ = try decoder.decode(T.self, from: body!)
-        } catch {
-            print(error)
-        }
-
-        guard let data = body,
-              let model = try? decoder.decode(T.self, from: data) else {
+    func buildURL(url: URL, params: [String: String]?) -> URL? {
+        let paramLocation = "l6n"
+        guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             return nil
         }
 
-        return model
-    }
-}
+        var queryItems: [URLQueryItem] = []
 
-func buildURL(url: URL, params: [String: String]?) -> URL? {
-    let paramLocation = "l6n"
-    guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-        return nil
-    }
-
-    var queryItems: [URLQueryItem] = []
-
-    if let location = fcl.config.get(key: .location) {
-        queryItems.append(URLQueryItem(name: paramLocation, value: location))
-    }
-
-    for (name, value) in params ?? [:] {
-        if name != paramLocation {
-            queryItems.append(
-                URLQueryItem(name: name, value: value)
-            )
+        if let location = fcl.config.get(key: .location) {
+            queryItems.append(URLQueryItem(name: paramLocation, value: location))
         }
-    }
 
-    urlComponents.queryItems = queryItems
-    return urlComponents.url
+        for (name, value) in params ?? [:] {
+            if name != paramLocation {
+                queryItems.append(
+                    URLQueryItem(name: name, value: value)
+                )
+            }
+        }
+
+        urlComponents.queryItems = queryItems
+        return urlComponents.url
+    }
 }

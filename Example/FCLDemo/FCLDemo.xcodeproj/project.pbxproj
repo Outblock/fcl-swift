@@ -13,6 +13,9 @@
 		15E2F16126DD07CB00FA19BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 15E2F16026DD07CB00FA19BD /* Assets.xcassets */; };
 		15E2F16426DD07CB00FA19BD /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 15E2F16326DD07CB00FA19BD /* Preview Assets.xcassets */; };
 		15E2F17626DD133800FA19BD /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E2F17526DD133800FA19BD /* ViewModel.swift */; };
+		15EE0741273A452900B03DBC /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EE0740273A452900B03DBC /* Util.swift */; };
+		15EE0745273A501000B03DBC /* DetaiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EE0744273A501000B03DBC /* DetaiView.swift */; };
+		15EE074B273A5DDB00B03DBC /* SwiftPrettyPrint in Frameworks */ = {isa = PBXBuildFile; productRef = 15EE074A273A5DDB00B03DBC /* SwiftPrettyPrint */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +27,8 @@
 		15E2F16326DD07CB00FA19BD /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		15E2F16526DD07CB00FA19BD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		15E2F17526DD133800FA19BD /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		15EE0740273A452900B03DBC /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
+		15EE0744273A501000B03DBC /* DetaiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetaiView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15EE074B273A5DDB00B03DBC /* SwiftPrettyPrint in Frameworks */,
 				1530B245270AC3D10063690E /* FCL in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -59,7 +65,9 @@
 		15E2F15B26DD07C900FA19BD /* FCLDemo */ = {
 			isa = PBXGroup;
 			children = (
+				15EE0740273A452900B03DBC /* Util.swift */,
 				15E2F15C26DD07C900FA19BD /* FCLDemoApp.swift */,
+				15EE0744273A501000B03DBC /* DetaiView.swift */,
 				15E2F15E26DD07C900FA19BD /* ContentView.swift */,
 				15E2F16026DD07CB00FA19BD /* Assets.xcassets */,
 				15E2F16526DD07CB00FA19BD /* Info.plist */,
@@ -102,6 +110,7 @@
 			name = FCLDemo;
 			packageProductDependencies = (
 				1530B244270AC3D10063690E /* FCL */,
+				15EE074A273A5DDB00B03DBC /* SwiftPrettyPrint */,
 			);
 			productName = FCLDemo;
 			productReference = 15E2F15926DD07C900FA19BD /* FCLDemo.app */;
@@ -132,7 +141,7 @@
 			mainGroup = 15E2F15026DD07C900FA19BD;
 			packageReferences = (
 				15ED8F5426EE2797009036BF /* XCRemoteSwiftPackageReference "CryptoSwift" */,
-				158FAB1126FAB61300D704DA /* XCRemoteSwiftPackageReference "async-http-client" */,
+				15EE0749273A5DDB00B03DBC /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */,
 			);
 			productRefGroup = 15E2F15A26DD07C900FA19BD /* Products */;
 			projectDirPath = "";
@@ -163,6 +172,8 @@
 				15E2F15F26DD07C900FA19BD /* ContentView.swift in Sources */,
 				15E2F17626DD133800FA19BD /* ViewModel.swift in Sources */,
 				15E2F15D26DD07C900FA19BD /* FCLDemoApp.swift in Sources */,
+				15EE0745273A501000B03DBC /* DetaiView.swift in Sources */,
+				15EE0741273A452900B03DBC /* Util.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,14 +364,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		158FAB1126FAB61300D704DA /* XCRemoteSwiftPackageReference "async-http-client" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/swift-server/async-http-client.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.1;
-			};
-		};
 		15ED8F5426EE2797009036BF /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
@@ -369,12 +372,25 @@
 				minimumVersion = 1.4.1;
 			};
 		};
+		15EE0749273A5DDB00B03DBC /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/lmcmz/SwiftPrettyPrint";
+			requirement = {
+				kind = revision;
+				revision = 0ca79c7944f41b17b4e5823d0edea8658cc879e8;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		1530B244270AC3D10063690E /* FCL */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FCL;
+		};
+		15EE074A273A5DDB00B03DBC /* SwiftPrettyPrint */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15EE0749273A5DDB00B03DBC /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */;
+			productName = SwiftPrettyPrint;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

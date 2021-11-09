@@ -5,9 +5,9 @@
 //  Created by lmcmz on 1/11/21.
 //
 
-import Foundation
 import Combine
 import Flow
+import Foundation
 
 final class SequenceNumberResolver: Resolver {
     func resolve(ix: Interaction) -> Future<Interaction, Error> {
@@ -38,8 +38,6 @@ final class SequenceNumberResolver: Resolver {
             } else {
                 promise(.success(ix))
             }
-
         }
     }
-
 }

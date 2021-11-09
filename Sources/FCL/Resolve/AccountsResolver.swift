@@ -5,22 +5,20 @@
 //  Created by lmcmz on 12/10/21.
 //
 
-import Foundation
 import Combine
 import Flow
+import Foundation
 
 final class AccountsResolver: Resolver {
-
     func resolve(ix: Interaction) -> Future<Interaction, Error> {
         if ix.isTransaction {
-            return self.collectAccounts(ix: ix, accounts: Array(ix.accounts.values))
+            return collectAccounts(ix: ix, accounts: Array(ix.accounts.values))
         }
 
         return Future { $0(.success(ix)) }
     }
 
     func collectAccounts(ix: Interaction, accounts: [SignableUser]) -> Future<Interaction, Error> {
-
         return Future { promise in
 
             guard let currentUser = fcl.currentUser, currentUser.loggedIn else {
@@ -76,9 +74,7 @@ final class AccountsResolver: Resolver {
                     newIX.accounts = accounts
                     promise(.success(newIX))
                 }.store(in: &fcl.cancellables)
-
         }
-
     }
 
     func getAccounts(resp: AuthnResponse) -> [SignableUser] {

@@ -146,10 +146,9 @@ struct Xform: Codable {
 
 extension Flow.Argument {
     func toFCLArgument() -> Argument {
-
         func randomString(length: Int) -> String {
             let letters = "abcdefghijklmnopqrstuvwxyz0123456789"
-            return String((0..<length).map { _ in letters.randomElement()! })
+            return String((0 ..< length).map { _ in letters.randomElement()! })
         }
 
         return Argument(kind: "ARGUMENT",
@@ -200,9 +199,9 @@ struct Interaction: Encodable {
         case getCollection = "GET_COLLECTION"
     }
 
-    var isUnknown: Bool { self.is(.unknown) }
-    var isScript: Bool { self.is(.script) }
-    var isTransaction: Bool { self.is(.transaction) }
+    var isUnknown: Bool { `is`(.unknown) }
+    var isScript: Bool { `is`(.script) }
+    var isTransaction: Bool { `is`(.transaction) }
 
     func `is`(_ tag: Tag) -> Bool {
         self.tag == tag
@@ -247,7 +246,6 @@ struct Interaction: Encodable {
     }
 
     func createFlowProposalKey() -> Future<Flow.TransactionProposalKey, Error> {
-
         return Future { promise in
 
             guard let proposer = proposer,
@@ -261,7 +259,6 @@ struct Interaction: Encodable {
             let flowAddress = Flow.Address(hex: address)
 
             if account.sequenceNum == nil {
-
                 flow.accessAPI.getAccountAtLatestBlock(address: flowAddress).whenComplete { result in
                     switch result {
                     case let .success(response):
@@ -295,7 +292,6 @@ struct Interaction: Encodable {
     }
 
     func toFlowTransaction() -> Future<Flow.Transaction, Error> {
-
         return Future { promise in
 
             createFlowProposalKey().sink { _ in
@@ -308,8 +304,8 @@ struct Interaction: Encodable {
                     return
                 }
 
-                var tx = Flow.Transaction(script: Flow.Script(script: message.cadence ?? ""),
-                                          arguments: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument},
+                var tx = Flow.Transaction(script: Flow.Script(text: message.cadence ?? ""),
+                                          arguments: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument },
                                           referenceBlockId: Flow.ID(hex: message.refBlock ?? ""),
                                           gasLimit: BigUInt(message.computeLimit ?? 100),
                                           proposalKey: proposalKey,

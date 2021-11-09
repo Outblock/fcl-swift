@@ -5,9 +5,9 @@
 //  Created by lmcmz on 31/10/21.
 //
 
+import Combine
 import Foundation
 import NIO
-import Combine
 
 extension EventLoopFuture {
     func toFuture() -> Future<Value, Error> {

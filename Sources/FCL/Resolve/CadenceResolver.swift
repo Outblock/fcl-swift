@@ -5,13 +5,13 @@
 //  Created by lmcmz on 1/11/21.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 final class CadenceResolver: Resolver {
-    func resolve( ix: Interaction) -> Future<Interaction, Error> {
+    func resolve(ix: Interaction) -> Future<Interaction, Error> {
         return Future { promise in
-            if (ix.isTransaction || ix.isScript) {
+            if ix.isTransaction || ix.isScript {
                 let items = fcl.config.dict.filter { item in
                     item.key.range(of: "^0x", options: .regularExpression) != nil
                 }

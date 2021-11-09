@@ -5,8 +5,8 @@
 //  Created by lmcmz on 10/10/21.
 //
 
-import Foundation
 import Flow
+import Foundation
 
 extension Array where Element: Hashable {
     func uniqued() -> [Element] {
@@ -17,7 +17,7 @@ extension Array where Element: Hashable {
 
 extension Array where Element == Flow.Argument {
     func toFCLArguments() -> [(String, Argument)] {
-        var list = [(String,Argument)]()
+        var list = [(String, Argument)]()
         forEach { arg in
             let fclArg = arg.toFCLArgument()
             list.append((fclArg.tempId, fclArg))

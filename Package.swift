@@ -15,14 +15,12 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "Flow", url: "https://github.com/zed-io/flow-swift.git", .revision("de8e14e0e")),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0")
+        .package(name: "Flow", url: "https://github.com/zed-io/flow-swift.git", .revision("0b0b706039a7c8b7ef21bc159e06ace5df60b6c4"))
     ],
     targets: [
         .target(
             name: "FCL",
-            dependencies: ["Flow",
-                           .product(name: "AsyncHTTPClient", package: "async-http-client")],
+            dependencies: ["Flow"],
             path: "Sources/FCL"
         ),
         .testTarget(

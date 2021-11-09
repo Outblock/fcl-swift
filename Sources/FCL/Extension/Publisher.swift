@@ -5,8 +5,8 @@
 //  Created by lmcmz on 1/11/21.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 extension Publisher {
     func asFuture() -> Future<Output, Failure> {
@@ -17,18 +17,19 @@ extension Publisher {
                     ticket?.cancel()
                     ticket = nil
                     switch $0 {
-                    case .failure(let error):
+                    case let .failure(error):
                         promise(.failure(error))
                     case .finished:
-                        // WHAT DO WE DO HERE???
-                        fatalError()
+                        // TODO: Add finish hanlder
+                        break
                     }
                 },
                 receiveValue: {
                     ticket?.cancel()
                     ticket = nil
                     promise(.success($0))
-                })
+                }
+            )
         }
     }
 }

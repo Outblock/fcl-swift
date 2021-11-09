@@ -52,7 +52,6 @@ struct AuthnResponse: Decodable {
         reason = try? container.decode(String.self, forKey: .reason)
         compositeSignature = try? container.decode(String.self, forKey: .compositeSignature)
     }
-
 }
 
 struct AuthnData: Decodable {
