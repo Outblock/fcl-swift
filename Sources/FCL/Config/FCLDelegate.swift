@@ -14,7 +14,7 @@ public protocol FCLDelegate {
 }
 
 extension FCLDelegate {
-    func presentationAnchor() -> UIWindow {
+    func presentationAnchor() -> ASPresentationAnchor {
         return ASPresentationAnchor()
     }
 }

@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "async-http-client",
-        "repositoryURL": "https://github.com/swift-server/async-http-client.git",
-        "state": {
-          "branch": null,
-          "revision": "8fa7f082b155ea325bcf7b2dbffaf81d4eea1ae4",
-          "version": "1.5.1"
-        }
-      },
-      {
         "package": "BigInt",
         "repositoryURL": "https://github.com/attaswift/BigInt.git",
         "state": {
@@ -20,12 +11,12 @@
         }
       },
       {
-        "package": "flow-swift",
+        "package": "Flow",
         "repositoryURL": "https://github.com/zed-io/flow-swift.git",
         "state": {
           "branch": null,
-          "revision": "93fcf48a2cebde0840ee1e297a7d96b9e65bb77e",
-          "version": "0.0.3-beta"
+          "revision": "db2adc3a099b0f6a815ebbd335a2ec06fd00b2fd",
+          "version": "0.1.3-beta"
         }
       },
       {
@@ -92,7 +83,7 @@
         }
       },
       {
-        "package": "swift-protobuf",
+        "package": "SwiftProtobuf",
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {
           "branch": null,
