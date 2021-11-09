@@ -167,6 +167,10 @@ class ViewModel: NSObject, ObservableObject {
             arguments {
                 [.address(Flow.Address(hex: address))]
             }
+
+            gasLimit {
+                1000
+            }
         }
         .receive(on: DispatchQueue.main)
         .sink { completion in
@@ -192,7 +196,7 @@ class ViewModel: NSObject, ObservableObject {
     }
 
     func authn() {
-        fcl.authn()
+        fcl.authenticate()
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 if case let .failure(error) = completion {

@@ -28,10 +28,8 @@ public class Config {
     }
 
     @discardableResult
-    public func put(key: Key, value: String?) -> Self {
-        if let valueString = value {
-            dict[key.rawValue] = valueString
-        }
+    public func put(key: Key, value: String) -> Self {
+        dict[key.rawValue] = value
         return self
     }
 
@@ -46,10 +44,8 @@ public class Config {
     }
 
     @discardableResult
-    public func put(key: String, value: String?) -> Self {
-        if let valueString = value {
-            dict[key] = valueString
-        }
+    public func put(key: String, value: String) -> Self {
+        dict[key] = value
         return self
     }
 

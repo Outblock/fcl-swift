@@ -22,9 +22,9 @@ extension FCL {
             .toFuture()
     }
 
-    public func getLastestBlock() -> Future<Flow.Block, Error> {
+    public func getLastestBlock(sealed: Bool = true) -> Future<Flow.Block, Error> {
         return flow.accessAPI
-            .getLatestBlock()
+            .getLatestBlock(sealed: sealed)
             .toFuture()
     }
 
