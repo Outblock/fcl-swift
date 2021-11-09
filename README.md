@@ -6,17 +6,17 @@ This reference documents all the methods available in the SDK, and explains in d
 SDKs are open source, and you can use them according to the licence.
 
 #### Feature list:
-[x] Sign in/up with Wallet provider
-[x] Configure app
-[x] Query cadence script with arguments
-[x] Send transaction with non-custodial mode (Blocto)
-[x] Support all access api endpoint such as `GetAccount` and `GetLastestBlock`
+- [x] Sign in/up with Wallet provider
+- [x] Configure app
+- [x] Query cadence script with arguments
+- [x] Send transaction with non-custodial mode (Blocto)
+- [x] Support all access api endpoint such as `GetAccount` and `GetLastestBlock`
 
 #### Todo list:
-[] Sign user message
-[] Verify user signature
-[] Send transaction with custodial wallet
-[] Support custom `authz` func 
+- [ ] Sign user message
+- [ ] Verify user signature
+- [ ] Send transaction with custodial wallet
+- [ ] Support custom `authz` func 
 
 ## Getting Started
 
@@ -189,13 +189,13 @@ _Pass in the following as a single object with the following keys.All keys are o
 | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cadence` | string **(required)**                 | A valid cadence script.                                                                                                                                                                                                |
 | `arguments`    | [ArgumentFunction](#argumentfunction) | Any arguments to the script if needed should be supplied via a function that returns an array of arguments.                                                                                                            |
-| `limit`   | number                                | Compute (Gas) limit for query. Read the [documentation about computation cost](https://docs.onflow.org/flow-go-sdk/building-transactions/#gas-limit) for information about how computation cost is calculated on Flow. |
+| `gasLimit`   | number                                | Compute (Gas) limit for query. Read the [documentation about computation cost](https://docs.onflow.org/flow-go-sdk/building-transactions/#gas-limit) for information about how computation cost is calculated on Flow. |
 
 #### Returns
 
 | Type | Description                            |
 | ---- | -------------------------------------- |
-| any  | A JSON representation of the response. |
+| Flow.ScriptResponse  | A model representation of the response. |
 
 #### Usage
 
