@@ -72,6 +72,7 @@ class ViewModel: NSObject, ObservableObject {
                    location: "https://foo.com",
                    walletNode: "https://fcl-http-post.vercel.app/api",
                    accessNode: "https://access-testnet.onflow.org",
+                   env: "mainnet",
                    scope: "email",
                    authn: provider.endpoint)
 
@@ -284,27 +285,4 @@ struct SafariView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_: SFSafariViewController, context _: UIViewControllerRepresentableContext<SafariView>) {}
-}
-
-extension String {
-    func leftPadding(toLength: Int, withPad character: Character) -> String {
-        let stringLength = count
-        if stringLength < toLength {
-            return String(repeatElement(character, count: toLength - stringLength)) + self
-        } else {
-            return String(suffix(toLength))
-        }
-    }
-
-    subscript(bounds: CountableClosedRange<Int>) -> String {
-        let start = index(startIndex, offsetBy: bounds.lowerBound)
-        let end = index(startIndex, offsetBy: bounds.upperBound)
-        return String(self[start ... end])
-    }
-
-    subscript(bounds: CountableRange<Int>) -> String {
-        let start = index(startIndex, offsetBy: bounds.lowerBound)
-        let end = index(startIndex, offsetBy: bounds.upperBound)
-        return String(self[start ..< end])
-    }
 }
