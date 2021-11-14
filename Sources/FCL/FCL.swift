@@ -2,7 +2,6 @@ import AuthenticationServices
 import BigInt
 import Combine
 import Flow
-import SafariServices
 
 public let fcl = FCL.shared
 
@@ -71,7 +70,7 @@ public final class FCL: NSObject {
             }
 
             guard let service = self.serviceOfType(services: currentUser.services, type: .userSignature),
-                  let endpoint = service.endpoint else {
+                let endpoint = service.endpoint else {
                 promise(.failure(FCLError.invaildService))
                 return
             }
@@ -82,7 +81,7 @@ public final class FCL: NSObject {
 
             // TODO: Fix here, the blocto return html response
             guard let messageData = message.data(using: .utf8),
-                  let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue)) else {
+                let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue)) else {
                 promise(.failure(FCLError.encodeFailure))
                 return
             }
@@ -106,7 +105,7 @@ public final class FCL: NSObject {
             }
 
             guard let service = self.serviceOfType(services: currentUser.services, type: .authz),
-                  let url = service.endpoint else {
+                let url = service.endpoint else {
                 return
             }
 
@@ -125,7 +124,7 @@ public final class FCL: NSObject {
     public func authenticate() -> Future<FCLResponse, Error> {
         return Future { promise in
             guard let endpoint = self.config.get(key: .authn),
-                  let url = URL(string: endpoint) else {
+                let url = URL(string: endpoint) else {
                 return promise(.failure(Flow.FError.urlEmpty))
             }
             self.api.execHttpPost(url: url)
@@ -146,20 +145,27 @@ public final class FCL: NSObject {
 
     internal func openAuthenticationSession(service: Service) throws {
         guard let endpoint = service.endpoint,
-              let url = api.buildURL(url: endpoint, params: service.params) else {
+            let url = api.buildURL(url: endpoint, params: service.params) else {
             throw FCLError.invalidSession
         }
 
         DispatchQueue.main.async {
             self.delegate?.hideLoading()
-            let session = ASWebAuthenticationSession(url: url,
-                                                     callbackURLScheme: nil) { _, _ in
-                fcl.api.canContinue = false
+
+            if service.type == .authn {
+                let session = ASWebAuthenticationSession(url: url,
+                                                         callbackURLScheme: nil) { _, _ in
+                    fcl.api.canContinue = false
+                }
+                self.session = session
+                session.presentationContextProvider = self
+                session.prefersEphemeralWebBrowserSession = false
+                session.start()
+            } else {
+                SafariWebViewManager.openSafariWebView(url: url) {
+                    fcl.api.canContinue = false
+                }
             }
-            self.session = session
-            session.presentationContextProvider = self
-            session.prefersEphemeralWebBrowserSession = !url.path.contains("authn")
-            session.start()
         }
     }
 

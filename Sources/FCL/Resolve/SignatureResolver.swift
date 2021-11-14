@@ -68,14 +68,14 @@ final class SignatureResolver: Resolver {
 
     func fetchSignature(ix: Interaction, payload: String, id: String) -> AnyPublisher<(String, String), Error> {
         guard let acct = ix.accounts[id],
-              let signingFunction = acct.signingFunction,
-              let signable = buildSignable(ix: ix, payload: payload, account: acct),
-              let data = try? JSONEncoder().encode(signable) else {
+            let signingFunction = acct.signingFunction,
+            let signable = buildSignable(ix: ix, payload: payload, account: acct),
+            let data = try? JSONEncoder().encode(signable) else {
             return Result.Publisher(FCLError.generic).eraseToAnyPublisher()
         }
 
         return signingFunction(data).map { response in
-            (id, response.data!.signature!)
+            (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
         }.eraseToAnyPublisher()
     }
 
@@ -83,9 +83,9 @@ final class SignatureResolver: Resolver {
         var tx = transaction
         insideSigners.forEach { address in
             if let account = ix.accounts[address],
-               let address = account.addr,
-               let keyId = account.keyID,
-               let signature = account.signature {
+                let address = account.addr,
+                let keyId = account.keyID,
+                let signature = account.signature {
                 tx.addPayloadSignature(address: Flow.Address(hex: address),
                                        keyIndex: keyId,
                                        signature: Data(signature.hexValue))

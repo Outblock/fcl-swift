@@ -65,7 +65,6 @@ struct DismissingKeyboard: ViewModifier {
     }
 }
 
-
 extension String {
     func leftPadding(toLength: Int, withPad character: Character) -> String {
         let stringLength = count

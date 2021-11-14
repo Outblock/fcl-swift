@@ -22,7 +22,7 @@ public class AddressRegistry {
             Flow.ChainID.emulator: [
                 FCL.ScriptAddress.fungibleToken,
                 FCL.ScriptAddress.flowToken,
-                FCL.ScriptAddress.flowFees
+                FCL.ScriptAddress.flowFees,
             ],
             Flow.ChainID.testnet: [
                 FCL.ScriptAddress.fungibleToken,
@@ -31,7 +31,7 @@ public class AddressRegistry {
                 FCL.ScriptAddress.flowTablesTaking,
                 FCL.ScriptAddress.lockedTokens,
                 FCL.ScriptAddress.stakingProxy,
-                FCL.ScriptAddress.nonFungibleToken
+                FCL.ScriptAddress.nonFungibleToken,
             ],
             Flow.ChainID.mainnet: [
                 FCL.ScriptAddress.fungibleToken,
@@ -40,8 +40,8 @@ public class AddressRegistry {
                 FCL.ScriptAddress.flowTablesTaking,
                 FCL.ScriptAddress.lockedTokens,
                 FCL.ScriptAddress.stakingProxy,
-                FCL.ScriptAddress.nonFungibleToken
-            ]
+                FCL.ScriptAddress.nonFungibleToken,
+            ],
         ]
 
         addresses.forEach { (chainId: Flow.ChainID, value: [FCL.ScriptAddress]) in

@@ -10,12 +10,12 @@ SDKs are open source, and you can use them according to the licence.
 - [x] Configure app
 - [x] Query cadence script with arguments
 - [x] Send transaction with non-custodial mode (Blocto)
+- [x] Send transaction with custodial wallet
 - [x] Support all access api endpoint such as `GetAccount` and `GetLastestBlock`
 
 #### Todo list:
 - [ ] Sign user message
 - [ ] Verify user signature
-- [ ] Send transaction with custodial wallet
 - [ ] Support custom `authz` func 
 
 ## Getting Started

@@ -47,13 +47,13 @@ struct Signable: Encodable {
                        refBlock: interaction.message.refBlock,
                        computeLimit: interaction.message.computeLimit,
                        arguments: interaction.message.arguments.compactMap { tempId in
-                        interaction.arguments[tempId]?.asArgument
+                           interaction.arguments[tempId]?.asArgument
                        },
                        proposalKey: interaction.createProposalKey(),
                        payer: interaction.accounts[interaction.payer ?? ""]?.addr?.sansPrefix(),
                        authorizers: interaction.authorizations
-                        .compactMap { cid in interaction.accounts[cid]?.addr?.sansPrefix() }
-                        .uniqued(),
+                           .compactMap { cid in interaction.accounts[cid]?.addr?.sansPrefix() }
+                           .uniqued(),
                        payloadSigs: insideSigners,
                        envelopeSigs: outsideSigners)
     }
@@ -102,13 +102,13 @@ struct PreSignable: Encodable {
                        refBlock: interaction.message.refBlock,
                        computeLimit: interaction.message.computeLimit,
                        arguments: interaction.message.arguments.compactMap { tempId in
-                        interaction.arguments[tempId]?.asArgument
+                           interaction.arguments[tempId]?.asArgument
                        },
                        proposalKey: interaction.createProposalKey(),
                        payer: interaction.payer,
                        authorizers: interaction.authorizations
-                        .compactMap { cid in interaction.accounts[cid]?.addr }
-                        .uniqued(),
+                           .compactMap { cid in interaction.accounts[cid]?.addr }
+                           .uniqued(),
                        payloadSigs: insideSigners,
                        envelopeSigs: outsideSigners)
     }
@@ -236,7 +236,7 @@ struct Interaction: Encodable {
 
     func createProposalKey() -> ProposalKey {
         guard let proposer = proposer,
-              let account = accounts[proposer] else {
+            let account = accounts[proposer] else {
             return ProposalKey()
         }
 
@@ -249,9 +249,9 @@ struct Interaction: Encodable {
         return Future { promise in
 
             guard let proposer = proposer,
-                  var account = accounts[proposer],
-                  let address = account.addr,
-                  let keyID = account.keyID else {
+                var account = accounts[proposer],
+                let address = account.addr,
+                let keyID = account.keyID else {
                 promise(.failure(FCLError.invaildProposer))
                 return
             }
@@ -299,7 +299,7 @@ struct Interaction: Encodable {
             } receiveValue: { proposalKey in
 
                 guard let payerAccount = payer,
-                      let payerAddress = accounts[payerAccount]?.addr else {
+                    let payerAddress = accounts[payerAccount]?.addr else {
                     promise(.failure(FCLError.missingPayer))
                     return
                 }
@@ -311,16 +311,16 @@ struct Interaction: Encodable {
                                           proposalKey: proposalKey,
                                           payerAddress: Flow.Address(hex: payerAddress),
                                           authorizers: authorizations
-                                            .compactMap { cid in accounts[cid]?.addr }
-                                            .uniqued()
-                                            .compactMap { Flow.Address(hex: $0) })
+                                              .compactMap { cid in accounts[cid]?.addr }
+                                              .uniqued()
+                                              .compactMap { Flow.Address(hex: $0) })
 
                 let insideSigners = findInsideSigners
                 insideSigners.forEach { address in
                     if let account = accounts[address],
-                       let address = account.addr,
-                       let keyId = account.keyID,
-                       let signature = account.signature {
+                        let address = account.addr,
+                        let keyId = account.keyID,
+                        let signature = account.signature {
                         tx.addPayloadSignature(address: Flow.Address(hex: address),
                                                keyIndex: keyId,
                                                signature: Data(signature.hexValue))
@@ -331,9 +331,9 @@ struct Interaction: Encodable {
 
                 outsideSigners.forEach { address in
                     if let account = accounts[address],
-                       let address = account.addr,
-                       let keyId = account.keyID,
-                       let signature = account.signature {
+                        let address = account.addr,
+                        let keyId = account.keyID,
+                        let signature = account.signature {
                         tx.addEnvelopeSignature(address: Flow.Address(hex: address),
                                                 keyIndex: keyId,
                                                 signature: Data(signature.hexValue))

@@ -19,7 +19,7 @@ struct AuthnResponse: Decodable {
     var local: Service?
     var data: AuthnData?
     let reason: String?
-    let compositeSignature: String?
+    let compositeSignature: AuthnData?
     var authorizationUpdates: Service?
 
     enum CodingKeys: String, CodingKey {
@@ -50,7 +50,7 @@ struct AuthnResponse: Decodable {
 
         data = try? container.decode(AuthnData.self, forKey: .data)
         reason = try? container.decode(String.self, forKey: .reason)
-        compositeSignature = try? container.decode(String.self, forKey: .compositeSignature)
+        compositeSignature = try? container.decode(AuthnData.self, forKey: .compositeSignature)
     }
 }
 

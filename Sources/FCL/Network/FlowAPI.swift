@@ -70,7 +70,7 @@ final class API {
                     case .pending:
                         self.canContinue = true
                         guard let local = result.local,
-                              let updates = result.updates ?? result.authorizationUpdates else {
+                            let updates = result.updates ?? result.authorizationUpdates else {
                             promise(.failure(FCLError.generic))
                             return
                         }
@@ -114,6 +114,7 @@ final class API {
                 switch result.status {
                 case .approved:
                     fcl.closeSession()
+                    SafariWebViewManager.dismiss()
                     completion(Result<AuthnResponse, Error>.success(result))
                 case .declined:
                     completion(Result.failure(FCLError.declined))

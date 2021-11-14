@@ -13,10 +13,10 @@ let package = Package(
         .library(
             name: "FCL",
             targets: ["FCL"]
-        )
+        ),
     ],
     dependencies: [
-        .package(name: "Flow", url: "https://github.com/zed-io/flow-swift.git", from: "0.1.3-beta")
+        .package(name: "Flow", url: "https://github.com/zed-io/flow-swift.git", from: "0.1.3-beta"),
     ],
     targets: [
         .target(
@@ -28,6 +28,6 @@ let package = Package(
             name: "FCLTests",
             dependencies: ["FCL"],
             path: "Tests"
-        )
+        ),
     ]
 )

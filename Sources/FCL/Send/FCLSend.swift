@@ -18,7 +18,7 @@ extension FCL {
             AccountsResolver(),
             RefBlockResolver(),
             SequenceNumberResolver(),
-            SignatureResolver()
+            SignatureResolver(),
         ]
 
         return pipe(ix: ix, resolvers: resolvers)

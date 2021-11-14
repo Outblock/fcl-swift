@@ -14,9 +14,9 @@ final class SequenceNumberResolver: Resolver {
         return Future { promise in
 
             guard let proposer = ix.proposer,
-                  let account = ix.accounts[proposer],
-                  let address = account.addr,
-                  let keyID = account.keyID else {
+                let account = ix.accounts[proposer],
+                let address = account.addr,
+                let keyID = account.keyID else {
                 promise(.failure(FCLError.generic))
                 return
             }

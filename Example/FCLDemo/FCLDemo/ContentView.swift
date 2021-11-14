@@ -26,7 +26,7 @@ struct ContentView: View {
                 }).onChange(of: viewModel.provider, perform: { _ in
                     viewModel.changeWallet()
                 })
-                .pickerStyle(SegmentedPickerStyle())
+                    .pickerStyle(SegmentedPickerStyle())
             }
             Text(verbatim: viewModel.address)
         }
