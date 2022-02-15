@@ -10,11 +10,11 @@ final class FCLTests: XCTestCase {
         let timestamp = Date().timeIntervalSince1970
         let result1 = FCL.WalletUtil.encodeMessageForProvableAuthnSigning(address: .init(hex: "0x6704b72eb8c51187"),
                                                                           timestamp: timestamp)
-        
+
         let result2 = FCL.WalletUtil.encodeMessageForProvableAuthnSigning(address: .init(hex: "0x6704b72eb8c51187"),
                                                                           timestamp: timestamp,
                                                                           appDomainTag: "AWESOME-APP-V0.0-user")
-        
+
         fcl.config.put(.domainTag, value: "AWESOME-APP-V0.0-user")
         let result3 = FCL.WalletUtil.encodeMessageForProvableAuthnSigning(address: .init(hex: "0x6704b72eb8c51187"),
                                                                           timestamp: timestamp)
@@ -22,7 +22,7 @@ final class FCLTests: XCTestCase {
         XCTAssertNotEqual(result1, result3)
         XCTAssertEqual(result2, result3)
     }
-    
+
     func testQuery() {
         let expectation = XCTestExpectation(description: "Query got executed!")
         fcl.query {

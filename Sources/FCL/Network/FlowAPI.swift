@@ -70,7 +70,8 @@ final class API {
                     case .pending:
                         self.canContinue = true
                         guard let local = result.local,
-                            let updates = result.updates ?? result.authorizationUpdates else {
+                              let updates = result.updates ?? result.authorizationUpdates
+                        else {
                             promise(.failure(FCLError.generic))
                             return
                         }

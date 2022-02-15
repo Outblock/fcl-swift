@@ -248,14 +248,14 @@ class ViewModel: NSObject, ObservableObject {
             .args([.string("Test2"), .int(1)]),
             .limit(1000),
         ])
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    self.preAuthz = error.localizedDescription
-                }
-            } receiveValue: { txId in
-                self.preAuthz = txId
-            }.store(in: &cancellables)
+        .receive(on: DispatchQueue.main)
+        .sink { completion in
+            if case let .failure(error) = completion {
+                self.preAuthz = error.localizedDescription
+            }
+        } receiveValue: { txId in
+            self.preAuthz = txId
+        }.store(in: &cancellables)
     }
 }
 

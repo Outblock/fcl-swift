@@ -9,7 +9,7 @@ import Flow
 import Foundation
 
 public class AddressRegistry {
-    var defaultChainId: Flow.ChainID = Flow.ChainID.mainnet
+    var defaultChainId = Flow.ChainID.mainnet
 
     private var scriptTokenDict = [Flow.ChainID: [String: Flow.Address]]()
 

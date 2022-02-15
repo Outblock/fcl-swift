@@ -40,12 +40,12 @@ struct KeyboardAware: ViewModifier {
     }
 }
 
-extension View {
-    public func keyboardAware() -> some View {
+public extension View {
+    func keyboardAware() -> some View {
         ModifiedContent(content: self, modifier: KeyboardAware())
     }
 
-    public func dismissingKeyboard() -> some View {
+    func dismissingKeyboard() -> some View {
         ModifiedContent(content: self, modifier: DismissingKeyboard())
     }
 }
