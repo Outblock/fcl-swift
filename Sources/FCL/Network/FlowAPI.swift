@@ -33,7 +33,7 @@ final class API {
             request.addValue("application/json", forHTTPHeaderField: "Accept")
         }
 
-        if let location = fcl.config.get(key: .location) {
+        if let location = fcl.config.get(.location) {
             request.addValue(location, forHTTPHeaderField: "referer")
         }
 
@@ -137,7 +137,7 @@ final class API {
 
         var queryItems: [URLQueryItem] = []
 
-        if let location = fcl.config.get(key: .location) {
+        if let location = fcl.config.get(.location) {
             queryItems.append(URLQueryItem(name: paramLocation, value: location))
         }
 

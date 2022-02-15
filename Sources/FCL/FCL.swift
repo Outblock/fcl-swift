@@ -34,15 +34,14 @@ public final class FCL: NSObject {
                        env: String,
                        scope: String,
                        authn: String) {
-        _ = config.put(key: .wallet, value: walletNode)
-            .put(key: .accessNode, value: accessNode)
-            .put(key: .title, value: appName)
-            .put(key: .icon, value: appIcon)
-            .put(key: .icon, value: appIcon)
-            .put(key: .scope, value: scope)
-            .put(key: .authn, value: authn)
-            .put(key: .location, value: location)
-            .put(key: .env, value: env)
+        _ = config.put(.wallet, value: walletNode)
+            .put(.accessNode, value: accessNode)
+            .put(.title, value: appName)
+            .put(.icon, value: appIcon)
+            .put(.scope, value: scope)
+            .put(.authn, value: authn)
+            .put(.location, value: location)
+            .put(.env, value: env)
     }
 
     public func unauthenticate() {
@@ -123,7 +122,7 @@ public final class FCL: NSObject {
 
     public func authenticate() -> Future<FCLResponse, Error> {
         return Future { promise in
-            guard let endpoint = self.config.get(key: .authn),
+            guard let endpoint = self.config.get(.authn),
                 let url = URL(string: endpoint) else {
                 return promise(.failure(Flow.FError.urlEmpty))
             }
