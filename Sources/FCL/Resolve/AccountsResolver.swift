@@ -27,7 +27,8 @@ final class AccountsResolver: Resolver {
             }
 
             guard let service = fcl.serviceOfType(services: currentUser.services, type: .preAuthz),
-                let endpoint = service.endpoint else {
+                  let endpoint = service.endpoint
+            else {
                 promise(.failure(FCLError.missingPreAuthz))
                 return
             }
@@ -92,7 +93,8 @@ final class AccountsResolver: Resolver {
         return axs.compactMap { role, service in
 
             guard let address = service.identity?.address,
-                let keyId = service.identity?.keyId else {
+                  let keyId = service.identity?.keyId
+            else {
                 return nil
             }
 

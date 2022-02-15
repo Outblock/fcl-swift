@@ -9,8 +9,8 @@ import Combine
 import Flow
 import Foundation
 
-extension FCL {
-    public func send(_ builds: [Build]) -> Future<String, Error> {
+public extension FCL {
+    func send(_ builds: [Build]) -> Future<String, Error> {
         let ix = prepare(ix: Interaction(), builder: builds)
 
         let resolvers: [Resolver] = [
@@ -26,7 +26,7 @@ extension FCL {
             .map { $0.hex }.asFuture()
     }
 
-    public func send(@FCL .Builder builder: () -> [Build]) -> Future<String, Error> {
+    func send(@FCL.Builder builder: () -> [Build]) -> Future<String, Error> {
         return send(builder())
     }
 
@@ -47,7 +47,7 @@ extension FCL {
                 newIX.message.cadence = script
             case let .limit(gasLimit):
                 newIX.message.computeLimit = gasLimit
-            case let .getAccount(account):
+            case let .getAccount(_):
                 newIX.tag = .getAccount
             case .getBlock:
                 newIX.tag = .getBlock
@@ -60,8 +60,8 @@ extension FCL {
     }
 }
 
-extension FCL {
-    public enum Build {
+public extension FCL {
+    enum Build {
         case script(String)
         case transaction(String)
         case args([Flow.Cadence.FValue])
@@ -72,7 +72,7 @@ extension FCL {
     }
 
     @resultBuilder
-    public class Builder {
+    enum Builder {
         public static func buildBlock() -> [Build] { [] }
 
         public static func buildArray(_ components: [[Build]]) -> [Build] {

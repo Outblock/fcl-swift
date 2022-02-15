@@ -13,14 +13,14 @@ import Foundation
 struct Signable: Encodable {
     let fType: String = "Signable"
     let fVsn: String = "1.0.1"
-    let data: [String: String] = [String: String]()
+    let data = [String: String]()
     let message: String
     let keyId: Int?
     let addr: String?
     let roles: Role
     let cadence: String?
     let args: [Flow.Argument]
-    var interaction: Interaction = Interaction()
+    var interaction = Interaction()
 
     enum CodingKeys: String, CodingKey {
         case fType = "f_type"
@@ -80,8 +80,8 @@ struct PreSignable: Encodable {
     let roles: Role
     let cadence: String
     var args: [Flow.Argument] = []
-    let data: [String: String] = [String: String]()
-    var interaction: Interaction = Interaction()
+    let data = [String: String]()
+    var interaction = Interaction()
 
     var voucher: Voucher {
         let insideSigners: [Singature] = interaction.findInsideSigners.compactMap { id in
@@ -161,21 +161,21 @@ extension Flow.Argument {
 
 struct Interaction: Encodable {
     var tag: Tag = .unknown
-    var assigns: [String: String] = [String: String]()
+    var assigns = [String: String]()
     var status: Status = .ok
     var reason: String?
-    var accounts: [String: SignableUser] = [String: SignableUser]()
-    var params: [String: String] = [String: String]()
-    var arguments: [String: Argument] = [String: Argument]()
-    var message: Message = Message()
+    var accounts = [String: SignableUser]()
+    var params = [String: String]()
+    var arguments = [String: Argument]()
+    var message = Message()
     var proposer: String?
-    var authorizations: [String] = [String]()
+    var authorizations = [String]()
     var payer: String?
-    var events: Events = Events()
-    var transaction: Id = Id()
-    var block: Block = Block()
-    var account: Account = Account()
-    var collection: Id = Id()
+    var events = Events()
+    var transaction = Id()
+    var block = Block()
+    var account = Account()
+    var collection = Id()
 
     enum Status: String, CaseIterable, Codable {
         case ok = "OK"
@@ -236,7 +236,8 @@ struct Interaction: Encodable {
 
     func createProposalKey() -> ProposalKey {
         guard let proposer = proposer,
-            let account = accounts[proposer] else {
+              let account = accounts[proposer]
+        else {
             return ProposalKey()
         }
 
@@ -249,9 +250,10 @@ struct Interaction: Encodable {
         return Future { promise in
 
             guard let proposer = proposer,
-                var account = accounts[proposer],
-                let address = account.addr,
-                let keyID = account.keyID else {
+                  var account = accounts[proposer],
+                  let address = account.addr,
+                  let keyID = account.keyID
+            else {
                 promise(.failure(FCLError.invaildProposer))
                 return
             }
@@ -299,7 +301,8 @@ struct Interaction: Encodable {
             } receiveValue: { proposalKey in
 
                 guard let payerAccount = payer,
-                    let payerAddress = accounts[payerAccount]?.addr else {
+                      let payerAddress = accounts[payerAccount]?.addr
+                else {
                     promise(.failure(FCLError.missingPayer))
                     return
                 }
@@ -318,9 +321,10 @@ struct Interaction: Encodable {
                 let insideSigners = findInsideSigners
                 insideSigners.forEach { address in
                     if let account = accounts[address],
-                        let address = account.addr,
-                        let keyId = account.keyID,
-                        let signature = account.signature {
+                       let address = account.addr,
+                       let keyId = account.keyID,
+                       let signature = account.signature
+                    {
                         tx.addPayloadSignature(address: Flow.Address(hex: address),
                                                keyIndex: keyId,
                                                signature: Data(signature.hexValue))
@@ -331,9 +335,10 @@ struct Interaction: Encodable {
 
                 outsideSigners.forEach { address in
                     if let account = accounts[address],
-                        let address = account.addr,
-                        let keyId = account.keyID,
-                        let signature = account.signature {
+                       let address = account.addr,
+                       let keyId = account.keyID,
+                       let signature = account.signature
+                    {
                         tx.addEnvelopeSignature(address: Flow.Address(hex: address),
                                                 keyIndex: keyId,
                                                 signature: Data(signature.hexValue))

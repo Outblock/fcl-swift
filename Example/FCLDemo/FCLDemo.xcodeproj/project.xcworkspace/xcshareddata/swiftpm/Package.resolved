@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/outblock/flow-swift.git",
         "state": {
           "branch": null,
-          "revision": "8a0a716c724ac64c14bd65021c7f36c64c020692",
-          "version": "0.1.4"
+          "revision": "64cbac7b47065de3a80dade7520d35c74ccb1102",
+          "version": "0.1.5"
         }
       },
       {

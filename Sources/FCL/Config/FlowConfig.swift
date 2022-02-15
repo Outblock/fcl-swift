@@ -21,14 +21,15 @@ public class Config {
         case env
         case location
         case openIDScope = "service.OpenID.scopes"
+        case domainTag = "fcl.appDomainTag"
     }
 
-    public func get(key: Key) -> String? {
+    public func get(_ key: Key) -> String? {
         return dict[key.rawValue] ?? nil
     }
 
     @discardableResult
-    public func put(key: Key, value: String) -> Self {
+    public func put(_ key: Key, value: String) -> Self {
         dict[key.rawValue] = value
         return self
     }
@@ -39,18 +40,18 @@ public class Config {
         return self
     }
 
-    public func get(key: String) -> String? {
+    public func get(_ key: String) -> String? {
         return dict[key] ?? nil
     }
 
     @discardableResult
-    public func put(key: String, value: String) -> Self {
+    public func put(_ key: String, value: String) -> Self {
         dict[key] = value
         return self
     }
 
     @discardableResult
-    public func remove(key: String) -> Config {
+    public func remove(_ key: String) -> Config {
         dict.removeValue(forKey: key)
         return self
     }

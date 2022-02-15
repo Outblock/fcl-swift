@@ -16,7 +16,6 @@ class SafariWebViewManager: NSObject, SFSafariViewControllerDelegate {
     static func openSafariWebView(url: URL, dismiss _: (() -> Void)?) {
         SafariWebViewManager.shared.onClose = dismiss
         DispatchQueue.main.async {
-//                 hideLoading {
             let vc = SFSafariViewController(url: url)
             vc.delegate = SafariWebViewManager.shared
             vc.modalPresentationStyle = .formSheet
@@ -29,7 +28,6 @@ class SafariWebViewManager: NSObject, SFSafariViewControllerDelegate {
 
                 topController.present(vc, animated: true, completion: nil)
             }
-//                 }
         }
     }
 

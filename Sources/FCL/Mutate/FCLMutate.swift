@@ -15,7 +15,7 @@ extension FCL {
     /// - parameters:
     ///     - signers: A list of `FlowSigner` to sign the transaction
     /// - returns: Future<`Flow.ScriptResponse`, Error>.
-    public func query(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<Flow.ScriptResponse, Error> {
+    public func query(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<Flow.ScriptResponse, Error> {
         var script: Flow.Script = .init(data: Data())
         var args: [Flow.Argument] = []
         builder().forEach { txValue in
@@ -64,7 +64,7 @@ extension FCL {
         }.asFuture()
     }
 
-    public func mutate(@Flow .TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<String, Error> {
+    public func mutate(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<String, Error> {
         return send(builder().compactMap { $0.toFCLBuild() })
     }
 }
