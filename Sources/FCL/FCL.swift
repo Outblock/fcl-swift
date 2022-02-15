@@ -82,7 +82,7 @@ public final class FCL: NSObject {
 
             // TODO: Fix here, the blocto return html response
             guard let messageData = message.data(using: .utf8),
-                  let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
+                  let _ = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
             else {
                 promise(.failure(FCLError.encodeFailure))
                 return

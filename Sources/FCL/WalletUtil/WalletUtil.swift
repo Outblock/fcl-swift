@@ -15,9 +15,10 @@ extension FCL {
                                                          timestamp: TimeInterval,
                                                          appDomainTag: String? = nil) -> String
         {
-            let USER_DOMAIN_TAG = Flow.DomainTag.user
+            let userDomainTag = Flow.DomainTag.user
 
             var rlpList: [Any] = []
+
             if let tag = appDomainTag {
                 rlpList.append(Flow.DomainTag.custom(tag))
             } else if let tag = fcl.config.get(.domainTag) {
@@ -31,7 +32,7 @@ extension FCL {
             rlpList.append(time)
 
             let result = RLP.encode(rlpList) ?? Data()
-            return (USER_DOMAIN_TAG.normalize + result).hexValue
+            return (userDomainTag.normalize + result).hexValue
         }
     }
 }

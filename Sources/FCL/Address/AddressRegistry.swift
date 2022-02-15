@@ -64,8 +64,9 @@ public class AddressRegistry {
         return processScript(script: script, chainId: defaultChainId)
     }
 
+    // TODO: Finish this
     func processScript(script: String, chainId _: Flow.ChainID) -> String {
-        var ret = script
+        let ret = script
         //        scriptTokenDict[chainId]?.forEach {
         //            ret = ret.replacingOccurrences(of: $0.key,
         //                                           with: $0.value.hexValue.addHexPrefix())

@@ -77,12 +77,12 @@ class ViewModel: NSObject, ObservableObject {
                    authn: provider.endpoint)
 
         fcl.config
-            .put(key: "0xFungibleToken", value: "0xf233dcee88fe0abe")
-            .put(key: "0xFUSD", value: "0x3c5959b568896393")
+            .put("0xFungibleToken", value: "0xf233dcee88fe0abe")
+            .put("0xFUSD", value: "0x3c5959b568896393")
     }
 
     func changeWallet() {
-        fcl.config.put(key: .authn, value: provider.endpoint)
+        fcl.config.put(.authn, value: provider.endpoint)
     }
 
     func lookupAcount(address: String) {
@@ -94,7 +94,7 @@ class ViewModel: NSObject, ObservableObject {
                 }
             } receiveValue: { block in
                 self.isPresented = true
-                self.currentObject = prettyPrint(block)
+                self.currentObject = prettyPrint(block ?? "")
             }.store(in: &cancellables)
     }
 
