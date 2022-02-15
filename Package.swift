@@ -16,7 +16,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(name: "Flow", url: "https://github.com/zed-io/flow-swift.git", from: "0.1.3-beta"),
+        .package(name: "Flow", url: "https://github.com/outblock/flow-swift.git", from: "0.1.4"),
     ],
     targets: [
         .target(
