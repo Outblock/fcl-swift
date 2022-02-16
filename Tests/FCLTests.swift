@@ -23,6 +23,23 @@ final class FCLTests: XCTestCase {
         XCTAssertEqual(result2, result3)
     }
 
+    func testRegexInConfig() {
+        FCL.shared.config(appName: "FCLDemo",
+                          appIcon: "https://placekitten.com/g/200/200",
+                          location: "https://foo.com",
+                          walletNode: "https://fcl-http-post.vercel.app/api",
+                          accessNode: "https://access-testnet.onflow.org",
+                          env: "mainnet",
+                          scope: "email",
+                          authn: "")
+
+        let dict = fcl.config.configLens("^app\\.detail\\.")
+        XCTAssertNotNil(dict)
+        XCTAssertNotEqual(dict.keys.count, 0)
+        XCTAssertEqual(dict["icon"], "https://placekitten.com/g/200/200")
+        XCTAssertEqual(dict["title"], "FCLDemo")
+    }
+
     func testQuery() {
         let expectation = XCTestExpectation(description: "Query got executed!")
         fcl.query {
