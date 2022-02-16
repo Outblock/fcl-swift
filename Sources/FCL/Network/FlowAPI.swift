@@ -57,18 +57,18 @@ final class API {
     func execHttpPost(url: URL, method: HTTPMethod = .post, params: [String: String]? = [:], data: Data? = nil) -> Future<AuthnResponse, Error> {
         return Future { promise in
 
-            var bodyWithConfigData: Data?
+            var configData: Data?
             if let baseConfig = try? BaseConfigRequest().toDictionary() {
                 var body: [String: Any]? = [:]
                 if let data = data {
-                    body = try? JSONSerialization.jsonObject(with: data ?? Data(), options: []) as? [String: Any]
+                    body = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
                 }
 
-                let bodyWithConfig = baseConfig.merging(body ?? [:]) { _, new in new }
-                bodyWithConfigData = try? JSONSerialization.data(withJSONObject: bodyWithConfig)
+                let configDict = baseConfig.merging(body ?? [:]) { _, new in new }
+                configData = try? JSONSerialization.data(withJSONObject: configDict)
             }
 
-            self.fetchService(url: url, method: method, params: params, data: bodyWithConfigData ?? data)
+            self.fetchService(url: url, method: method, params: params, data: configData ?? data)
                 .sink { completion in
                     if case let .failure(error) = completion {
                         print(error)
