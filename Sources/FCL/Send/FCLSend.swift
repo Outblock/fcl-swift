@@ -47,7 +47,7 @@ public extension FCL {
                 newIX.message.cadence = script
             case let .limit(gasLimit):
                 newIX.message.computeLimit = gasLimit
-            case let .getAccount(_):
+            case let .getAccount:
                 newIX.tag = .getAccount
             case .getBlock:
                 newIX.tag = .getBlock

@@ -24,6 +24,19 @@ public class Config {
         case domainTag = "fcl.appDomainTag"
     }
 
+    public func configLens(_ regex: String) -> [String: String] {
+        let matches = dict.filter { item in
+            item.key.range(of: regex, options: .regularExpression) != nil
+        }
+
+        let newDict = Dictionary(uniqueKeysWithValues:
+            matches.map { key, value in
+                (key.replacingOccurrences(of: regex, with: "", options: [.regularExpression]), value)
+            })
+
+        return newDict
+    }
+
     public func get(_ key: Key) -> String? {
         return dict[key.rawValue] ?? nil
     }

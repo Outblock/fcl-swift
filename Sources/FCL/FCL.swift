@@ -16,6 +16,8 @@ public final class FCL: NSObject {
 
     private var session: ASWebAuthenticationSession?
 
+    public let version = "@outblock/fcl-swift@0.0.3"
+
     internal let api = API()
 
     @Published var currentUser: User?
