@@ -8,17 +8,17 @@
 import Foundation
 import SafariServices
 
-class SafariWebViewManager: NSObject, SFSafariViewControllerDelegate {
+class SafariWebViewManager: NSObject {
     static var shared = SafariWebViewManager()
     var safariVC: SFSafariViewController?
-    var onClose: (() -> Void)?
 
-    static func openSafariWebView(url: URL, dismiss _: (() -> Void)?) {
-        SafariWebViewManager.shared.onClose = dismiss
+    static func openSafariWebView(url: URL) {
         DispatchQueue.main.async {
             let vc = SFSafariViewController(url: url)
             vc.delegate = SafariWebViewManager.shared
+            vc.presentationController?.delegate = SafariWebViewManager.shared
             vc.modalPresentationStyle = .formSheet
+//            vc.isModalInPresentation = true
             SafariWebViewManager.shared.safariVC = vc
 
             if var topController = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first?.rootViewController {
@@ -36,13 +36,21 @@ class SafariWebViewManager: NSObject, SFSafariViewControllerDelegate {
             DispatchQueue.main.async {
                 vc.dismiss(animated: true, completion: nil)
             }
+            SafariWebViewManager.shared.stopPolling()
         }
     }
 
+    func stopPolling() {
+        fcl.api.canContinue = false
+    }
+}
+
+extension SafariWebViewManager: SFSafariViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     func safariViewControllerDidFinish(_: SFSafariViewController) {
-        if let block = SafariWebViewManager.shared.onClose {
-            block()
-        }
-        SafariWebViewManager.shared.onClose = nil
+        stopPolling()
+    }
+
+    func presentationControllerDidDismiss(_: UIPresentationController) {
+        stopPolling()
     }
 }

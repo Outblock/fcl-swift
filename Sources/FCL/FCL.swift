@@ -169,9 +169,7 @@ public final class FCL: NSObject {
                 session.prefersEphemeralWebBrowserSession = false
                 session.start()
             } else {
-                SafariWebViewManager.openSafariWebView(url: url) {
-                    fcl.api.canContinue = false
-                }
+                SafariWebViewManager.openSafariWebView(url: url)
             }
         }
     }
