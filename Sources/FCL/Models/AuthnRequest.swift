@@ -8,9 +8,17 @@
 import Foundation
 
 public struct BaseConfigRequest: Encodable {
-    var fclVersion: String = fcl.version
     var app: [String: String] = fcl.config.configLens("^app\\.detail\\.")
     var service: [String: String] = fcl.config.configLens("^service\\.")
+    var client = ClientInfo()
+}
+
+public struct ClientInfo: Encodable {
+    var fclVersion: String = fcl.version
+    var fclLibrary: URL = URL(string: "https://github.com/Outblock/fcl-swift")!
+    
+    @NullEncodable
+    var hostname: String? = nil
 }
 
 public struct AuthnRequest: Codable {
