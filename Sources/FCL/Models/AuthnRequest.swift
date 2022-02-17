@@ -15,8 +15,8 @@ public struct BaseConfigRequest: Encodable {
 
 public struct ClientInfo: Encodable {
     var fclVersion: String = fcl.version
-    var fclLibrary: URL = URL(string: "https://github.com/Outblock/fcl-swift")!
-    
+    var fclLibrary = URL(string: "https://github.com/Outblock/fcl-swift")!
+
     @NullEncodable
     var hostname: String? = nil
 }

@@ -130,6 +130,8 @@ final class API {
                     SafariWebViewManager.dismiss()
                     completion(Result<AuthnResponse, Error>.success(result))
                 case .declined:
+                    fcl.closeSession()
+                    SafariWebViewManager.dismiss()
                     completion(Result.failure(FCLError.declined))
                 case .pending:
                     // TODO: Improve this
