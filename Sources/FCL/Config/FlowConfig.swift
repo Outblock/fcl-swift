@@ -62,7 +62,7 @@ public class Config {
         dict[key] = value
         
         // If env changed, we will change chainID instead for accessAPI
-        if key == .env, let chainID = envToChainID(env: value) {
+        if key == "env", let chainID = envToChainID(env: value) {
             flow.configure(chainID: chainID)
         }
         
@@ -84,7 +84,7 @@ public class Config {
 
 
 extension Config {
-    private envToChainID(env: String) -> Flow.ChainID? {
+    private func envToChainID(env: String) -> Flow.ChainID? {
         switch env.lowercased() {
         case "testnet":
             return .testnet
