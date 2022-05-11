@@ -37,7 +37,8 @@ public final class FCL: NSObject {
                        scope: String,
                        authn: String)
     {
-        _ = config.put(.wallet, value: walletNode)
+        _ = config
+            .put(.wallet, value: walletNode)
             .put(.accessNode, value: accessNode)
             .put(.title, value: appName)
             .put(.icon, value: appIcon)

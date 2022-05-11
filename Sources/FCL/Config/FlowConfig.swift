@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Flow
 
 public class Config {
     var dict = [String: String]()
@@ -43,8 +44,7 @@ public class Config {
 
     @discardableResult
     public func put(_ key: Key, value: String) -> Self {
-        dict[key.rawValue] = value
-        return self
+        return put(key.rawValue, value: value)
     }
 
     @discardableResult
@@ -60,6 +60,12 @@ public class Config {
     @discardableResult
     public func put(_ key: String, value: String) -> Self {
         dict[key] = value
+        
+        // If env changed, we will change chainID instead for accessAPI
+        if key == "env", let chainID = envToChainID(env: value) {
+            flow.configure(chainID: chainID)
+        }
+        
         return self
     }
 
@@ -73,5 +79,23 @@ public class Config {
     public func clear() -> Config {
         dict.removeAll()
         return self
+    }
+}
+
+
+extension Config {
+    private func envToChainID(env: String) -> Flow.ChainID? {
+        switch env.lowercased() {
+        case "testnet":
+            return .testnet
+        case "mainnet":
+            return .mainnet
+        case "canarynet":
+            return .canarynet
+        case "emulator":
+            return .emulator
+        default:
+            return nil
+        }
     }
 }
