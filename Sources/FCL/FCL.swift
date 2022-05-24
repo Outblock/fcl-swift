@@ -20,7 +20,7 @@ public final class FCL: NSObject {
 
     internal let api = API()
 
-    @Published var currentUser: User?
+    @Published public var currentUser: User?
 
     private lazy var defaultAddressRegistry = AddressRegistry()
 
