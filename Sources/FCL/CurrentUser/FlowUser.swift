@@ -8,7 +8,7 @@
 import Flow
 import Foundation
 
-struct User: Decodable {
+public struct User: Decodable {
     var fType: String = "USER"
     var fVsn: String = "1.0.0"
     let addr: Flow.Address
