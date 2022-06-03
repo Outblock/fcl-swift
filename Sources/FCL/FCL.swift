@@ -134,17 +134,16 @@ public final class FCL: NSObject {
             else {
                 return promise(.failure(Flow.FError.urlEmpty))
             }
+            
             self.api.execHttpPost(url: url)
-                .map { response -> FCLResponse in
-                    self.currentUser = self.buildUser(authn: response)
-                    return FCLResponse(address: response.data?.addr)
-                }
                 .receive(on: DispatchQueue.main)
                 .sink { _ in
                     self.closeSession()
-                } receiveValue: { model in
-                    promise(.success(model))
-                }.store(in: &self.cancellables)
+                } receiveValue: { response in
+                    self.currentUser = self.buildUser(authn: response)
+                    promise(.success(FCLResponse(address: response.data?.addr)))
+                }
+                .store(in: &self.cancellables)
         }
     }
 
