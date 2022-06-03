@@ -34,12 +34,12 @@ Values only need to be set once. We recommend doing this once and as early in th
 
 ```swift
 fcl.config
-    .put(key: .title, value: "Foo")
-    .put(key: .wallet, value: "https://fcl-http-post.vercel.app/api")
-    .put(key: .accessNode, value: "https://access-testnet.onflow.org")
-    .put(key: .authn, value: "https://dapper-http-post.vercel.app/api/authn")
-    .put(key: .location, value: "https://foo.com")
-    .put(key: .env, value: "mainnet")
+    .put(.title, value: "Foo")
+    .put(.wallet, value: "https://fcl-discovery.onflow.org/testnet/authn")
+    .put(.accessNode, value: "https://access-testnet.onflow.org")
+    .put(.authn, value: "https://dapper-http-post.vercel.app/api/authn")
+    .put(.location, value: "https://foo.com")
+    .put(.env, value: "testnet")
     
 // OR
 
@@ -48,7 +48,7 @@ fcl.config(appName: "Foo",
            location: "https://foo.com",
            walletNode: "https://fcl-http-post.vercel.app/api",
            accessNode: "https://access-testnet.onflow.org",
-           env: "mainnet"
+           env: "testnet"
            scope: "email",
            authn: provider.endpoint)
 
@@ -63,6 +63,7 @@ fcl.config(appName: "Foo",
 | `discovery.wallet` **(required)** | `https://fcl-discovery.onflow.org/testnet/authn`     | Points FCL at the Wallet or Wallet Discovery mechanism.                                                                                                                                        |
 | `app.detail.title`              | `Cryptokitties`                                      | Your applications title, can be requested by wallets and other services.                                                                                                                       |
 | `app.detail.icon`               | `https://fcl-discovery.onflow.org/images/blocto.png` | Url for your applications icon, can be requested by wallets and other services.                                                                                                                |
+| `location` **(required)**       | `https://foo.com`     | Your application's site URL, can be requested by wallets and other services.                                                                                                                |
 | `challenge.handshake`           | **DEPRECATED**                                       | Use `discovery.wallet` instead.                                                                                                                                                               |
 
 ### Address replacement in scripts and transactions
