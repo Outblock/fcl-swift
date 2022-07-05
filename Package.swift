@@ -16,14 +16,12 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(name: "Flow",
-                 url: "https://github.com/outblock/flow-swift.git",
-                 from: "0.1.5"),
+        .package(url: "https://github.com/outblock/flow-swift.git", .exact("0.1.5")),
     ],
     targets: [
         .target(
             name: "FCL",
-            dependencies: ["Flow"],
+            dependencies: [.product(name: "Flow", package: "flow-swift")],
             path: "Sources/FCL"
         ),
         .testTarget(
