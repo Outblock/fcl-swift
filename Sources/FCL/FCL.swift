@@ -25,27 +25,23 @@ public final class FCL: NSObject {
     private lazy var defaultAddressRegistry = AddressRegistry()
 
     internal var cancellables = Set<AnyCancellable>()
-
+    
     // MARK: - Back Channel
 
-    public func config(appName: String,
-                       appIcon: String,
-                       location: String,
-                       walletNode: String,
-                       accessNode: String,
-                       env: String,
-                       scope: String,
-                       authn: String)
+    public func config(metadata: FCL.Metadata,
+                       env: Flow.ChainID,
+                       provider: FCLProvider)
     {
         _ = config
-            .put(.wallet, value: walletNode)
-            .put(.accessNode, value: accessNode)
-            .put(.title, value: appName)
-            .put(.icon, value: appIcon)
-            .put(.scope, value: scope)
-            .put(.authn, value: authn)
-            .put(.location, value: location)
-            .put(.env, value: env)
+            .put(.title, value: metadata.appName)
+            .put(.icon, value: metadata.appIcon)
+            .put(.authn, value: provider.endpoint(chainId: env).absoluteString)
+            .put(.env, value: env.name)
+    }
+    
+    public func changeProvider(provider: FCLProvider, env: Flow.ChainID) {
+        config.put(.authn, value: provider.endpoint(chainId: env).absoluteString)
+            .put(.env, value: env.name)
     }
 
     public func unauthenticate() {

@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import FCL
+import Flow
 
 struct ContentView: View {
     @ObservedObject var viewModel = ViewModel()
@@ -23,8 +25,8 @@ struct ContentView: View {
                 }
 
                 Picker("iFrame", selection: $viewModel.provider, content: {
-                    Text("Dapper").tag(Provider.dapper)
-                    Text("Blocoto").tag(Provider.blocto)
+                    Text("Dapper").tag(FCLProvider.dapper)
+                    Text("Blocoto").tag(FCLProvider.blocto)
                 }).onChange(of: viewModel.provider, perform: { _ in
                     viewModel.changeWallet()
                 })
@@ -37,6 +39,17 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             Form {
+                
+                Section {
+                    Picker("iFrame", selection: $viewModel.env, content: {
+                        Text("mainnet").tag(Flow.ChainID.mainnet)
+                        Text("testnet").tag(Flow.ChainID.testnet)
+                    }).onChange(of: viewModel.env, perform: { _ in
+                        viewModel.changeWallet()
+                    })
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+                
                 signIn
 
                 Section {

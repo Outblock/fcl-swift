@@ -19,7 +19,9 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var preAuthz: String = ""
 
-    @Published var provider: Provider = .blocto
+    @Published var provider: FCLProvider = .blocto
+    
+    @Published var env: Flow.ChainID = .testnet
 
     @Published var isShowWeb: Bool = false
 
@@ -67,14 +69,12 @@ class ViewModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        fcl.config(appName: "FCLDemo",
-                   appIcon: "https://placekitten.com/g/200/200",
-                   location: "https://foo.com",
-                   walletNode: "https://fcl-http-post.vercel.app/api",
-                   accessNode: "https://access-testnet.onflow.org",
-                   env: "mainnet",
-                   scope: "email",
-                   authn: provider.endpoint)
+        let metadata = FCL.Metadata(appName: "FCLDemo",
+                                    appIcon: "https://placekitten.com/g/200/200",
+                                    location: "https://foo.com")
+        fcl.config(metadata: metadata,
+                   env: env,
+                   provider: provider)
 
         fcl.config
             .put("0xFungibleToken", value: "0xf233dcee88fe0abe")
@@ -82,7 +82,7 @@ class ViewModel: NSObject, ObservableObject {
     }
 
     func changeWallet() {
-        fcl.config.put(.authn, value: provider.endpoint)
+        fcl.changeProvider(provider: provider, env: env)
     }
 
     func lookupAcount(address: String) async {
@@ -115,7 +115,7 @@ class ViewModel: NSObject, ObservableObject {
                 cadence {
                     script
                 }
-            }
+            }.decode()
             await MainActor.run {
                 self.isPresented = true
                 self.currentObject = prettyPrint(block)
@@ -247,20 +247,6 @@ class ViewModel: NSObject, ObservableObject {
 
 func prettyPrint(_ object: Any) -> String {
     return Pretty._prettyPrint(label: nil, [object], separator: "\n", option: Pretty.sharedOption, colored: false)
-}
-
-enum Provider: Int {
-    case dapper
-    case blocto
-
-    var endpoint: String {
-        switch self {
-        case .dapper:
-            return "https://dapper-http-post.vercel.app/api/authn"
-        case .blocto:
-            return "https://flow-wallet.blocto.app/api/flow/authn"
-        }
-    }
 }
 
 struct SafariView: UIViewControllerRepresentable {
