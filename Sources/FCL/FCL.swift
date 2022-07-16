@@ -53,10 +53,10 @@ public final class FCL: NSObject {
         currentUser = nil
     }
 
-    func reauthenticate() -> Future<FCLResponse, Error> {
+    func reauthenticate() async throws -> FCLResponse {
         // TODO: implement this
         unauthenticate()
-        return authenticate()
+        return try await authenticate()
     }
 
     internal func closeSession() {
@@ -65,86 +65,56 @@ public final class FCL: NSObject {
         }
     }
 
-    public func signUserMessage(message: String) -> Future<String, Error> {
-        return Future { [weak self] promise in
-            guard let self = self, let currentUser = self.currentUser, currentUser.loggedIn else {
-                promise(.failure(Flow.FError.unauthenticated))
-                return
-            }
-
-            guard let service = self.serviceOfType(services: currentUser.services, type: .userSignature),
-                  let endpoint = service.endpoint
-            else {
-                promise(.failure(FCLError.invaildService))
-                return
-            }
-
-            struct SignableMessage: Codable {
-                let message: String
-            }
-
-            // TODO: Fix here, the blocto return html response
-            guard let messageData = message.data(using: .utf8),
-                  let _ = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
-            else {
-                promise(.failure(FCLError.encodeFailure))
-                return
-            }
-
-            self.api.execHttpPost(url: endpoint, method: .get, params: service.params)
-                .sink { completion in
-                    if case let .failure(error) = completion {
-                        print(error)
-                    }
-                } receiveValue: { response in
-                    print(response)
-                }.store(in: &self.cancellables)
+    public func signUserMessage(message: String) async throws -> String {
+        guard let currentUser = currentUser, currentUser.loggedIn else {
+            throw Flow.FError.unauthenticated
         }
+
+        guard let service = serviceOfType(services: currentUser.services, type: .userSignature),
+              let endpoint = service.endpoint
+        else {
+            throw FCLError.invaildService
+        }
+
+        struct SignableMessage: Codable {
+            let message: String
+        }
+
+        // TODO: Fix here, the blocto return html response
+        guard let messageData = message.data(using: .utf8),
+              let _ = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
+        else {
+            throw FCLError.encodeFailure
+        }
+
+        let model = try await api.execHttpPost(url: endpoint, method: .get, params: service.params)
+        return model.data?.signature ?? ""
     }
 
-    func authorization() -> Future<AuthnResponse, Error> {
-        return Future { [weak self] promise in
-            guard let self = self, let currentUser = self.currentUser, currentUser.loggedIn else {
-                promise(.failure(Flow.FError.unauthenticated))
-                return
-            }
-
-            guard let service = self.serviceOfType(services: currentUser.services, type: .authz),
-                  let url = service.endpoint
-            else {
-                return
-            }
-
-            self.api.execHttpPost(url: url)
-                .sink { completion in
-                    if case let .failure(error) = completion {
-                        promise(.failure(error))
-                    }
-                } receiveValue: { model in
-                    promise(.success(model))
-                }
-                .store(in: &self.cancellables)
+    func authorization() async throws -> AuthnResponse {
+        guard let currentUser = currentUser, currentUser.loggedIn else {
+            throw Flow.FError.unauthenticated
         }
+
+        guard let service = serviceOfType(services: currentUser.services, type: .authz),
+              let url = service.endpoint
+        else {
+            throw FCLError.invaildService
+        }
+
+        return try await api.execHttpPost(url: url)
     }
 
-    public func authenticate() -> Future<FCLResponse, Error> {
-        return Future { promise in
-            guard let endpoint = self.config.get(.authn),
-                  let url = URL(string: endpoint)
-            else {
-                return promise(.failure(Flow.FError.urlEmpty))
-            }
-            
-            self.api.execHttpPost(url: url)
-                .receive(on: DispatchQueue.main)
-                .sink { _ in
-                    self.closeSession()
-                } receiveValue: { response in
-                    self.currentUser = self.buildUser(authn: response)
-                    promise(.success(FCLResponse(address: response.data?.addr)))
-                }
-                .store(in: &self.cancellables)
+    public func authenticate() async throws -> FCLResponse {
+        guard let endpoint = config.get(.authn),
+              let url = URL(string: endpoint)
+        else {
+            throw Flow.FError.urlEmpty
         }
+
+        let response = try await api.execHttpPost(url: url)
+        currentUser = buildUser(authn: response)
+        return FCLResponse(address: response.data?.addr)
     }
 
     // MARK: - Session

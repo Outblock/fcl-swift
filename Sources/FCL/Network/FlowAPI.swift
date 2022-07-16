@@ -20,9 +20,9 @@ final class API {
     // TODO: Improve this
     internal var canContinue = true
 
-    func fetchService(url: URL, method: HTTPMethod = .get, params: [String: String]? = [:], data: Data? = nil) -> AnyPublisher<AuthnResponse, Error> {
+    func fetchService(url: URL, method: HTTPMethod = .get, params: [String: String]? = [:], data: Data? = nil) async throws -> AuthnResponse {
         guard let fullURL = buildURL(url: url, params: params) else {
-            return Result.Publisher(FCLError.generic).eraseToAnyPublisher()
+            throw FCLError.generic
         }
         var request = URLRequest(url: fullURL)
         request.httpMethod = method.rawValue
@@ -40,108 +40,75 @@ final class API {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let config = URLSessionConfiguration.default
-        return URLSession(configuration: config).dataTaskPublisher(for: request)
-            .map { $0.data }
-            .decode(type: AuthnResponse.self, decoder: decoder)
-            .eraseToAnyPublisher()
+
+        let (data, _) = try await URLSession(configuration: config).data(for: request)
+        let model = try decoder.decode(AuthnResponse.self, from: data)
+        return model
     }
 
-    func execHttpPost(service: Service?, data: Data? = nil) -> Future<AuthnResponse, Error> {
+    func execHttpPost(service: Service?, data: Data? = nil) async throws -> AuthnResponse {
         guard let ser = service, let url = ser.endpoint, let param = ser.params else {
-            return Future { $0(.failure(FCLError.generic)) }
+            throw FCLError.generic
         }
 
-        return execHttpPost(url: url, params: param, data: data)
+        return try await execHttpPost(url: url, params: param, data: data)
     }
 
-    func execHttpPost(url: URL, method: HTTPMethod = .post, params: [String: String]? = [:], data: Data? = nil) -> Future<AuthnResponse, Error> {
-        return Future { promise in
-
-            var configData: Data?
-            if let baseConfig = try? BaseConfigRequest().toDictionary() {
-                var body: [String: Any]? = [:]
-                if let data = data {
-                    body = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                }
-
-                let configDict = baseConfig.merging(body ?? [:]) { _, new in new }
-                configData = try? JSONSerialization.data(withJSONObject: configDict)
+    func execHttpPost(url: URL, method: HTTPMethod = .post, params: [String: String]? = [:], data: Data? = nil) async throws -> AuthnResponse {
+        var configData: Data?
+        if let baseConfig = try? BaseConfigRequest().toDictionary() {
+            var body: [String: Any]? = [:]
+            if let data = data {
+                body = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
             }
 
-            self.fetchService(url: url, method: method, params: params, data: configData ?? data)
-                .sink { completion in
-                    if case let .failure(error) = completion {
-                        print(error)
-                    }
-                } receiveValue: { result in
-                    switch result.status {
-                    case .approved:
-                        promise(.success(result))
-                    case .declined:
-                        promise(.failure(FCLError.declined))
-                    case .pending:
-                        self.canContinue = true
-                        guard let local = result.local,
-                              let updates = result.updates ?? result.authorizationUpdates
-                        else {
-                            promise(.failure(FCLError.generic))
-                            return
-                        }
-                        do {
-                            try fcl.openAuthenticationSession(service: local)
-                        } catch {
-                            promise(.failure(error))
-                        }
+            let configDict = baseConfig.merging(body ?? [:]) { _, new in new }
+            configData = try? JSONSerialization.data(withJSONObject: configDict)
+        }
 
-                        self.poll(service: updates) { result in
-                            switch result {
-                            case let .success(response):
-                                promise(.success(response))
-                            case let .failure(error):
-                                promise(.failure(error))
-                            }
-                        }
-                    }
-                }.store(in: &self.cancellables)
+        let result = try await fetchService(url: url, method: method, params: params, data: configData ?? data)
+        switch result.status {
+        case .approved:
+            return result
+        case .declined:
+            return result
+        case .pending:
+            canContinue = true
+            guard let local = result.local,
+                  let updates = result.updates ?? result.authorizationUpdates
+            else {
+                throw FCLError.generic
+            }
+
+            try fcl.openAuthenticationSession(service: local)
+
+            return try await poll(service: updates)
         }
     }
 
-    private func poll(service: Service, completion: @escaping (Result<AuthnResponse, Error>) -> Void) {
+    private func poll(service: Service) async throws -> AuthnResponse {
         if !canContinue {
-            completion(Result.failure(FCLError.declined))
-            return
+            throw FCLError.declined
         }
 
         guard let url = service.endpoint else {
-            completion(Result.failure(FCLError.invaildURL))
-            return
+            throw FCLError.invaildURL
         }
 
-        fetchService(url: url, method: .get, params: service.params)
-            .sink { complete in
-                if case let .failure(error) = complete {
-                    completion(Result<AuthnResponse, Error>.failure(error))
-                }
-
-            } receiveValue: { result in
-                switch result.status {
-                case .approved:
-                    fcl.closeSession()
-                    SafariWebViewManager.dismiss()
-                    completion(Result<AuthnResponse, Error>.success(result))
-                case .declined:
-                    fcl.closeSession()
-                    SafariWebViewManager.dismiss()
-                    completion(Result.failure(FCLError.declined))
-                case .pending:
-                    // TODO: Improve this
-                    DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(500)) {
-                        self.poll(service: service) { response in
-                            completion(response)
-                        }
-                    }
-                }
-            }.store(in: &cancellables)
+        let result = try await fetchService(url: url, method: .get, params: service.params)
+        switch result.status {
+        case .approved:
+            fcl.closeSession()
+            SafariWebViewManager.dismiss()
+            return result
+        case .declined:
+            fcl.closeSession()
+            SafariWebViewManager.dismiss()
+            return result
+        case .pending:
+            try await _Concurrency.Task.sleep(nanoseconds: 1_000_000_000)
+            return try await poll(service: service)
+        }
     }
 
     func buildURL(url: URL, params: [String: String]?) -> URL? {

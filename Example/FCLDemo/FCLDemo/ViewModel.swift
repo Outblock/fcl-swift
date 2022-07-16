@@ -85,177 +85,163 @@ class ViewModel: NSObject, ObservableObject {
         fcl.config.put(.authn, value: provider.endpoint)
     }
 
-    func lookupAcount(address: String) {
-        fcl.getAccount(address: address)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print(error)
-                }
-            } receiveValue: { block in
+    func lookupAcount(address: String) async {
+        do {
+            let account = try await fcl.getAccount(address: address)
+            await MainActor.run {
                 self.isPresented = true
-                self.currentObject = prettyPrint(block ?? "")
-            }.store(in: &cancellables)
+                self.currentObject = prettyPrint(account)
+            }
+        } catch {
+            print(error)
+        }
     }
 
-    func getLastestBlock() {
-        fcl.getLastestBlock()
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print(error)
-                }
-            } receiveValue: { block in
+    func getLastestBlock() async {
+        do {
+            let block = try await fcl.getLastestBlock()
+            await MainActor.run {
                 self.isPresented = true
                 self.currentObject = prettyPrint(block)
-            }.store(in: &cancellables)
-    }
-
-    func queryScript() {
-        fcl.query {
-            cadence {
-                script
             }
+        } catch {
+            print(error)
         }
-        .receive(on: DispatchQueue.main)
-        .sink { completion in
-            if case let .failure(error) = completion {
-                print(error)
-            }
-        } receiveValue: { block in
-            self.isPresented = true
-            self.currentObject = prettyPrint(block)
-        }.store(in: &cancellables)
     }
 
-    func checkBalance(address: String) {
-        fcl.getAccount(address: address)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print(error)
+    func queryScript() async {
+        do {
+            let block = try await fcl.query {
+                cadence {
+                    script
                 }
-            } receiveValue: { account in
-                if let data = account {
-                    let (quotient, remainder) = data.balance.quotientAndRemainder(dividingBy: BigInt(10).power(8))
-                    let fullRemainder = String(remainder)
-                    let fullPaddedRemainder = fullRemainder.leftPadding(toLength: 8, withPad: "0")
-                    let remainderPadded = fullPaddedRemainder[0 ..< 2]
-                    self.balance = "\(quotient).\(remainderPadded) Flow"
-                } else {
-                    self.balance = "Empty account"
-                }
-
-            }.store(in: &cancellables)
-    }
-
-    func queryFUSD(address: String) {
-        fcl.query {
-            cadence {
-                """
-                import FungibleToken from 0xFungibleToken
-                import FUSD from 0xFUSD
-
-                pub fun main(account: Address): UFix64 {
-                  let receiverRef = getAccount(account).getCapability(/public/fusdBalance)!
-                    .borrow<&FUSD.Vault{FungibleToken.Balance}>()
-
-                  return receiverRef!.balance
-                }
-                """
             }
-
-            arguments {
-                [.address(Flow.Address(hex: address))]
-            }
-
-            gasLimit {
-                1000
-            }
-        }
-        .receive(on: DispatchQueue.main)
-        .sink { completion in
-            if case let .failure(error) = completion {
-                print(error)
-            }
-        } receiveValue: { block in
-            self.FUSDBalance = "\(String(block.fields?.value.toUFix64() ?? 0.0)) FUSD"
-        }.store(in: &cancellables)
-    }
-
-    func signMessage() {
-        fcl.signUserMessage(message: message)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print(error)
-                }
-            } receiveValue: { block in
+            await MainActor.run {
                 self.isPresented = true
                 self.currentObject = prettyPrint(block)
-            }.store(in: &cancellables)
+            }
+        } catch {
+            print(error)
+        }
     }
 
-    func authn() {
-        fcl.authenticate()
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    self.address = error.localizedDescription
+    func checkBalance(address: String) async {
+        do {
+            let account = try await fcl.getAccount(address: address)
+            await MainActor.run {
+                let (quotient, remainder) = account.balance.quotientAndRemainder(dividingBy: BigInt(10).power(8))
+                let fullRemainder = String(remainder)
+                let fullPaddedRemainder = fullRemainder.leftPadding(toLength: 8, withPad: "0")
+                let remainderPadded = fullPaddedRemainder[0 ..< 2]
+                self.balance = "\(quotient).\(remainderPadded) Flow"
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    func queryFUSD(address: String) async {
+        do {
+            let block = try await fcl.query {
+                cadence {
+                    """
+                    import FungibleToken from 0xFungibleToken
+                    import FUSD from 0xFUSD
+
+                    pub fun main(account: Address): UFix64 {
+                      let receiverRef = getAccount(account).getCapability(/public/fusdBalance)!
+                        .borrow<&FUSD.Vault{FungibleToken.Balance}>()
+
+                      return receiverRef!.balance
+                    }
+                    """
                 }
-            } receiveValue: { result in
+
+                arguments {
+                    [.address(Flow.Address(hex: address))]
+                }
+
+                gasLimit {
+                    1000
+                }
+            }
+            await MainActor.run {
+                self.FUSDBalance = "\(String(block.fields?.value.toUFix64() ?? 0.0)) FUSD"
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    func signMessage() async {
+        do {
+            let block = try await fcl.signUserMessage(message: message)
+            await MainActor.run {
+                self.isPresented = true
+                self.currentObject = prettyPrint(block)
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    func authn() async {
+        do {
+            let result = try await fcl.authenticate()
+            await MainActor.run {
                 self.address = result.address ?? ""
-            }.store(in: &cancellables)
-    }
-
-    func send() {
-        fcl.mutate {
-            cadence {
-                transactionScript
             }
-
-            arguments {
-                [.string("Test2"), .int(1)]
-            }
-
-            gasLimit {
-                1000
-            }
+        } catch {
+            print(error)
         }
-        .receive(on: DispatchQueue.main)
-        .sink { completion in
-            if case let .failure(error) = completion {
-                self.preAuthz = error.localizedDescription
-            }
-        } receiveValue: { txId in
-            self.preAuthz = txId
-        }.store(in: &cancellables)
     }
 
-    func authz() {
-        fcl.send([
-            .transaction(
-                """
-                   transaction(test: String, testInt: Int) {
-                       prepare(signer: AuthAccount) {
-                            log(signer.address)
-                            log(test)
-                            log(testInt)
-                       }
-                   }
-                """
-            ),
-            .args([.string("Test2"), .int(1)]),
-            .limit(1000),
-        ])
-        .receive(on: DispatchQueue.main)
-        .sink { completion in
-            if case let .failure(error) = completion {
-                self.preAuthz = error.localizedDescription
+    func send() async {
+        do {
+            let txId = try await fcl.mutate {
+                cadence {
+                    transactionScript
+                }
+
+                arguments {
+                    [.string("Test2"), .int(1)]
+                }
+
+                gasLimit {
+                    1000
+                }
             }
-        } receiveValue: { txId in
-            self.preAuthz = txId
-        }.store(in: &cancellables)
+            await MainActor.run {
+                self.preAuthz = txId.hex
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    func authz() async {
+        do {
+            let txId = try await fcl.send([
+                .transaction(
+                    """
+                       transaction(test: String, testInt: Int) {
+                           prepare(signer: AuthAccount) {
+                                log(signer.address)
+                                log(test)
+                                log(testInt)
+                           }
+                       }
+                    """
+                ),
+                .args([.string("Test2"), .int(1)]),
+                .limit(1000),
+            ])
+            await MainActor.run {
+                self.preAuthz = txId.hex
+            }
+        } catch {
+            print(error)
+        }
     }
 }
 

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import NIOHTTP1
 
 public enum FCLProvider: Equatable {
     case dapper
@@ -66,4 +65,9 @@ public enum FCLServiceMethod: String, Decodable {
             return nil
         }
     }
+}
+
+internal enum HTTPMethod {
+    case GET
+    case POST
 }

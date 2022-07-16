@@ -246,43 +246,29 @@ struct Interaction: Encodable {
                            sequenceNum: account.sequenceNum)
     }
 
-    func createFlowProposalKey() -> Future<Flow.TransactionProposalKey, Error> {
-        return Future { promise in
+    func createFlowProposalKey() async throws -> Flow.TransactionProposalKey {
+        guard let proposer = proposer,
+              var account = accounts[proposer],
+              let address = account.addr,
+              let keyID = account.keyID
+        else {
+            throw FCLError.invaildProposer
+        }
 
-            guard let proposer = proposer,
-                  var account = accounts[proposer],
-                  let address = account.addr,
-                  let keyID = account.keyID
-            else {
-                promise(.failure(FCLError.invaildProposer))
-                return
-            }
+        let flowAddress = Flow.Address(hex: address)
 
-            let flowAddress = Flow.Address(hex: address)
-
-            if account.sequenceNum == nil {
-                flow.accessAPI.getAccountAtLatestBlock(address: flowAddress).whenComplete { result in
-                    switch result {
-                    case let .success(response):
-                        guard let accountData = response else {
-                            promise(.failure(FCLError.fetchAccountFailure))
-                            return
-                        }
-                        account.sequenceNum = accountData.keys[keyID].sequenceNumber
-                        let key = Flow.TransactionProposalKey(address: Flow.Address(hex: address),
-                                                              keyIndex: keyID,
-                                                              sequenceNumber: BigInt(account.sequenceNum ?? 0))
-                        promise(.success(key))
-                    case let .failure(error):
-                        promise(.failure(error))
-                    }
-                }
-            } else {
-                let key = Flow.TransactionProposalKey(address: Flow.Address(hex: address),
-                                                      keyIndex: keyID,
-                                                      sequenceNumber: BigInt(account.sequenceNum ?? 0))
-                promise(.success(key))
-            }
+        if account.sequenceNum == nil {
+            let accountData = try await flow.accessAPI.getAccountAtLatestBlock(address: flowAddress)
+            account.sequenceNum = Int(accountData.keys[keyID].sequenceNumber)
+            let key = Flow.TransactionProposalKey(address: Flow.Address(hex: address),
+                                                  keyIndex: keyID,
+                                                  sequenceNumber: Int64(account.sequenceNum ?? 0))
+            return key
+        } else {
+            let key = Flow.TransactionProposalKey(address: Flow.Address(hex: address),
+                                                  keyIndex: keyID,
+                                                  sequenceNumber: Int64(account.sequenceNum ?? 0))
+            return key
         }
     }
 
@@ -293,60 +279,53 @@ struct Interaction: Encodable {
                            interaction: self)
     }
 
-    func toFlowTransaction() -> Future<Flow.Transaction, Error> {
-        return Future { promise in
+    func toFlowTransaction() async throws -> Flow.Transaction {
+        let proposalKey = try await createFlowProposalKey()
 
-            createFlowProposalKey().sink { _ in
-
-            } receiveValue: { proposalKey in
-
-                guard let payerAccount = payer,
-                      let payerAddress = accounts[payerAccount]?.addr
-                else {
-                    promise(.failure(FCLError.missingPayer))
-                    return
-                }
-
-                var tx = Flow.Transaction(script: Flow.Script(text: message.cadence ?? ""),
-                                          arguments: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument },
-                                          referenceBlockId: Flow.ID(hex: message.refBlock ?? ""),
-                                          gasLimit: BigUInt(message.computeLimit ?? 100),
-                                          proposalKey: proposalKey,
-                                          payerAddress: Flow.Address(hex: payerAddress),
-                                          authorizers: authorizations
-                                              .compactMap { cid in accounts[cid]?.addr }
-                                              .uniqued()
-                                              .compactMap { Flow.Address(hex: $0) })
-
-                let insideSigners = findInsideSigners
-                insideSigners.forEach { address in
-                    if let account = accounts[address],
-                       let address = account.addr,
-                       let keyId = account.keyID,
-                       let signature = account.signature
-                    {
-                        tx.addPayloadSignature(address: Flow.Address(hex: address),
-                                               keyIndex: keyId,
-                                               signature: Data(signature.hexValue))
-                    }
-                }
-
-                let outsideSigners = findOutsideSigners
-
-                outsideSigners.forEach { address in
-                    if let account = accounts[address],
-                       let address = account.addr,
-                       let keyId = account.keyID,
-                       let signature = account.signature
-                    {
-                        tx.addEnvelopeSignature(address: Flow.Address(hex: address),
-                                                keyIndex: keyId,
-                                                signature: Data(signature.hexValue))
-                    }
-                }
-                promise(.success(tx))
-            }.store(in: &fcl.cancellables)
+        guard let payerAccount = payer,
+              let payerAddress = accounts[payerAccount]?.addr
+        else {
+            throw FCLError.missingPayer
         }
+
+        var tx = Flow.Transaction(script: Flow.Script(text: message.cadence ?? ""),
+                                  arguments: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument },
+                                  referenceBlockId: Flow.ID(hex: message.refBlock ?? ""),
+                                  gasLimit: BigUInt(message.computeLimit ?? 100),
+                                  proposalKey: proposalKey,
+                                  payer: Flow.Address(hex: payerAddress),
+                                  authorizers: authorizations
+                                      .compactMap { cid in accounts[cid]?.addr }
+                                      .uniqued()
+                                      .compactMap { Flow.Address(hex: $0) })
+
+        let insideSigners = findInsideSigners
+        insideSigners.forEach { address in
+            if let account = accounts[address],
+               let address = account.addr,
+               let keyId = account.keyID,
+               let signature = account.signature
+            {
+                tx.addPayloadSignature(address: Flow.Address(hex: address),
+                                       keyIndex: keyId,
+                                       signature: Data(signature.hexValue))
+            }
+        }
+
+        let outsideSigners = findOutsideSigners
+
+        outsideSigners.forEach { address in
+            if let account = accounts[address],
+               let address = account.addr,
+               let keyId = account.keyID,
+               let signature = account.signature
+            {
+                tx.addEnvelopeSignature(address: Flow.Address(hex: address),
+                                        keyIndex: keyId,
+                                        signature: Data(signature.hexValue))
+            }
+        }
+        return tx
     }
 }
 
@@ -415,7 +394,16 @@ struct Singature: Encodable {
 
 // MARK: - CurrentUser
 
+// protocol SignableUserFetchSignature {
+//    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse
+// }
+
 struct SignableUser: Encodable {
+//    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse {
+//
+//        return try await fcl.api.execHttpPost(service: service, data: data)
+//    }
+
     var kind: String?
     var tempID: String?
     var addr: String?
@@ -425,7 +413,7 @@ struct SignableUser: Encodable {
     //    var signingFunction: Int?
     var role: Role
 
-    var signingFunction: ((Data) -> AnyPublisher<AuthnResponse, Error>)?
+    var signingFunction: ((Data) -> Task<AuthnResponse, Error>)?
 
     enum CodingKeys: String, CodingKey {
         case kind

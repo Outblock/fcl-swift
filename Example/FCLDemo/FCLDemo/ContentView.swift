@@ -14,7 +14,9 @@ struct ContentView: View {
         return Section {
             HStack {
                 Button {
-                    viewModel.authn()
+                    Task {
+                        await viewModel.authn()
+                    }
                 } label: {
                     Label("Sign In", systemImage: "person")
                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 20))
@@ -39,8 +41,10 @@ struct ContentView: View {
 
                 Section {
                     Button {
-                        viewModel.checkBalance(address: viewModel.address)
-                        viewModel.queryFUSD(address: viewModel.address)
+                        Task {
+                            await viewModel.checkBalance(address: viewModel.address)
+                            await viewModel.queryFUSD(address: viewModel.address)
+                        }
                     } label: {
                         Label("Get Balance", systemImage: "dollarsign.circle")
                     }
@@ -51,7 +55,9 @@ struct ContentView: View {
 
                 Section {
                     Button {
-                        viewModel.getLastestBlock()
+                        Task {
+                            await viewModel.getLastestBlock()
+                        }
                     } label: {
                         Label("Get lastest block", systemImage: "cube")
                     }.sheet(isPresented: $viewModel.isPresented) {
@@ -65,7 +71,9 @@ struct ContentView: View {
                     TextField("Enter flow address", text: $viewModel.accountLookup)
                         .textFieldStyle(.roundedBorder)
                     Button {
-                        viewModel.lookupAcount(address: viewModel.accountLookup)
+                        Task {
+                            await viewModel.lookupAcount(address: viewModel.accountLookup)
+                        }
                     } label: {
                         Label("Lookup account", systemImage: "eyes")
                     }
@@ -77,7 +85,9 @@ struct ContentView: View {
                         .font(.footnote)
 
                     Button {
-                        viewModel.queryScript()
+                        Task {
+                            await viewModel.queryScript()
+                        }
                     } label: {
                         Label("Run script", systemImage: "ellipsis.curlybraces")
                     }
@@ -99,7 +109,9 @@ struct ContentView: View {
                     }
 
                     Button {
-                        viewModel.authz()
+                        Task {
+                            await viewModel.authz()
+                        }
                     } label: {
                         Label("Send Transaction", systemImage: "doc.plaintext")
                     }
@@ -110,7 +122,9 @@ struct ContentView: View {
                         .textFieldStyle(.roundedBorder)
 
                     Button {
-                        viewModel.signMessage()
+                        Task {
+                            await viewModel.signMessage()
+                        }
                     } label: {
                         Label("Sign message (Unavailable)", systemImage: "pencil")
                     }

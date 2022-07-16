@@ -15,7 +15,7 @@ extension FCL {
     /// - parameters:
     ///     - signers: A list of `FlowSigner` to sign the transaction
     /// - returns: Future<`Flow.ScriptResponse`, Error>.
-    public func query(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<Flow.ScriptResponse, Error> {
+    public func query(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) async throws -> Flow.ScriptResponse {
         var script: Flow.Script = .init(data: Data())
         var args: [Flow.Argument] = []
         builder().forEach { txValue in
@@ -37,8 +37,7 @@ extension FCL {
             partialResult?.replacingOccurrences(of: item.key, with: item.value)
         } ?? ""
 
-        let call = flow.accessAPI.executeScriptAtLatestBlock(script: Flow.Script(text: newScript), arguments: args)
-        return call.toFuture()
+        return try await flow.accessAPI.executeScriptAtLatestBlock(script: Flow.Script(text: newScript), arguments: args)
     }
 
     //    public func verifyUserSignatures(message: String, signatures: [Flow.TransactionSignature]) -> Future<Bool, Error> {
@@ -48,24 +47,22 @@ extension FCL {
     //        }
     //    }
 
-    func pipe(ix: Interaction, resolvers: [Resolver]) -> Future<Interaction, Error> {
+    func pipe(ix: inout Interaction, resolvers: [Resolver]) async throws -> Interaction {
         if let resolver = resolvers.first {
-            return resolver.resolve(ix: ix).flatMap { newIX in
-                self.pipe(ix: newIX, resolvers: Array(resolvers.dropFirst()))
-            }.asFuture()
+            _ = try await resolver.resolve(ix: &ix)
+            return try await pipe(ix: &ix, resolvers: Array(resolvers.dropFirst()))
         } else {
-            return Future { $0(.success(ix)) }
+            return ix
         }
     }
 
-    func sendIX(ix: Interaction) -> Future<Flow.ID, Error> {
-        return ix.toFlowTransaction().flatMap { tx in
-            flow.accessAPI.sendTransaction(transaction: tx).toFuture()
-        }.asFuture()
+    func sendIX(ix: Interaction) async throws -> Flow.ID {
+        let tx = try await ix.toFlowTransaction()
+        return try await flow.accessAPI.sendTransaction(transaction: tx)
     }
 
-    public func mutate(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) -> Future<String, Error> {
-        return send(builder().compactMap { $0.toFCLBuild() })
+    public func mutate(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) async throws -> Flow.ID {
+        return try await send(builder().compactMap { $0.toFCLBuild() })
     }
 }
 

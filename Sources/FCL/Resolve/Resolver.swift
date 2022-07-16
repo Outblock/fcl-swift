@@ -9,5 +9,5 @@ import Combine
 import Foundation
 
 protocol Resolver {
-    func resolve(ix: Interaction) -> Future<Interaction, Error>
+    func resolve(ix: inout Interaction) async throws -> Interaction
 }

@@ -10,8 +10,9 @@ import Flow
 import Foundation
 
 public extension FCL {
-    func send(_ builds: [Build]) -> Future<String, Error> {
-        let ix = prepare(ix: Interaction(), builder: builds)
+    func send(_ builds: [Build]) async throws -> Flow.ID {
+        var ix = Interaction()
+        _ = prepare(ix: &ix, builder: builds)
 
         let resolvers: [Resolver] = [
             CadenceResolver(),
@@ -21,42 +22,38 @@ public extension FCL {
             SignatureResolver(),
         ]
 
-        return pipe(ix: ix, resolvers: resolvers)
-            .flatMap { ix in self.sendIX(ix: ix) }
-            .map { $0.hex }.asFuture()
+        _ = try await pipe(ix: &ix, resolvers: resolvers)
+        return try await sendIX(ix: ix)
     }
 
-    func send(@FCL.Builder builder: () -> [Build]) -> Future<String, Error> {
-        return send(builder())
+    func send(@FCL.Builder builder: () -> [Build]) async throws -> Flow.ID {
+        return try await send(builder())
     }
 
-    internal func prepare(ix: Interaction, builder: [Build]) -> Interaction {
-        var newIX = ix
-
+    internal func prepare(ix: inout Interaction, builder: [Build]) -> Interaction {
         builder.forEach { build in
             switch build {
             case let .script(script):
-                newIX.tag = .script
-                newIX.message.cadence = script
+                ix.tag = .script
+                ix.message.cadence = script
             case let .args(args):
                 let fclArgs = args.compactMap { Flow.Argument(value: $0) }.toFCLArguments()
-                newIX.message.arguments = Array(fclArgs.map { $0.0 })
-                newIX.arguments = fclArgs.reduce(into: [:]) { $0[$1.0] = $1.1 }
+                ix.message.arguments = Array(fclArgs.map { $0.0 })
+                ix.arguments = fclArgs.reduce(into: [:]) { $0[$1.0] = $1.1 }
             case let .transaction(script):
-                newIX.tag = .transaction
-                newIX.message.cadence = script
+                ix.tag = .transaction
+                ix.message.cadence = script
             case let .limit(gasLimit):
-                newIX.message.computeLimit = gasLimit
-            case let .getAccount:
-                newIX.tag = .getAccount
+                ix.message.computeLimit = gasLimit
+            case .getAccount:
+                ix.tag = .getAccount
             case .getBlock:
-                newIX.tag = .getBlock
+                ix.tag = .getBlock
             }
         }
 
-        newIX.status = .ok
-
-        return newIX
+        ix.status = .ok
+        return ix
     }
 }
 

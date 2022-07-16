@@ -5,8 +5,8 @@
 //  Created by lmcmz on 29/8/21.
 //
 
-import Foundation
 import Flow
+import Foundation
 
 public class Config {
     var dict = [String: String]()
@@ -60,12 +60,12 @@ public class Config {
     @discardableResult
     public func put(_ key: String, value: String) -> Self {
         dict[key] = value
-        
+
         // If env changed, we will change chainID instead for accessAPI
         if key == "env", let chainID = envToChainID(env: value) {
             flow.configure(chainID: chainID)
         }
-        
+
         return self
     }
 
@@ -81,7 +81,6 @@ public class Config {
         return self
     }
 }
-
 
 extension Config {
     private func envToChainID(env: String) -> Flow.ChainID? {

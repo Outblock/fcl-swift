@@ -10,72 +10,58 @@ import Flow
 import Foundation
 
 final class AccountsResolver: Resolver {
-    func resolve(ix: Interaction) -> Future<Interaction, Error> {
+    func resolve(ix: inout Interaction) async throws -> Interaction {
         if ix.isTransaction {
-            return collectAccounts(ix: ix, accounts: Array(ix.accounts.values))
+            return try await collectAccounts(ix: &ix, accounts: Array(ix.accounts.values))
         }
-
-        return Future { $0(.success(ix)) }
+        return ix
     }
 
-    func collectAccounts(ix: Interaction, accounts: [SignableUser]) -> Future<Interaction, Error> {
-        return Future { promise in
-
-            guard let currentUser = fcl.currentUser, currentUser.loggedIn else {
-                promise(.failure(Flow.FError.unauthenticated))
-                return
-            }
-
-            guard let service = fcl.serviceOfType(services: currentUser.services, type: .preAuthz),
-                  let endpoint = service.endpoint
-            else {
-                promise(.failure(FCLError.missingPreAuthz))
-                return
-            }
-
-            let preSignable = ix.buildPreSignable(role: Role())
-            guard let data = try? JSONEncoder().encode(preSignable) else {
-                promise(.failure(FCLError.encodeFailure))
-                return
-            }
-
-            fcl.api.execHttpPost(url: endpoint, params: service.params, data: data)
-                .sink { completion in
-                    if case let .failure(error) = completion {
-                        promise(.failure(error))
-                    }
-                } receiveValue: { response in
-                    let signableUsers = self.getAccounts(resp: response)
-                    var accounts = [String: SignableUser]()
-
-                    var newIX = ix
-                    newIX.authorizations.removeAll()
-                    signableUsers.forEach { user in
-                        let tempID = [user.addr!, String(user.keyID!)].joined(separator: "-")
-                        var temp = user
-                        temp.tempID = tempID
-
-                        if accounts.keys.contains(tempID) {
-                            accounts[tempID]?.role.merge(role: temp.role)
-                        }
-                        accounts[tempID] = temp
-
-                        if user.role.proposer {
-                            newIX.proposer = tempID
-                        }
-
-                        if user.role.payer {
-                            newIX.payer = tempID
-                        }
-
-                        if user.role.authorizer {
-                            newIX.authorizations.append(tempID)
-                        }
-                    }
-                    newIX.accounts = accounts
-                    promise(.success(newIX))
-                }.store(in: &fcl.cancellables)
+    func collectAccounts(ix: inout Interaction, accounts: [SignableUser]) async throws -> Interaction {
+        guard let currentUser = fcl.currentUser, currentUser.loggedIn else {
+            throw Flow.FError.unauthenticated
         }
+
+        guard let service = fcl.serviceOfType(services: currentUser.services, type: .preAuthz),
+              let endpoint = service.endpoint
+        else {
+            throw FCLError.missingPreAuthz
+        }
+
+        let preSignable = ix.buildPreSignable(role: Role())
+        guard let data = try? JSONEncoder().encode(preSignable) else {
+            throw FCLError.encodeFailure
+        }
+
+        let response = try await fcl.api.execHttpPost(url: endpoint, params: service.params, data: data)
+        let signableUsers = getAccounts(resp: response)
+        var accounts = [String: SignableUser]()
+
+        ix.authorizations.removeAll()
+        signableUsers.forEach { user in
+            let tempID = [user.addr!, String(user.keyID!)].joined(separator: "-")
+            var temp = user
+            temp.tempID = tempID
+
+            if accounts.keys.contains(tempID) {
+                accounts[tempID]?.role.merge(role: temp.role)
+            }
+            accounts[tempID] = temp
+
+            if user.role.proposer {
+                ix.proposer = tempID
+            }
+
+            if user.role.payer {
+                ix.payer = tempID
+            }
+
+            if user.role.authorizer {
+                ix.authorizations.append(tempID)
+            }
+        }
+        ix.accounts = accounts
+        return ix
     }
 
     func getAccounts(resp: AuthnResponse) -> [SignableUser] {
@@ -105,7 +91,9 @@ final class AccountsResolver: Resolver {
                                            authorizer: role == "AUTHORIZER",
                                            payer: role == "PAYER",
                                            param: nil)) { data in
-                fcl.api.execHttpPost(service: service, data: data).eraseToAnyPublisher()
+                Task {
+                    try await fcl.api.execHttpPost(service: service, data: data)
+                }
             }
         }
     }

@@ -9,75 +9,81 @@ import Combine
 import Flow
 import Foundation
 
-final class SignatureResolver: Resolver {
-    func resolve(ix interaction: Interaction) -> Future<Interaction, Error> {
-        return Future { promise in
-            var ix = interaction
+class InteractionWrapper {
+    let ix: Interaction
 
-            guard ix.tag == .transaction else {
-                promise(.failure(FCLError.generic))
-                return
+    init(ix: Interaction) {
+        self.ix = ix
+    }
+}
+
+final class SignatureResolver: Resolver {
+    func resolve(ix: inout Interaction) async throws -> Interaction {
+        guard ix.tag == .transaction else {
+            throw FCLError.generic
+        }
+
+        let insideSigners = ix.findInsideSigners
+
+        // TODO: Use FlatMap here
+        let tx = try await ix.toFlowTransaction()
+        ix.accounts[ix.proposer ?? ""]?.sequenceNum = Int(tx.proposalKey.sequenceNumber)
+
+        guard let insidePayload = tx.signablePlayload?.hexValue else {
+            throw FCLError.generic
+        }
+
+        let copyIX = ix
+        let list = try await withThrowingTaskGroup(of: (String, String).self, returning: [(String, String)].self) { group in
+            insideSigners.forEach { address in
+                group.addTask {
+                    try await self.fetchSignature(ix: copyIX, payload: insidePayload, id: address)
+                }
             }
 
-            let insideSigners = interaction.findInsideSigners
-
-            // TODO: Use FlatMap here
-            ix.toFlowTransaction().sink { completion in
-                if case let .failure(error) = completion {
-                    promise(.failure(error))
-                }
-            } receiveValue: { tx in
-                ix.accounts[ix.proposer ?? ""]?.sequenceNum = Int(tx.proposalKey.sequenceNumber)
-
-                guard let insidePayload = tx.signablePlayload?.hexValue else {
-                    promise(.failure(FCLError.generic))
-                    return
-                }
-
-                let publishers = insideSigners.map { address in
-                    self.fetchSignature(ix: ix, payload: insidePayload, id: address)
-                }.compactMap { $0 }
-
-                Publishers.MergeMany(publishers).collect()
-                    .flatMap { list -> Publishers.Collect<Publishers.MergeMany<AnyPublisher<(String, String), Error>>> in
-                        list.forEach { id, signature in
-                            ix.accounts[id]?.signature = signature
-                        }
-
-                        let outsideSigners = ix.findOutsideSigners
-                        var outPublishers: [AnyPublisher<(String, String), Error>] = []
-                        if let outsidePayload = self.encodeOutsideMessage(transaction: tx, ix: ix, insideSigners: insideSigners) {
-                            outPublishers = outsideSigners.map { address in
-                                self.fetchSignature(ix: ix, payload: outsidePayload, id: address)
-                            }.compactMap { $0.eraseToAnyPublisher() }
-                        }
-                        return Publishers.MergeMany(outPublishers).collect()
-                    }.sink { completion in
-                        if case let .failure(error) = completion {
-                            print(error)
-                        }
-                    } receiveValue: { list in
-                        list.forEach { id, signature in
-                            ix.accounts[id]?.signature = signature
-                        }
-                        promise(.success(ix))
-                    }.store(in: &fcl.cancellables)
-            }.store(in: &fcl.cancellables)
+            return try await group.reduce(into: [(String, String)]()) { result, response in
+                result.append(response)
+            }
         }
+
+        list.forEach { id, signature in
+            ix.accounts[id]?.signature = signature
+        }
+
+        let outsideSigners = ix.findOutsideSigners
+        let copyIX2 = ix
+        if let outsidePayload = encodeOutsideMessage(transaction: tx, ix: ix, insideSigners: insideSigners) {
+            let list = try await withThrowingTaskGroup(of: (String, String).self, returning: [(String, String)].self) { group in
+                outsideSigners.forEach { address in
+                    group.addTask {
+                        try await self.fetchSignature(ix: copyIX2, payload: outsidePayload, id: address)
+                    }
+                }
+
+                return try await group.reduce(into: [(String, String)]()) { result, response in
+                    result.append(response)
+                }
+            }
+
+            list.forEach { id, signature in
+                ix.accounts[id]?.signature = signature
+            }
+        }
+        return ix
     }
 
-    func fetchSignature(ix: Interaction, payload: String, id: String) -> AnyPublisher<(String, String), Error> {
+    func fetchSignature(ix: Interaction, payload: String, id: String) async throws -> (String, String) {
+//        let ix = wrapper.ix
         guard let acct = ix.accounts[id],
               let signingFunction = acct.signingFunction,
               let signable = buildSignable(ix: ix, payload: payload, account: acct),
               let data = try? JSONEncoder().encode(signable)
         else {
-            return Result.Publisher(FCLError.generic).eraseToAnyPublisher()
+            throw FCLError.generic
         }
 
-        return signingFunction(data).map { response in
-            (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
-        }.eraseToAnyPublisher()
+        let response = try await signingFunction(data).value
+        return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
     }
 
     func encodeOutsideMessage(transaction: Flow.Transaction, ix: Interaction, insideSigners: [String]) -> String? {

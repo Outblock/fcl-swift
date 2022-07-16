@@ -10,39 +10,33 @@ import Flow
 import Foundation
 
 public extension FCL {
-    func getAccount(address: String) -> Future<Flow.Account?, Error> {
-        return flow.accessAPI
+    func getAccount(address: String) async throws -> Flow.Account {
+        return try await flow.accessAPI
             .getAccountAtLatestBlock(address: Flow.Address(hex: address))
-            .toFuture()
     }
 
-    func getBlock(blockId: String) -> Future<Flow.Block?, Error> {
-        return flow.accessAPI
+    func getBlock(blockId: String) async throws -> Flow.Block {
+        return try await flow.accessAPI
             .getBlockById(id: Flow.ID(hex: blockId))
-            .toFuture()
     }
 
-    func getLastestBlock(sealed: Bool = true) -> Future<Flow.Block, Error> {
-        return flow.accessAPI
+    func getLastestBlock(sealed: Bool = true) async throws -> Flow.Block {
+        return try await flow.accessAPI
             .getLatestBlock(sealed: sealed)
-            .toFuture()
     }
 
-    func getBlockHeader(blockId: String) -> Future<Flow.BlockHeader?, Error> {
-        return flow.accessAPI
+    func getBlockHeader(blockId: String) async throws -> Flow.BlockHeader {
+        return try await flow.accessAPI
             .getBlockHeaderById(id: Flow.ID(hex: blockId))
-            .toFuture()
     }
 
-    func getTransactionStatus(transactionId: String) -> Future<Flow.TransactionResult, Error> {
-        return flow.accessAPI
+    func getTransactionStatus(transactionId: String) async throws -> Flow.TransactionResult {
+        return try await flow.accessAPI
             .getTransactionResultById(id: Flow.ID(hex: transactionId))
-            .toFuture()
     }
 
-    func getTransaction(transactionId: String) -> Future<Flow.Transaction?, Error> {
-        return flow.accessAPI
+    func getTransaction(transactionId: String) async throws -> Flow.Transaction {
+        return try await flow.accessAPI
             .getTransactionById(id: Flow.ID(hex: transactionId))
-            .toFuture()
     }
 }

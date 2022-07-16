@@ -10,35 +10,22 @@ import Flow
 import Foundation
 
 final class SequenceNumberResolver: Resolver {
-    func resolve(ix: Interaction) -> Future<Interaction, Error> {
-        return Future { promise in
-
-            guard let proposer = ix.proposer,
-                  let account = ix.accounts[proposer],
-                  let address = account.addr,
-                  let keyID = account.keyID
-            else {
-                promise(.failure(FCLError.generic))
-                return
-            }
-
-            let flowAddress = Flow.Address(hex: address)
-
-            if account.sequenceNum == nil {
-                let call = flow.accessAPI.getAccountAtLatestBlock(address: flowAddress)
-                call.unwrap(orError: FCLError.generic).whenSuccess { accountData in
-                    var newIX = ix
-                    newIX.accounts[proposer]?.sequenceNum = accountData.keys[keyID].sequenceNumber
-                    promise(.success(newIX))
-                }
-
-                call.whenFailure { error in
-                    promise(.failure(error))
-                }
-
-            } else {
-                promise(.success(ix))
-            }
+    func resolve(ix: inout Interaction) async throws -> Interaction {
+        guard let proposer = ix.proposer,
+              let account = ix.accounts[proposer],
+              let address = account.addr,
+              let keyID = account.keyID
+        else {
+            throw FCLError.generic
         }
+
+        let flowAddress = Flow.Address(hex: address)
+
+        if account.sequenceNum == nil {
+            let accountData = try await flow.accessAPI.getAccountAtLatestBlock(address: flowAddress)
+            ix.accounts[proposer]?.sequenceNum = Int(accountData.keys[keyID].sequenceNumber)
+            return ix
+        }
+        return ix
     }
 }

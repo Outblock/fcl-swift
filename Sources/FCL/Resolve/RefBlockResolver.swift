@@ -10,18 +10,9 @@ import Flow
 import Foundation
 
 final class RefBlockResolver: Resolver {
-    func resolve(ix: Interaction) -> Future<Interaction, Error> {
-        return Future { promise in
-            let call = flow.accessAPI.getLatestBlock(sealed: true)
-            call.whenSuccess { block in
-                var newIX = ix
-                newIX.message.refBlock = block.id.hex
-                promise(.success(newIX))
-            }
-
-            call.whenFailure { error in
-                promise(.failure(error))
-            }
-        }
+    func resolve(ix: inout Interaction) async throws -> Interaction {
+        let block = try await flow.accessAPI.getLatestBlock(sealed: true)
+        ix.message.refBlock = block.id.hex
+        return ix
     }
 }

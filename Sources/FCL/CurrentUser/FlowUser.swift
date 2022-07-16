@@ -11,7 +11,7 @@ import Foundation
 public struct User: Decodable {
     public let addr: Flow.Address
     public private(set) var loggedIn: Bool = false
-    
+
     var fType: String = "USER"
     var fVsn: String = "1.0.0"
     var services: [Service]? = []
