@@ -79,6 +79,16 @@ class ViewModel: NSObject, ObservableObject {
         fcl.config
             .put("0xFungibleToken", value: "0xf233dcee88fe0abe")
             .put("0xFUSD", value: "0x3c5959b568896393")
+        
+        
+        fcl.$currentUser.sink { user in
+            if let user = user {
+                print("<==== Current User =====>")
+                print(user)
+            } else {
+                print("<==== No User =====>")
+            }
+        }.store(in: &cancellables)
     }
 
     func changeWallet() {

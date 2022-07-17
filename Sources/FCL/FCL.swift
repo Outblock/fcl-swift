@@ -5,7 +5,7 @@ import Flow
 
 public let fcl = FCL.shared
 
-public final class FCL: NSObject {
+public final class FCL: NSObject, ObservableObject {
     public static let shared = FCL()
 
     public var delegate: FCLDelegate?
@@ -78,12 +78,12 @@ public final class FCL: NSObject {
 
         // TODO: Fix here, the blocto return html response
         guard let messageData = message.data(using: .utf8),
-              let _ = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
+              let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
         else {
             throw FCLError.encodeFailure
         }
 
-        let model = try await api.execHttpPost(url: endpoint, method: .get, params: service.params)
+        let model = try await api.execHttpPost(url: endpoint, method: .post, params: service.params, data: data)
         return model.data?.signature ?? ""
     }
 
