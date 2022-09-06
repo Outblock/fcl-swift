@@ -22,10 +22,10 @@ public final class FCL: NSObject, ObservableObject {
 
     @Published public var currentUser: User?
 
-    private lazy var defaultAddressRegistry = AddressRegistry()
+    lazy var defaultAddressRegistry = AddressRegistry()
 
     internal var cancellables = Set<AnyCancellable>()
-    
+
     // MARK: - Back Channel
 
     public func config(metadata: FCL.Metadata,
@@ -35,10 +35,14 @@ public final class FCL: NSObject, ObservableObject {
         _ = config
             .put(.title, value: metadata.appName)
             .put(.icon, value: metadata.appIcon)
+            .put(.nonce, value: metadata.nonce)
+            .put(.appId, value: metadata.appIdentifier)
             .put(.authn, value: provider.endpoint(chainId: env).absoluteString)
             .put(.env, value: env.name)
+
+        // default contracts
     }
-    
+
     public func changeProvider(provider: FCLProvider, env: Flow.ChainID) {
         config.put(.authn, value: provider.endpoint(chainId: env).absoluteString)
             .put(.env, value: env.name)
@@ -53,6 +57,43 @@ public final class FCL: NSObject, ObservableObject {
         // TODO: implement this
         unauthenticate()
         return try await authenticate()
+    }
+
+    public func verifyAccountProof(includeDomainTag: Bool = false) async throws -> Bool {
+        guard let currentUser = currentUser, currentUser.loggedIn else {
+            throw Flow.FError.unauthenticated
+        }
+
+        guard let service = serviceOfType(services: currentUser.services, type: .accountProof),
+              let data = service.data,
+              let address = data.address,
+              let signatures = data.signatures,
+              let appIdentifier = config.get(.appId),
+              let nonce = config.get(.nonce)
+        else {
+            throw FCLError.invaildService
+        }
+
+        guard let encoded = RLP.encode([appIdentifier.data(using: .utf8), address.hexValue.data, nonce.hexValue.data]) else {
+            throw FCLError.encodeFailure
+        }
+
+        let encodedTag = includeDomainTag ? Flow.DomainTag.custom("FCL-ACCOUNT-PROOF-V0.0").normalize : Data() + encoded
+
+        return try await fcl.query {
+            cadence {
+                FCL.Constants.verifyAccountProofSignaturesCadence
+            }
+
+            arguments {
+                [
+                    .address(Flow.Address(hex: data.address ?? "")),
+                    .string(encodedTag.hexValue),
+                    .array(signatures.compactMap { Flow.Argument(value: .int($0.keyId ?? -1)) }),
+                    .array(signatures.compactMap { Flow.Argument(value: .string($0.signature ?? "")) }),
+                ]
+            }
+        }.decode()
     }
 
     internal func closeSession() {

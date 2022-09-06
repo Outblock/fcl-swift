@@ -63,6 +63,7 @@ struct AuthnData: Decodable {
     let payer: [Service]?
     let authorization: [Service]?
     let signature: String?
+    let keyId: Int?
 }
 
 enum Status: String, Decodable {
@@ -82,6 +83,7 @@ struct Service: Decodable {
     let identity: Identity?
     let provider: Provider?
     let params: [String: String]?
+    let data: FCLDataResponse?
 
     enum CodingKeys: String, CodingKey {
         case fType
@@ -94,6 +96,7 @@ struct Service: Decodable {
         case identity
         case provider
         case params
+        case data
     }
 
     init(from decoder: Decoder) throws {
@@ -113,6 +116,21 @@ struct Service: Decodable {
         id = try? container.decode(String.self, forKey: .id)
         identity = try? container.decode(Identity.self, forKey: .identity)
         provider = try? container.decode(Provider.self, forKey: .provider)
+        data = try? container.decode(FCLDataResponse.self, forKey: .data)
+    }
+}
+
+struct FCLDataResponse: Decodable {
+    let fType: String
+    let fVsn: String
+    let nonce: String?
+    let address: String?
+    let email: FCLEmail?
+    let signatures: [AuthnData]?
+
+    struct FCLEmail: Decodable {
+        let email: String
+        let email_verified: Bool
     }
 }
 
@@ -136,6 +154,7 @@ public enum FCLServiceType: String, Decodable {
     case backChannel = "back-channel-rpc"
     case localView = "local-view"
     case openID = "open-id"
+    case accountProof = "account-proof"
 }
 
 struct ParamValue: Decodable {

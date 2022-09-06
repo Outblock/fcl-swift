@@ -20,12 +20,14 @@ class ViewModel: NSObject, ObservableObject {
     @Published var preAuthz: String = ""
 
     @Published var provider: FCLProvider = .blocto
-    
+
     @Published var env: Flow.ChainID = .testnet
 
     @Published var isShowWeb: Bool = false
 
     @Published var isPresented: Bool = false
+
+    @Published var isAccountProof: Bool?
 
     @Published var accountLookup: String = ""
 
@@ -71,7 +73,9 @@ class ViewModel: NSObject, ObservableObject {
         super.init()
         let metadata = FCL.Metadata(appName: "FCLDemo",
                                     appIcon: "https://placekitten.com/g/200/200",
-                                    location: "https://foo.com")
+                                    location: "https://foo.com",
+                                    appIdentifier: "Awesome App (v0.0)",
+                                    nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
         fcl.config(metadata: metadata,
                    env: env,
                    provider: provider)
@@ -79,8 +83,7 @@ class ViewModel: NSObject, ObservableObject {
         fcl.config
             .put("0xFungibleToken", value: "0xf233dcee88fe0abe")
             .put("0xFUSD", value: "0x3c5959b568896393")
-        
-        
+
         fcl.$currentUser.sink { user in
             if let user = user {
                 print("<==== Current User =====>")
@@ -150,6 +153,21 @@ class ViewModel: NSObject, ObservableObject {
         }
     }
 
+    func verifyAccountProof() async {
+        do {
+            let result = try await fcl.verifyAccountProof()
+            print("verifyAccountProof ==> \(result)")
+            await MainActor.run {
+                isAccountProof = result
+            }
+        } catch {
+            print(error)
+            await MainActor.run {
+                isAccountProof = false
+            }
+        }
+    }
+
     func queryFUSD(address: String) async {
         do {
             let block = try await fcl.query {
@@ -201,6 +219,7 @@ class ViewModel: NSObject, ObservableObject {
             await MainActor.run {
                 self.address = result.address ?? ""
             }
+            await verifyAccountProof()
         } catch {
             print(error)
         }
@@ -246,9 +265,12 @@ class ViewModel: NSObject, ObservableObject {
                 .args([.string("Test2"), .int(1)]),
                 .limit(1000),
             ])
+            try await txId.onceSealed()
+
             await MainActor.run {
                 self.preAuthz = txId.hex
             }
+
         } catch {
             print(error)
         }

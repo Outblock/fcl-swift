@@ -32,6 +32,7 @@ public class AddressRegistry {
                 FCL.ScriptAddress.lockedTokens,
                 FCL.ScriptAddress.stakingProxy,
                 FCL.ScriptAddress.nonFungibleToken,
+                FCL.ScriptAddress.FCLCrypto,
             ],
             Flow.ChainID.mainnet: [
                 FCL.ScriptAddress.fungibleToken,
@@ -41,6 +42,7 @@ public class AddressRegistry {
                 FCL.ScriptAddress.lockedTokens,
                 FCL.ScriptAddress.stakingProxy,
                 FCL.ScriptAddress.nonFungibleToken,
+                FCL.ScriptAddress.FCLCrypto,
             ],
         ]
 
@@ -64,13 +66,19 @@ public class AddressRegistry {
         return processScript(script: script, chainId: defaultChainId)
     }
 
-    // TODO: Finish this
-    func processScript(script: String, chainId _: Flow.ChainID) -> String {
-        let ret = script
-        //        scriptTokenDict[chainId]?.forEach {
-        //            ret = ret.replacingOccurrences(of: $0.key,
-        //                                           with: $0.value.hexValue.addHexPrefix())
-        //        }
+    func processScript(script: String, chainId: Flow.ChainID) -> String {
+        var ret = script
+        guard let dict = scriptTokenDict[chainId] else {
+            return ret
+        }
+
+        for key in dict.keys {
+            guard let address = dict[key]?.hex else {
+                continue
+            }
+            ret = ret.replacingOccurrences(of: key, with: address.withPrefix())
+        }
+
         return ret
     }
 
@@ -87,6 +95,11 @@ public class AddressRegistry {
     }
 
     func register(chainId: Flow.ChainID, contract: String, address: Flow.Address) {
-        scriptTokenDict[chainId]?[contract] = address
+        if let _ = scriptTokenDict[chainId] {
+            scriptTokenDict[chainId]?[contract] = address
+        } else {
+            scriptTokenDict[chainId] = [String: Flow.Address]()
+            scriptTokenDict[chainId]?[contract] = address
+        }
     }
 }

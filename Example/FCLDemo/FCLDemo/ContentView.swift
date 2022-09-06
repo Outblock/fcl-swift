@@ -5,9 +5,9 @@
 //  Created by lmcmz on 30/8/21.
 //
 
-import SwiftUI
 import FCL
 import Flow
+import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var viewModel = ViewModel()
@@ -33,13 +33,17 @@ struct ContentView: View {
                 .pickerStyle(SegmentedPickerStyle())
             }
             Text(verbatim: viewModel.address)
+
+            if let isAccountProof = viewModel.isAccountProof {
+                Label("Account Proof", systemImage: isAccountProof ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .foregroundColor(isAccountProof ? .green : .red)
+            }
         }
     }
 
     var body: some View {
         NavigationView {
             Form {
-                
                 Section {
                     Picker("iFrame", selection: $viewModel.env, content: {
                         Text("mainnet").tag(Flow.ChainID.mainnet)
@@ -49,7 +53,7 @@ struct ContentView: View {
                     })
                     .pickerStyle(SegmentedPickerStyle())
                 }
-                
+
                 signIn
 
                 Section {

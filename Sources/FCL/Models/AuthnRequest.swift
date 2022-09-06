@@ -11,7 +11,16 @@ public struct BaseConfigRequest: Encodable {
     var app: [String: String] = fcl.config.configLens("^app\\.detail\\.")
     var service: [String: String] = fcl.config.configLens("^service\\.")
     var client = ClientInfo()
+//    var body = AccountProof()
+
+    var appIdentifier: String = fcl.config.get(.appId) ?? ""
+    var accountProofNonce: String = fcl.config.get(.nonce) ?? ""
 }
+
+// public struct AccountProof: Codable {
+//    var appIdentifier: String = fcl.config.get(.appId) ?? ""
+//    var accountProofNonce: String = fcl.config.get(.nonce) ?? ""
+// }
 
 public struct ClientInfo: Encodable {
     var fclVersion: String = fcl.version

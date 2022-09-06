@@ -23,6 +23,9 @@ public class Config {
         case location
         case openIDScope = "service.OpenID.scopes"
         case domainTag = "fcl.appDomainTag"
+
+        case appId = "appIdentifier"
+        case nonce = "accountProofNonce"
     }
 
     public func configLens(_ regex: String) -> [String: String] {

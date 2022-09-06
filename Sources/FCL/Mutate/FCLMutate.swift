@@ -29,6 +29,10 @@ extension FCL {
             }
         }
 
+        // Imporve this
+        let chainID: Flow.ChainID = fcl.config.get(.env) == "testnet" ? .testnet : .mainnet
+        script = Flow.Script(text: fcl.defaultAddressRegistry.processScript(script: script.text, chainId: chainID))
+
         let items = fcl.config.dict.filter { item in
             item.key.range(of: "^0x", options: .regularExpression) != nil
         }
