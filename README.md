@@ -12,10 +12,12 @@ SDKs are open source, and you can use them according to the licence.
 - [x] Send transaction with non-custodial mode (Blocto)
 - [x] Send transaction with custodial wallet
 - [x] Support all access api endpoint such as `GetAccount` and `GetLastestBlock`
+- [x] Sign user message
+- [x] Verify user signature
+- [x] Account Proof
+- [x] Verify account proof
 
 #### Todo list:
-- [ ] Sign user message
-- [ ] Verify user signature
 - [ ] Support custom `authz` func 
 
 ## Getting Started
