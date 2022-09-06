@@ -143,7 +143,12 @@ struct ContentView: View {
                             await viewModel.signMessage()
                         }
                     } label: {
-                        Label("Sign message (Unavailable)", systemImage: "pencil")
+                        Label("Sign message", systemImage: "pencil")
+                    }
+
+                    if let isAccountProof = viewModel.isUserMessageProof {
+                        Label("User Message Proof", systemImage: isAccountProof ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(isAccountProof ? .green : .red)
                     }
                 }
             }

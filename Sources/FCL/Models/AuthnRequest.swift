@@ -39,3 +39,9 @@ public struct AuthnRequest: Codable {
     //    var data: Dictionary<String, String>?
     //    var parameter: Dictionary<String, String>?
 }
+
+public struct FCLUserSignatureResponse {
+    let addr: String
+    let keyId: Int
+    let signature: String
+}

@@ -8,15 +8,24 @@
 import SwiftUI
 
 struct DetaiView: View {
-    @State var text: String = "Hello ?"
+    @State var text: String = """
+
+    Hello ?
+
+    """
 
     var body: some View {
         NavigationView {
             List {
-                TextEditor(text: $text)
-                    .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
-                    .disabled(true)
+                ZStack {
+                    TextEditor(text: $text)
+                        .padding(.all, 8)
+                        .disabled(true)
+
+                    Text(text).opacity(0).padding(.all, 8)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Detail")
         }
     }

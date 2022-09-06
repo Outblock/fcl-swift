@@ -29,11 +29,13 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var isAccountProof: Bool?
 
+    @Published var isUserMessageProof: Bool?
+
     @Published var accountLookup: String = ""
 
     @Published var currentObject: String = ""
 
-    @Published var message: String = ""
+    @Published var message: String = "foo bar"
 
     @Published var balance: String = ""
     @Published var FUSDBalance: String = ""
@@ -168,6 +170,21 @@ class ViewModel: NSObject, ObservableObject {
         }
     }
 
+    func verifyUserMessage(message: String, compSigs: FCLUserSignatureResponse) async {
+        do {
+            let result = try await fcl.verifyUserSignature(message: message, compSigs: [compSigs])
+            print("verifyUserMessage ==> \(result)")
+            await MainActor.run {
+                isUserMessageProof = result
+            }
+        } catch {
+            print(error)
+            await MainActor.run {
+                isUserMessageProof = false
+            }
+        }
+    }
+
     func queryFUSD(address: String) async {
         do {
             let block = try await fcl.query {
@@ -208,6 +225,7 @@ class ViewModel: NSObject, ObservableObject {
                 self.isPresented = true
                 self.currentObject = prettyPrint(block)
             }
+            await verifyUserMessage(message: message, compSigs: block)
         } catch {
             print(error)
         }

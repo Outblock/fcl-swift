@@ -96,13 +96,34 @@ public final class FCL: NSObject, ObservableObject {
         }.decode()
     }
 
+    public func verifyUserSignature(message: String, compSigs: [FCLUserSignatureResponse]) async throws -> Bool {
+        guard let currentUser = currentUser, currentUser.loggedIn else {
+            throw Flow.FError.unauthenticated
+        }
+
+        return try await fcl.query {
+            cadence {
+                FCL.Constants.verifyUserSignaturesCadence
+            }
+
+            arguments {
+                [
+                    .address(Flow.Address(hex: compSigs.first?.addr ?? "")),
+                    .string(message.data(using: .utf8)?.hexValue ?? ""),
+                    .array(compSigs.compactMap { Flow.Argument(value: .int($0.keyId)) }),
+                    .array(compSigs.compactMap { Flow.Argument(value: .string($0.signature)) }),
+                ]
+            }
+        }.decode()
+    }
+
     internal func closeSession() {
         DispatchQueue.main.async {
             self.session?.cancel()
         }
     }
 
-    public func signUserMessage(message: String) async throws -> String {
+    public func signUserMessage(message: String) async throws -> FCLUserSignatureResponse {
         guard let currentUser = currentUser, currentUser.loggedIn else {
             throw Flow.FError.unauthenticated
         }
@@ -117,7 +138,6 @@ public final class FCL: NSObject, ObservableObject {
             let message: String
         }
 
-        // TODO: Fix here, the blocto return html response
         guard let messageData = message.data(using: .utf8),
               let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
         else {
@@ -125,7 +145,11 @@ public final class FCL: NSObject, ObservableObject {
         }
 
         let model = try await api.execHttpPost(url: endpoint, method: .post, params: service.params, data: data)
-        return model.data?.signature ?? ""
+        guard let data = model.data, let signature = data.signature, let address = data.addr, let keyId = data.keyId else {
+            throw FCLError.generic
+        }
+
+        return .init(addr: address, keyId: keyId, signature: signature)
     }
 
     func authorization() async throws -> AuthnResponse {

@@ -48,7 +48,12 @@ struct AuthnResponse: Decodable {
             local = locals?.first
         }
 
-        data = try? container.decode(AuthnData.self, forKey: .data)
+        do {
+            data = try container.decode(AuthnData.self, forKey: .data)
+        } catch {
+            let datas = try? container.decode([AuthnData].self, forKey: .data)
+            data = datas?.first
+        }
         reason = try? container.decode(String.self, forKey: .reason)
         compositeSignature = try? container.decode(AuthnData.self, forKey: .compositeSignature)
     }
