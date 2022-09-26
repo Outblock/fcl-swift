@@ -7,7 +7,6 @@ let package = Package(
     name: "FCL",
     platforms: [
         .iOS(.v13),
-        .macOS(.v10_15),
     ],
     products: [
         .library(
@@ -17,11 +16,18 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/outblock/flow-swift.git", .exact("0.2.2")),
+        .package(url: "https://github.com/daltoniam/Starscream", .exact("3.1.1")),
+        .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", .branch("main")),
     ],
     targets: [
         .target(
             name: "FCL",
-            dependencies: [.product(name: "Flow", package: "flow-swift")],
+            dependencies: [
+                .product(name: "Flow", package: "flow-swift"),
+                .product(name: "Starscream", package: "Starscream"),
+                .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
+                .product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"),
+            ],
             path: "Sources/FCL"
         ),
         .testTarget(

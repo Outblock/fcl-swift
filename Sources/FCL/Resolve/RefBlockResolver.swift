@@ -11,8 +11,10 @@ import Foundation
 
 final class RefBlockResolver: Resolver {
     func resolve(ix: inout Interaction) async throws -> Interaction {
-        let block = try await flow.accessAPI.getLatestBlock(sealed: true)
-        ix.message.refBlock = block.id.hex
+        if ix.isTransaction {
+            let block = try await flow.accessAPI.getLatestBlock(sealed: true)
+            ix.message.refBlock = block.id.hex
+        }
         return ix
     }
 }

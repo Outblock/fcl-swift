@@ -22,7 +22,7 @@ final class AccountsResolver: Resolver {
             throw Flow.FError.unauthenticated
         }
 
-        guard let service = fcl.serviceOfType(services: currentUser.services, type: .preAuthz),
+        guard let service = serviceOfType(services: currentUser.services, type: .preAuthz),
               let endpoint = service.endpoint
         else {
             throw FCLError.missingPreAuthz
@@ -33,8 +33,13 @@ final class AccountsResolver: Resolver {
             throw FCLError.encodeFailure
         }
 
-        let response = try await fcl.api.execHttpPost(url: endpoint, params: service.params, data: data)
-        let signableUsers = getAccounts(resp: response)
+        guard let url = buildURL(url: endpoint, params: service.params) else {
+            throw FCLError.invaildURL
+        }
+        
+        let response = try await fcl.getStategy().execService(url: url, data: data)
+//            .execHttpPost(url: endpoint, params: service.params, data: data)
+        let signableUsers = try getAccounts(resp: response)
         var accounts = [String: SignableUser]()
 
         ix.authorizations.removeAll()
@@ -64,8 +69,8 @@ final class AccountsResolver: Resolver {
         return ix
     }
 
-    func getAccounts(resp: AuthnResponse) -> [SignableUser] {
-        var axs = [(role: String, service: Service)]()
+    func getAccounts(resp: FCL.Response) throws -> [SignableUser] {
+        var axs = [(role: String, service: FCL.Service)]()
         if let proposer = resp.data?.proposer {
             axs.append(("PROPOSER", proposer))
         }
@@ -76,12 +81,12 @@ final class AccountsResolver: Resolver {
             axs.append(("AUTHORIZER", az))
         }
 
-        return axs.compactMap { role, service in
+        return try axs.compactMap { role, service in
 
             guard let address = service.identity?.address,
                   let keyId = service.identity?.keyId
             else {
-                return nil
+                throw FCLError.invalidResponse
             }
 
             return SignableUser(tempID: [address, String(keyId)].joined(separator: "|"),
@@ -92,7 +97,7 @@ final class AccountsResolver: Resolver {
                                            payer: role == "PAYER",
                                            param: nil)) { data in
                 Task {
-                    try await fcl.api.execHttpPost(service: service, data: data)
+                    try await fcl.getStategy().execService(service: service, data: data)
                 }
             }
         }

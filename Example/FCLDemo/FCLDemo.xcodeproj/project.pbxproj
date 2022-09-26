@@ -67,12 +67,12 @@
 			children = (
 				15EE0740273A452900B03DBC /* Util.swift */,
 				15E2F15C26DD07C900FA19BD /* FCLDemoApp.swift */,
+				15E2F17526DD133800FA19BD /* ViewModel.swift */,
 				15EE0744273A501000B03DBC /* DetaiView.swift */,
 				15E2F15E26DD07C900FA19BD /* ContentView.swift */,
 				15E2F16026DD07CB00FA19BD /* Assets.xcassets */,
 				15E2F16526DD07CB00FA19BD /* Info.plist */,
 				15E2F16226DD07CB00FA19BD /* Preview Content */,
-				15E2F17526DD133800FA19BD /* ViewModel.swift */,
 			);
 			path = FCLDemo;
 			sourceTree = "<group>";

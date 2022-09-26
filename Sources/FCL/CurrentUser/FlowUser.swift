@@ -14,7 +14,5 @@ public struct User: Decodable {
 
     var fType: String = "USER"
     var fVsn: String = "1.0.0"
-    var services: [Service]? = []
-    //        let cid: String
-    //        let expiresAt: Date
+    var services: [FCL.Service]? = []
 }

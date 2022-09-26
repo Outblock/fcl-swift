@@ -1,5 +1,4 @@
 //
-import BigInt
 //  ViewModel.swift
 //  FCLDemo
 //
@@ -13,6 +12,7 @@ import Foundation
 import SafariServices
 import SwiftPrettyPrint
 import SwiftUI
+import BigInt
 
 class ViewModel: NSObject, ObservableObject {
     @Published var address: String = ""
@@ -73,11 +73,16 @@ class ViewModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
+        
+        let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "Awesome App (v0.0)",
+                                            nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
+        
         let metadata = FCL.Metadata(appName: "FCLDemo",
-                                    appIcon: "https://placekitten.com/g/200/200",
-                                    location: "https://foo.com",
-                                    appIdentifier: "Awesome App (v0.0)",
-                                    nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
+                                    appDescription: "Demo App for fcl",
+                                    appIcon: URL(string: "https://placekitten.com/g/200/200")!,
+                                    location: URL(string: "https://flow.org")!,
+                                    accountProof: accountProof)
+        
         fcl.config(metadata: metadata,
                    env: env,
                    provider: provider)
@@ -205,10 +210,6 @@ class ViewModel: NSObject, ObservableObject {
                 arguments {
                     [.address(Flow.Address(hex: address))]
                 }
-
-                gasLimit {
-                    1000
-                }
             }
             await MainActor.run {
                 self.FUSDBalance = "\(String(block.fields?.value.toUFix64() ?? 0.0)) FUSD"
@@ -235,7 +236,7 @@ class ViewModel: NSObject, ObservableObject {
         do {
             let result = try await fcl.authenticate()
             await MainActor.run {
-                self.address = result.address ?? ""
+                self.address = fcl.currentUser?.addr.hex ?? ""
             }
             await verifyAccountProof()
         } catch {

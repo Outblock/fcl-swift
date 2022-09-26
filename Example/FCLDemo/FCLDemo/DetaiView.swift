@@ -21,8 +21,10 @@ struct DetaiView: View {
                     TextEditor(text: $text)
                         .padding(.all, 8)
                         .disabled(true)
+                        .font(.system(size: 12))
 
                     Text(text).opacity(0).padding(.all, 8)
+                        .font(.system(size: 12))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

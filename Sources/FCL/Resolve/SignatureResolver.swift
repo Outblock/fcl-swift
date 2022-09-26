@@ -20,7 +20,7 @@ class InteractionWrapper {
 final class SignatureResolver: Resolver {
     func resolve(ix: inout Interaction) async throws -> Interaction {
         guard ix.tag == .transaction else {
-            throw FCLError.generic
+            return ix
         }
 
         let insideSigners = ix.findInsideSigners

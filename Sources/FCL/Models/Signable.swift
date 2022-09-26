@@ -413,7 +413,7 @@ struct SignableUser: Encodable {
     //    var signingFunction: Int?
     var role: Role
 
-    var signingFunction: ((Data) -> Task<AuthnResponse, Error>)?
+    var signingFunction: ((Data) -> Task<FCL.Response, Error>)?
 
     enum CodingKeys: String, CodingKey {
         case kind
