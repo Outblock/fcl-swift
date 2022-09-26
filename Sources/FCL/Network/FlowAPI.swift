@@ -118,7 +118,7 @@ internal func buildURL(url: URL, params: [String: String]?) -> URL? {
         return nil
     }
 
-    var queryItems: [URLQueryItem] = []
+    var queryItems: [URLQueryItem] = urlComponents.queryItems ?? []
 
     if let location = fcl.config.get(.location) {
         queryItems.append(URLQueryItem(name: paramLocation, value: location))
