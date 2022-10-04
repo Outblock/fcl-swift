@@ -29,7 +29,7 @@ extension FCL {
             client.delegate = self
         }
         
-        func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where  T : Codable {
+        func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where  T : Encodable {
             guard let request else {
                 return try await client.execHttpPost(url: url)
             }

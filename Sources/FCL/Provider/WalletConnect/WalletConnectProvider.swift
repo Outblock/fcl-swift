@@ -59,13 +59,22 @@ extension FCL {
             setUpWCSubscribing()
             reloadSession()
             reloadPair()
+            
+            try? Sign.instance.cleanup()
         }
         
-        func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where T : Codable {
+        func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where T : Encodable {
+            
+            if method == .authn {
+                try await connectToWallet()
+                let response = try await Sign.instance.sessionResponsePublisher.async()
+                print("AAAA ==> response \(response)")
+                
+            }
+            
             guard let session = self.sessions.first else {
                 throw FCLError.unauthenticated
             }
-            
             
             guard let env = fcl.config.get(.env),
                   let network = WCFlowBlockchain.allCases.first(where: { $0.rawValue == env }),
@@ -73,9 +82,12 @@ extension FCL {
                 throw FCLError.invaildNetwork
             }
             
-            guard let data = try? JSONEncoder().encode(request),
-                  let dataString = String(data: data, encoding: .utf8) else {
-                throw FCLError.encodeFailure
+            var dataString = "{}"
+            if let request = request {
+                guard let data = try? JSONEncoder().encode(request),
+                      var dataString = String(data: data, encoding: .utf8) else {
+                    throw FCLError.encodeFailure
+                }
             }
             
             let request = Request(topic: session.topic, method: WCMethod.convertFrom(service: method).rawValue,
@@ -153,7 +165,7 @@ extension FCL {
                 .sink { [weak self] response in
                     
                     // Response
-                    
+                    print("Session Response ===> \(response)")
                 }.store(in: &publishers)
             
             Sign.instance.sessionProposalPublisher
@@ -167,8 +179,9 @@ extension FCL {
 
             Sign.instance.sessionSettlePublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
+                .sink { [weak self] response in
 //                    self?.reloadActiveSessions()
+                    print("Session Settle ===> \(response)")
                     self?.reloadSessionAndPair()
                 }.store(in: &publishers)
 

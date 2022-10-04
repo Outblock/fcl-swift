@@ -19,7 +19,7 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var preAuthz: String = ""
 
-    @Published var provider: FCLProvider = .blocto
+    @Published var provider: FCL.Provider = .lilico
 
     @Published var env: Flow.ChainID = .testnet
 
@@ -78,11 +78,14 @@ class ViewModel: NSObject, ObservableObject {
         let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "Awesome App (v0.0)",
                                             nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
         
+        let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "fclDemo://", projectID: "c284f5a3346da817aeca9a4e6bc7f935")
+        
         let metadata = FCL.Metadata(appName: "FCLDemo",
                                     appDescription: "Demo App for fcl",
                                     appIcon: URL(string: "https://placekitten.com/g/200/200")!,
                                     location: URL(string: "https://flow.org")!,
-                                    accountProof: accountProof)
+                                    accountProof: accountProof,
+                                    walletConnectConfig: walletConnect)
         
         fcl.config(metadata: metadata,
                    env: env,

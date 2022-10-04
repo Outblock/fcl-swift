@@ -103,14 +103,14 @@ extension FCL {
 }
 
 protocol FCLStrategy {
-    func execService<T: Codable>(service: FCL.Service, request: T?) async throws -> FCL.Response
-    func execService<T: Codable>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response
-    func execService(url: URL) async throws -> FCL.Response
+    func execService<T: Encodable>(service: FCL.Service, request: T?) async throws -> FCL.Response
+    func execService<T: Encodable>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response
+//    func execService(url: URL) async throws -> FCL.Response
 }
 
 extension FCLStrategy {
     
-    func execService<T: Codable>(service: FCL.Service, request: T? = nil) async throws -> FCL.Response {
+    func execService<T: Encodable>(service: FCL.Service, request: T? = nil) async throws -> FCL.Response {
         guard let url = service.endpoint, let param = service.params else {
             throw FCLError.generic
         }
@@ -122,9 +122,9 @@ extension FCLStrategy {
         return try await execService(url: fullURL, method: service.type ?? .unknow, request: request)
     }
     
-    func execService(url: URL) async throws -> FCL.Response {
-        return try await execService(url: url, method: .authn, request: Optional<String>.none)
-    }
+//    func execService(url: URL) async throws -> FCL.Response {
+//        return try await execService(url: url, method: .authn, request: "authn")
+//    }
 
 //    func execService<T: Encodable>(url: URL, request: T? = nil) async throws -> FCL.Response {
 //        return try await execService(url: url, request: request)

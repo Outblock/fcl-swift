@@ -56,7 +56,7 @@ public final class FCL: NSObject, ObservableObject {
             _ = config
                 .put(.projectID, value: walletConnect.projectID)
                 .put(.urlSheme, value: walletConnect.urlScheme)
-
+            
             setupWalletConnect()
         }
     }
@@ -86,6 +86,7 @@ public final class FCL: NSObject, ObservableObject {
     public func changeProvider(provider: FCL.Provider, env: Flow.ChainID) {
         config
             .put(.authn, value: provider.endpoint(chainId: env).absoluteString)
+            .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
     }
     

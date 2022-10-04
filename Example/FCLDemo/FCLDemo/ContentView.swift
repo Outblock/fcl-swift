@@ -53,8 +53,9 @@ struct ContentView: View {
 
                 Section {
                     Picker("iFrame", selection: $viewModel.provider, content: {
-                        Text("Dapper").tag(FCLProvider.dapper)
-                        Text("Blocoto").tag(FCLProvider.blocto)
+                        Text("Dapper").tag(FCL.Provider.dapper)
+                        Text("lilico").tag(FCL.Provider.lilico)
+                        Text("Blocoto").tag(FCL.Provider.blocto)
                     }).onChange(of: viewModel.provider, perform: { _ in
                         viewModel.changeWallet()
                     })

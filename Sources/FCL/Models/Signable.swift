@@ -10,7 +10,7 @@ import Combine
 import Flow
 import Foundation
 
-struct Signable: Codable {
+struct Signable: Encodable {
     let fType: String = "Signable"
     let fVsn: String = "1.0.1"
     let data = [String: String]()
@@ -74,7 +74,7 @@ struct Signable: Codable {
     }
 }
 
-struct PreSignable: Codable {
+struct PreSignable: Encodable {
     let fType: String = "PreSignable"
     let fVsn: String = "1.0.1"
     let roles: Role
@@ -132,7 +132,7 @@ struct PreSignable: Codable {
     }
 }
 
-struct Argument: Codable {
+struct Argument: Encodable {
     var kind: String
     var tempId: String
     var value: Flow.Cadence.FValue
@@ -159,7 +159,7 @@ extension Flow.Argument {
     }
 }
 
-struct Interaction: Codable {
+struct Interaction: Encodable {
     var tag: Tag = .unknown
     var assigns = [String: String]()
     var status: Status = .ok
@@ -378,7 +378,7 @@ struct Voucher: Codable {
     let envelopeSigs: [Singature]?
 }
 
-struct Accounts: Codable {
+struct Accounts: Encodable {
     let currentUser: SignableUser
 
     enum CodingKeys: String, CodingKey {
@@ -400,12 +400,7 @@ struct Singature: Codable {
 
 typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
 
-struct SignableUser: Codable {
-//    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse {
-//
-//        return try await fcl.api.execHttpPost(service: service, data: data)
-//    }
-
+struct SignableUser: Encodable {
     var kind: String?
     var tempID: String?
     var addr: String?

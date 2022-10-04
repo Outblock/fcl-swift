@@ -72,7 +72,7 @@ extension FCL {
         let keyId: Int?
     }
 
-    enum Status: String, Decodable {
+    enum Status: String, Codable {
         case pending = "PENDING"
         case approved = "APPROVED"
         case declined = "DECLINED"

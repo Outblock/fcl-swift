@@ -23,7 +23,7 @@ public extension FCL {
             throw Flow.FError.urlEmpty
         }
         
-        let response = try await fcl.getStategy().execService(url: url)
+        let response = try await fcl.getStategy().execService(url: url, method: .authn, request: FCL.Status.approved)
         fcl.currentUser = buildUser(authn: response)
         return response
     }
