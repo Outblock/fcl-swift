@@ -23,6 +23,7 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var env: Flow.ChainID = .testnet
 
+    @MainActor
     @Published var isShowWeb: Bool = false
 
     @Published var isPresented: Bool = false
@@ -234,7 +235,7 @@ class ViewModel: NSObject, ObservableObject {
 
     func authn() async {
         do {
-            let result = try await fcl.authenticate()
+            let _ = try await fcl.authenticate()
             await MainActor.run {
                 self.address = fcl.currentUser?.addr.hex ?? ""
             }
@@ -284,12 +285,12 @@ class ViewModel: NSObject, ObservableObject {
                 .args([.string("Test2"), .int(1)]),
                 .limit(1000),
             ])
-            try await txId.onceSealed()
 
             await MainActor.run {
                 self.preAuthz = txId.hex
             }
-
+            
+            _ = try await txId.onceSealed()
         } catch {
             print(error)
         }

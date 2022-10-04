@@ -19,11 +19,9 @@ public extension FCL {
     }
 
     func authenticate() async throws -> FCL.Response {
-        guard let endpoint = config.get(.authn),
-                      let url = URL(string: endpoint)
-                else {
-                    throw Flow.FError.urlEmpty
-                }
+        guard let endpoint = config.get(.authn), let url = URL(string: endpoint) else {
+            throw Flow.FError.urlEmpty
+        }
         
         let response = try await fcl.getStategy().execService(url: url)
         fcl.currentUser = buildUser(authn: response)

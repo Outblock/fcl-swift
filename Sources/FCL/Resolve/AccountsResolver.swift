@@ -37,8 +37,7 @@ final class AccountsResolver: Resolver {
             throw FCLError.invaildURL
         }
         
-        let response = try await fcl.getStategy().execService(url: url, data: data)
-//            .execHttpPost(url: endpoint, params: service.params, data: data)
+        let response = try await fcl.getStategy().execService(url: url, method: .preAuthz, request: preSignable)
         let signableUsers = try getAccounts(resp: response)
         var accounts = [String: SignableUser]()
 
@@ -97,7 +96,7 @@ final class AccountsResolver: Resolver {
                                            payer: role == "PAYER",
                                            param: nil)) { data in
                 Task {
-                    try await fcl.getStategy().execService(service: service, data: data)
+                    try await fcl.getStategy().execService(service: service, request: data)
                 }
             }
         }

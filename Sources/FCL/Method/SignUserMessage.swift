@@ -55,7 +55,7 @@ public extension FCL {
 //            throw FCLError.invaildURL
 //        }
 
-        let model = try await fcl.getStategy().execService(service: service, data: data)
+        let model = try await fcl.getStategy().execService(service: service, request: SignableMessage(message: messageData.hexValue))
         guard let data = model.data, let signature = data.signature, let address = data.addr, let keyId = data.keyId else {
             throw FCLError.generic
         }

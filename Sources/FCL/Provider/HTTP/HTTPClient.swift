@@ -9,7 +9,7 @@ import Combine
 import Foundation
 
 extension FCL {
-    final class API {
+    final class HTTPClient {
         internal let defaultUserAgent = "Flow SWIFT SDK"
         
         var delegate: HTTPSessionDelegate?

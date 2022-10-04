@@ -82,12 +82,12 @@ extension FCL {
         let fType: String?
         let fVsn: String?
         let type: ServiceType?
-        let method: FCLServiceMethod?
+        let method: FCL.ServiceMethod?
         let endpoint: URL?
         let uid: String?
         let id: String?
         let identity: Identity?
-        let provider: Provider?
+        let provider: ServiceProvider?
         let params: [String: String]?
         let data: FCLDataResponse?
 
@@ -116,12 +116,12 @@ extension FCL {
             fType = try? container.decode(String.self, forKey: .fType)
             fVsn = try? container.decode(String.self, forKey: .fVsn)
             type = try? container.decode(ServiceType.self, forKey: .type)
-            method = try? container.decode(FCLServiceMethod.self, forKey: .method)
+            method = try? container.decode(FCL.ServiceMethod.self, forKey: .method)
             endpoint = try? container.decode(URL.self, forKey: .endpoint)
             uid = try? container.decode(String.self, forKey: .uid)
             id = try? container.decode(String.self, forKey: .id)
             identity = try? container.decode(Identity.self, forKey: .identity)
-            provider = try? container.decode(Provider.self, forKey: .provider)
+            provider = try? container.decode(ServiceProvider.self, forKey: .provider)
             data = try? container.decode(FCLDataResponse.self, forKey: .data)
         }
     }
@@ -145,7 +145,7 @@ extension FCL {
         let keyId: Int?
     }
 
-    struct Provider: Decodable {
+    struct ServiceProvider: Decodable {
         public let fType: String?
         public let fVsn: String?
         public let address: String
@@ -161,6 +161,7 @@ extension FCL {
         case localView = "local-view"
         case openID = "open-id"
         case accountProof = "account-proof"
+        case unknow
     }
 
     struct ParamValue: Decodable {

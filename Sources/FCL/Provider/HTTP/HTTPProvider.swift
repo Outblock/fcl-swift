@@ -19,19 +19,28 @@ protocol HTTPSessionDelegate {
 
 extension FCL {
     class HTTPProvider: NSObject, FCLStrategy {
-        internal let api = API()
+        internal let client = HTTPClient()
         internal var session: ASWebAuthenticationSession?
         // TODO: Improve this
         internal var isPending = true
         
         override init() {
             super.init()
-            api.delegate = self
+            client.delegate = self
         }
         
-        func execService(url: URL, data: Data?) async throws -> FCL.Response {
-            return try await api.execHttpPost(url: url, data: data)
+        func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where  T : Codable {
+            guard let request else {
+                return try await client.execHttpPost(url: url)
+            }
+                    
+            guard let data = try? JSONEncoder().encode(request) else {
+                throw FCLError.encodeFailure
+            }
+            
+            return try await client.execHttpPost(url: url, data: data)
         }
+        
     }
 }
 

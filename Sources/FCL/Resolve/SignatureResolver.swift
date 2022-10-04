@@ -76,13 +76,12 @@ final class SignatureResolver: Resolver {
 //        let ix = wrapper.ix
         guard let acct = ix.accounts[id],
               let signingFunction = acct.signingFunction,
-              let signable = buildSignable(ix: ix, payload: payload, account: acct),
-              let data = try? JSONEncoder().encode(signable)
+              let signable = buildSignable(ix: ix, payload: payload, account: acct)
         else {
             throw FCLError.generic
         }
 
-        let response = try await signingFunction(data).value
+        let response = try await signingFunction(signable).value
         return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
     }
 

@@ -26,8 +26,8 @@ final class FCLTests: XCTestCase {
         
         let metadata = FCL.Metadata(appName: "FCLDemo",
                                     appDescription: "Demo app of FCL",
-                                    appIcon: "https://placekitten.com/g/200/200",
-                                    location: "https://foo.com",
+                                    appIcon: URL(string: "https://placekitten.com/g/200/200")!,
+                                    location: URL(string: "https://foo.com")!,
                                     accountProof: nil,
                      walletConnectConfig: nil)
         

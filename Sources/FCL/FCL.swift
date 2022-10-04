@@ -23,7 +23,7 @@ public final class FCL: NSObject, ObservableObject {
 
     public var config = Config()
 
-    private var providers: [FCLProvider] = [.dapper, .lilico, .blocto]
+    private var providers: [FCL.Provider] = [.dapper, .lilico, .blocto]
 
     public let version = "@outblock/fcl-swift@0.0.3"
 
@@ -35,7 +35,7 @@ public final class FCL: NSObject, ObservableObject {
 
     public func config(metadata: FCL.Metadata,
                        env: Flow.ChainID,
-                       provider: FCLProvider)
+                       provider: FCL.Provider)
     {
         _ = config
             .put(.title, value: metadata.appName)
@@ -83,7 +83,7 @@ public final class FCL: NSObject, ObservableObject {
         Relay.configure(projectId: projectID, socketFactory: SocketFactory())
     }
 
-    public func changeProvider(provider: FCLProvider, env: Flow.ChainID) {
+    public func changeProvider(provider: FCL.Provider, env: Flow.ChainID) {
         config
             .put(.authn, value: provider.endpoint(chainId: env).absoluteString)
             .put(.env, value: env.name)
@@ -91,7 +91,7 @@ public final class FCL: NSObject, ObservableObject {
     
     internal func getStategy() throws -> FCLStrategy {
         guard let methodString = config.get(.providerMethod),
-              let method = FCLServiceMethod(rawValue: methodString) else {
+              let method = FCL.ServiceMethod(rawValue: methodString) else {
             throw FCLError.invalidWalletProvider
         }
         

@@ -10,7 +10,7 @@ import Combine
 import Flow
 import Foundation
 
-struct Signable: Encodable {
+struct Signable: Codable {
     let fType: String = "Signable"
     let fVsn: String = "1.0.1"
     let data = [String: String]()
@@ -74,7 +74,7 @@ struct Signable: Encodable {
     }
 }
 
-struct PreSignable: Encodable {
+struct PreSignable: Codable {
     let fType: String = "PreSignable"
     let fVsn: String = "1.0.1"
     let roles: Role
@@ -132,7 +132,7 @@ struct PreSignable: Encodable {
     }
 }
 
-struct Argument: Encodable {
+struct Argument: Codable {
     var kind: String
     var tempId: String
     var value: Flow.Cadence.FValue
@@ -159,7 +159,7 @@ extension Flow.Argument {
     }
 }
 
-struct Interaction: Encodable {
+struct Interaction: Codable {
     var tag: Tag = .unknown
     var assigns = [String: String]()
     var status: Status = .ok
@@ -329,13 +329,13 @@ struct Interaction: Encodable {
     }
 }
 
-struct Block: Encodable {
+struct Block: Codable {
     var id: String?
     var height: Int64?
     var isSealed: Bool?
 }
 
-struct Account: Encodable {
+struct Account: Codable {
     var addr: String?
 }
 
@@ -343,7 +343,7 @@ struct Id: Encodable {
     var id: String?
 }
 
-struct Events: Encodable {
+struct Events: Codable {
     var eventType: String?
     var start: String?
     var end: String?
@@ -355,7 +355,7 @@ struct Events: Encodable {
     }
 }
 
-struct Message: Encodable {
+struct Message: Codable {
     var cadence: String?
     var refBlock: String?
     var computeLimit: Int?
@@ -366,7 +366,7 @@ struct Message: Encodable {
     var arguments: [String] = []
 }
 
-struct Voucher: Encodable {
+struct Voucher: Codable {
     let cadence: String?
     let refBlock: String?
     let computeLimit: Int?
@@ -378,7 +378,7 @@ struct Voucher: Encodable {
     let envelopeSigs: [Singature]?
 }
 
-struct Accounts: Encodable {
+struct Accounts: Codable {
     let currentUser: SignableUser
 
     enum CodingKeys: String, CodingKey {
@@ -386,7 +386,7 @@ struct Accounts: Encodable {
     }
 }
 
-struct Singature: Encodable {
+struct Singature: Codable {
     let address: String?
     let keyId: Int?
     let sig: String?
@@ -398,7 +398,9 @@ struct Singature: Encodable {
 //    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse
 // }
 
-struct SignableUser: Encodable {
+typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
+
+struct SignableUser: Codable {
 //    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse {
 //
 //        return try await fcl.api.execHttpPost(service: service, data: data)
@@ -413,14 +415,14 @@ struct SignableUser: Encodable {
     //    var signingFunction: Int?
     var role: Role
 
-    var signingFunction: ((Data) -> Task<FCL.Response, Error>)?
+    var signingFunction: FCLSigningFunction<Signable>
 
     enum CodingKeys: String, CodingKey {
         case kind
         case tempID = "tempId"
         case addr
         case keyID = "keyId"
-        case sequenceNum, signature, signingFunction, role
+        case sequenceNum, signature, role
     }
 
     func encode(to encoder: Encoder) throws {
@@ -435,7 +437,7 @@ struct SignableUser: Encodable {
     }
 }
 
-struct ProposalKey: Encodable {
+struct ProposalKey: Codable {
     var address: String?
     var keyID: Int?
     var sequenceNum: Int?
