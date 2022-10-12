@@ -42,11 +42,12 @@ public extension FCL {
         }
 
         struct SignableMessage: Codable {
+            let addr: String
             let message: String
         }
 
         guard let messageData = message.data(using: .utf8),
-              let data = try? JSONEncoder().encode(SignableMessage(message: messageData.hexValue))
+              let data = try? JSONEncoder().encode(SignableMessage(addr: currentUser.addr.hex, message: messageData.hexValue))
         else {
             throw FCLError.encodeFailure
         }
@@ -55,7 +56,7 @@ public extension FCL {
 //            throw FCLError.invaildURL
 //        }
 
-        let model = try await fcl.getStategy().execService(service: service, request: SignableMessage(message: messageData.hexValue))
+        let model = try await fcl.getStategy().execService(service: service, request: SignableMessage(addr: currentUser.addr.hex, message: messageData.hexValue))
         guard let data = model.data, let signature = data.signature, let address = data.addr, let keyId = data.keyId else {
             throw FCLError.generic
         }

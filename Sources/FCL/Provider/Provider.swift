@@ -94,9 +94,9 @@ extension FCL {
         var provider: FCLStrategy {
             switch self {
             case .httpPost:
-                return FCL.HTTPProvider()
+                return fcl.httpProvider
             case .walletConnect:
-                return FCL.WalletConnectProvider()
+                return fcl.wcProvider ?? FCL.WalletConnectProvider()
             }
         }
     }

@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "Atlantis",
+        "repositoryURL": "https://github.com/ProxymanApp/atlantis",
+        "state": {
+          "branch": null,
+          "revision": "2b26bf7fe2c5751335dca015b9e77514210d28d4",
+          "version": "1.18.2"
+        }
+      },
+      {
         "package": "BigInt",
         "repositoryURL": "https://github.com/attaswift/BigInt.git",
         "state": {
@@ -104,8 +113,8 @@
         "package": "WalletConnect",
         "repositoryURL": "https://github.com/WalletConnect/WalletConnectSwiftV2",
         "state": {
-          "branch": "main",
-          "revision": "099ed68d87d3353abd6fd3c72f295bcfc7b701ed",
+          "branch": null,
+          "revision": "76da907f763074f6d7d954ccf5a4b167dd458e3f",
           "version": null
         }
       },

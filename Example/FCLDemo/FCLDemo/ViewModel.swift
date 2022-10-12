@@ -240,7 +240,7 @@ class ViewModel: NSObject, ObservableObject {
         do {
             let _ = try await fcl.authenticate()
             await MainActor.run {
-                self.address = fcl.currentUser?.addr.hex ?? ""
+                self.address = fcl.currentUser?.addr.hex.addHexPrefix() ?? ""
             }
             await verifyAccountProof()
         } catch {
@@ -312,4 +312,14 @@ struct SafariView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_: SFSafariViewController, context _: UIViewControllerRepresentableContext<SafariView>) {}
+}
+
+
+extension String {
+    func addHexPrefix() -> String {
+        if !hasPrefix("0x") {
+            return "0x" + self
+        }
+        return self
+    }
 }

@@ -133,7 +133,7 @@ struct ContentView: View {
                         Button("View on flow scan") {
                             viewModel.isShowWeb.toggle()
                         }.sheet(isPresented: $viewModel.isShowWeb, onDismiss: nil) {
-                            SafariView(url: URL(string: "https://flowscan.org/transaction/\(viewModel.preAuthz)")!)
+                            SafariView(url: URL(string: "https://\(viewModel.env == .testnet ? "testnet." : "")flowscan.org/transaction/\(viewModel.preAuthz)")!)
                         }
                     }
 

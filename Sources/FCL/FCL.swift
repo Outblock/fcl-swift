@@ -31,6 +31,9 @@ public final class FCL: NSObject, ObservableObject {
 
     lazy var defaultAddressRegistry = AddressRegistry()
 
+    internal var httpProvider = FCL.HTTPProvider()
+    internal var wcProvider: FCL.WalletConnectProvider?
+    
     // MARK: - Back Channel
 
     public func config(metadata: FCL.Metadata,
@@ -65,8 +68,9 @@ public final class FCL: NSObject, ObservableObject {
         guard let name = config.get(.title),
               let description = config.get(.description),
               let icon = config.get(.icon),
-              let location = config.get(.location),
-              let projectID = config.get(.projectID)
+//              let location = config.get(.location),
+              let projectID = config.get(.projectID),
+              let urlScheme = config.get(.urlSheme)
         else {
             return
         }
@@ -74,13 +78,13 @@ public final class FCL: NSObject, ObservableObject {
         let metadata = AppMetadata(
             name: name,
             description: description,
-            url: location,
+            url: urlScheme,
             icons: [icon]
         )
 
         Sign.configure(metadata: metadata)
-
         Relay.configure(projectId: projectID, socketFactory: SocketFactory())
+        wcProvider = FCL.WalletConnectProvider()
     }
 
     public func changeProvider(provider: FCL.Provider, env: Flow.ChainID) {

@@ -17,6 +17,7 @@ extension FCL {
     enum WCMethod: String, CaseIterable {
         case authn = "flow_authn"
         case authz = "flow_authz"
+        case preAuthz = "flow_pre_authz"
         case userSignature = "flow_user_sign"
         case unknow
         
@@ -28,6 +29,8 @@ extension FCL {
                 return .authz
             case .userSignature:
                 return .userSignature
+            case .preAuthz:
+                return .preAuthz
             default:
                 return .unknow
             }
@@ -64,44 +67,68 @@ extension FCL {
         }
         
         func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where T : Encodable {
-            
-            if method == .authn {
-                try await connectToWallet()
-                let response = try await Sign.instance.sessionResponsePublisher.async()
-                print("AAAA ==> response \(response)")
-                
-            }
-            
-            guard let session = self.sessions.first else {
-                throw FCLError.unauthenticated
-            }
-            
             guard let env = fcl.config.get(.env),
                   let network = WCFlowBlockchain.allCases.first(where: { $0.rawValue == env }),
                     let blockchain = network.blockchain else {
                 throw FCLError.invaildNetwork
             }
             
-            var dataString = "{}"
-            if let request = request {
-                guard let data = try? JSONEncoder().encode(request),
-                      var dataString = String(data: data, encoding: .utf8) else {
-                    throw FCLError.encodeFailure
+            if method == .authn {
+                do {
+                    currentProposal = nil
+                    try await connectToWallet()
+                    let response = try await Sign.instance.sessionSettlePublisher.async()
+                    let authnRequest = Request(topic: response.topic, method: WCMethod.authn.rawValue, params: AnyCodable("authn"), chainId: blockchain)
+                    try await Sign.instance.request(params: authnRequest)
+                    let authnResponse = try await Sign.instance.sessionResponsePublisher.async()
+                    
+                    if case let .response(value) = authnResponse.result {
+                        let string = try value.result.asJSONEncodedString()
+                        let data = string.data(using: .utf8)!
+                        let model = try JSONDecoder().decode(FCL.Response.self, from: data)
+                        return model
+                    }
+                    
+                    print("AAAA ==> response \(response)")
+                } catch {
+                    print("BBBBBBB ===> \(error)")
                 }
             }
             
-            let request = Request(topic: session.topic, method: WCMethod.convertFrom(service: method).rawValue,
-                                  params: AnyCodable([dataString]), chainId: blockchain )
-            try await Sign.instance.request(params: request)
-            
-            let response = try await Sign.instance.sessionResponsePublisher.async()
-            guard let paramStr = try? request.params.get([String].self),
-                  let deocdeStr = paramStr.first, let data = deocdeStr.data(using: .utf8),
-                  let decode = try? JSONDecoder().decode(FCL.Response.self, from: data) else {
-                throw FCLError.decodeFailure
+            guard let session = self.sessions.first else {
+                throw FCLError.unauthenticated
             }
             
-            return decode
+            guard let request = request,
+                  let data = try? JSONEncoder().encode(request),
+                  let dataString = String(data: data, encoding: .utf8) else {
+                throw FCLError.encodeFailure
+            }
+            
+            let request1 = Request(topic: session.topic,
+                                  method: WCMethod.convertFrom(service: method).rawValue,
+                                  params: AnyCodable([dataString]),
+                                  chainId: blockchain)
+            
+            try await Sign.instance.request(params: request1)
+            try connectWithExampleWallet()
+            
+            let authzResponse = try await Sign.instance.sessionResponsePublisher.async()
+            
+            guard case let .response(value) = authzResponse.result else {
+                throw FCLError.generic
+            }
+            
+//            guard let paramStr = try? response.params.get([String].self),
+//                  let deocdeStr = paramStr.first, let data = deocdeStr.data(using: .utf8),
+//                  let decode = try? JSONDecoder().decode(FCL.Response.self, from: data) else {
+//                throw FCLError.decodeFailure
+//            }
+            
+            let string = try value.result.asJSONEncodedString()
+            let responseData = string.data(using: .utf8)!
+            let model = try JSONDecoder().decode(FCL.Response.self, from: responseData)
+            return model
         }
         
         private func reloadSessionAndPair() {
@@ -134,18 +161,24 @@ extension FCL {
             guard let uri = try await Sign.instance.connect(requiredNamespaces: namespaces, topic: self.sessions.first?.topic) else {
                 throw FCLError.generateURIFailed
             }
+            
             try connectWithExampleWallet(uri: uri)
         }
         
-        private func connectWithExampleWallet(uri: WalletConnectURI) throws{
-            
+        private func connectWithExampleWallet(uri: WalletConnectURI? = nil) throws{
             guard let endpoint = fcl.config.get(.authn) else {
                 throw Flow.FError.urlEmpty
             }
             
-            let url = URL(string: "\(endpoint)/wc?uri=\(uri.absoluteString)")!
+            var url = URL(string: endpoint)
+            if let uri {
+                url = URL(string: "\(endpoint)/wc?uri=\(uri.absoluteString)")
+            }
+            
             DispatchQueue.main.async {
-                UIApplication.shared.open(url, options: [:])
+                if let url {
+                    UIApplication.shared.open(url, options: [:])
+                }
             }
         }
         
@@ -191,6 +224,8 @@ extension FCL {
                     print("[RESPONDER] WC: Did receive session request")
 //                    self?.showSessionRequest(sessionRequest)
                 }.store(in: &publishers)
+            
+
 
             Sign.instance.sessionDeletePublisher
                 .receive(on: DispatchQueue.main)
