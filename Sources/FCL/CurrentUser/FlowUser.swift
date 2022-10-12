@@ -8,11 +8,13 @@
 import Flow
 import Foundation
 
-public struct User: Decodable {
-    public let addr: Flow.Address
-    public private(set) var loggedIn: Bool = false
+extension FCL {
+    public struct User: Decodable {
+        public let addr: Flow.Address
+        public private(set) var loggedIn: Bool = false
 
-    var fType: String = "USER"
-    var fVsn: String = "1.0.0"
-    var services: [FCL.Service]? = []
+        var fType: String = "USER"
+        var fVsn: String = "1.0.0"
+        var services: [FCL.Service]? = []
+    }
 }

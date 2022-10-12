@@ -19,6 +19,7 @@ public enum FCLError: String, Error, LocalizedError {
     case invalidResponse
     case decodeFailure
     case unauthenticated
+    case missingAuthz
     case missingPreAuthz
     case missingPayer
     case unHandledService

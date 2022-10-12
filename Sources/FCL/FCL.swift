@@ -34,6 +34,8 @@ public final class FCL: NSObject, ObservableObject {
     internal var httpProvider = FCL.HTTPProvider()
     internal var wcProvider: FCL.WalletConnectProvider?
     
+    internal var preAuthz: FCL.Response?
+    
     // MARK: - Back Channel
 
     public func config(metadata: FCL.Metadata,
@@ -106,9 +108,9 @@ public final class FCL: NSObject, ObservableObject {
 
 // MARK: - Util
 
-internal func buildUser(authn: FCL.Response) -> User? {
+internal func buildUser(authn: FCL.Response) -> FCL.User? {
     guard let address = authn.data?.addr else { return nil }
-    return User(addr: Flow.Address(hex: address),
+    return FCL.User(addr: Flow.Address(hex: address),
                 loggedIn: true,
                 services: authn.data?.services)
 }

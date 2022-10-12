@@ -58,6 +58,18 @@ extension FCL {
             reason = try? container.decode(String.self, forKey: .reason)
             compositeSignature = try? container.decode(AuthnData.self, forKey: .compositeSignature)
         }
+        
+        internal init(fType: String? = nil, fVsn: String? = nil, status: FCL.Status, updates: FCL.Service? = nil, local: FCL.Service? = nil, data: FCL.AuthnData? = nil, reason: String? = nil, compositeSignature: FCL.AuthnData? = nil, authorizationUpdates: FCL.Service? = nil) {
+            self.fType = fType
+            self.fVsn = fVsn
+            self.status = status
+            self.updates = updates
+            self.local = local
+            self.data = data
+            self.reason = reason
+            self.compositeSignature = compositeSignature
+            self.authorizationUpdates = authorizationUpdates
+        }
     }
 
     struct AuthnData: Decodable {
@@ -79,17 +91,31 @@ extension FCL {
     }
 
     struct Service: Decodable {
-        let fType: String?
-        let fVsn: String?
-        let type: ServiceType?
-        let method: FCL.ServiceMethod?
-        let endpoint: URL?
-        let uid: String?
-        let id: String?
-        let identity: Identity?
-        let provider: ServiceProvider?
-        let params: [String: String]?
-        let data: FCLDataResponse?
+        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil) {
+            self.fType = fType
+            self.fVsn = fVsn
+            self.type = type
+            self.method = method
+            self.endpoint = endpoint
+            self.uid = uid
+            self.id = id
+            self.identity = identity
+            self.provider = provider
+            self.params = params
+            self.data = data
+        }
+        
+        var fType: String?
+        var fVsn: String?
+        var type: ServiceType?
+        var method: FCL.ServiceMethod?
+        var endpoint: URL?
+        var uid: String?
+        var id: String?
+        var identity: Identity?
+        var provider: ServiceProvider?
+        var params: [String: String]?
+        var data: FCLDataResponse?
 
         enum CodingKeys: String, CodingKey {
             case fType

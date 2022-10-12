@@ -398,7 +398,11 @@ struct Singature: Codable {
 //    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse
 // }
 
-typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
+//typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
+
+protocol FCLSigner {
+    func sign(signable: Signable) async throws -> FCL.Response
+}
 
 struct SignableUser: Encodable {
     var kind: String?
@@ -410,7 +414,7 @@ struct SignableUser: Encodable {
     //    var signingFunction: Int?
     var role: Role
 
-    var signingFunction: FCLSigningFunction<Signable>
+//    var signingFunction: FCLSigningFunction<Signable>
 
     enum CodingKeys: String, CodingKey {
         case kind
@@ -429,6 +433,38 @@ struct SignableUser: Encodable {
         try container.encode(keyID, forKey: .keyID)
         try container.encode(sequenceNum, forKey: .sequenceNum)
         try container.encode(role, forKey: .role)
+    }
+}
+
+extension SignableUser: FCLSigner {
+    func sign(signable: Signable) async throws -> FCL.Response {
+        if let preAuthz = fcl.preAuthz {
+            var array = (preAuthz.data?.payer ?? []) + (preAuthz.data?.authorization ?? [])
+            if let proposer = preAuthz.data?.proposer {
+                array.append(proposer)
+            }
+            guard let authz = array.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() }) else {
+                throw FCLError.missingAuthz
+            }
+            
+            return try await fcl.getStategy().execService(service: authz, request: signable)
+        }
+        
+        guard let authzList = fcl.currentUser?.services?.filter({ $0.type == .authz }),
+              let authz = authzList.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() }) else {
+            throw FCLError.missingAuthz
+        }
+
+        return try await fcl.getStategy().execService(service: authz, request: signable)
+    }
+}
+
+extension String {
+    func addHexPrefix() -> String {
+        if !hasPrefix("0x") {
+            return "0x" + self
+        }
+        return self
     }
 }
 

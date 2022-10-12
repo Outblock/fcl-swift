@@ -21,21 +21,20 @@ extension FCL {
         case userSignature = "flow_user_sign"
         case unknow
         
-        static func convertFrom(service: ServiceType) -> Self {
+        public init(service: ServiceType) {
             switch service {
             case .authn:
-                return .authn
+                self = .authn
             case .authz:
-                return .authz
+                self = .authz
             case .userSignature:
-                return .userSignature
+                self = .userSignature
             case .preAuthz:
-                return .preAuthz
+                self = .preAuthz
             default:
-                return .unknow
+                self = .unknow
             }
         }
-        
     }
     
     enum WCFlowBlockchain: String, CaseIterable {
@@ -100,13 +99,25 @@ extension FCL {
             }
             
             guard let request = request,
-                  let data = try? JSONEncoder().encode(request),
-                  let dataString = String(data: data, encoding: .utf8) else {
+                  let data = try? JSONEncoder().encode(request) else {
+                throw FCLError.encodeFailure
+            }
+            
+            var configData: Data?
+            if let baseConfig = try? BaseConfigRequest().toDictionary() {
+                var body: [String: Any]? = [:]
+                body = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+
+                let configDict = baseConfig.merging(body ?? [:]) { _, new in new }
+                configData = try? JSONSerialization.data(withJSONObject: configDict)
+            }
+            
+            guard let dataString = String(data: configData ?? data, encoding: .utf8) else {
                 throw FCLError.encodeFailure
             }
             
             let request1 = Request(topic: session.topic,
-                                  method: WCMethod.convertFrom(service: method).rawValue,
+                                  method: WCMethod(service: method).rawValue,
                                   params: AnyCodable([dataString]),
                                   chainId: blockchain)
             
@@ -118,12 +129,6 @@ extension FCL {
             guard case let .response(value) = authzResponse.result else {
                 throw FCLError.generic
             }
-            
-//            guard let paramStr = try? response.params.get([String].self),
-//                  let deocdeStr = paramStr.first, let data = deocdeStr.data(using: .utf8),
-//                  let decode = try? JSONDecoder().decode(FCL.Response.self, from: data) else {
-//                throw FCLError.decodeFailure
-//            }
             
             let string = try value.result.asJSONEncodedString()
             let responseData = string.data(using: .utf8)!

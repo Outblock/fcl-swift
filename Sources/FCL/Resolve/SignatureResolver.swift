@@ -75,13 +75,12 @@ final class SignatureResolver: Resolver {
     func fetchSignature(ix: Interaction, payload: String, id: String) async throws -> (String, String) {
 //        let ix = wrapper.ix
         guard let acct = ix.accounts[id],
-              let signingFunction = acct.signingFunction,
               let signable = buildSignable(ix: ix, payload: payload, account: acct)
         else {
             throw FCLError.generic
         }
 
-        let response = try await signingFunction(signable).value
+        let response = try await acct.sign(signable: signable)
         return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
     }
 
