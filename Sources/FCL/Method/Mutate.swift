@@ -29,8 +29,8 @@ public extension FCL {
         return try await send([.script(cadence), .args(args), .limit(gasLimit)])
     }
 
-    func mutate(@Flow.TransactionBuilder builder: () -> [Flow.TransactionBuild]) async throws -> Flow.ID {
-        return try await send(builder().compactMap { $0.toFCLBuild() })
+    func mutate(@FCL.Builder builder: () -> [FCL.Build]) async throws -> Flow.ID {
+        return try await send(builder())
     }
     
     func send(_ builds: [Build]) async throws -> Flow.ID {
@@ -68,6 +68,30 @@ public extension FCL {
                 ix.message.cadence = script
             case let .limit(gasLimit):
                 ix.message.computeLimit = gasLimit
+            case let .proposer(signer):
+                var signableUser = signer.signableUser
+                signableUser.role = Role(proposer: true)
+                ix.accounts[signer.tempID] = signableUser
+            case let .authorizor(signers):
+                for signer in signers {
+                    var signableUser = signer.signableUser
+                    signableUser.role = Role(proposer: true)
+                    ix.accounts[signer.tempID] = signableUser
+                    let tempID = signer.tempID
+                    if ix.accounts.keys.contains(tempID) {
+                        ix.accounts[tempID]?.role.merge(role: Role(authorizer: true))
+                    }
+                }
+            case let .payer(signers):
+                for signer in signers {
+                    var signableUser = signer.signableUser
+                    signableUser.role = Role(proposer: true)
+                    ix.accounts[signer.tempID] = signableUser
+                    let tempID = signer.tempID
+                    if ix.accounts.keys.contains(tempID) {
+                        ix.accounts[tempID]?.role.merge(role: Role(payer: true))
+                    }
+                }
             }
         }
 
@@ -100,6 +124,9 @@ public extension FCL {
         case transaction(String)
         case args([Flow.Cadence.FValue])
         case limit(Int)
+        case proposer(FCLSigner)
+        case authorizor([FCLSigner])
+        case payer([FCLSigner])
     }
 
     @resultBuilder

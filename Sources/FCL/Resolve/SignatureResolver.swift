@@ -80,7 +80,7 @@ final class SignatureResolver: Resolver {
             throw FCLError.generic
         }
 
-        let response = try await acct.sign(signable: signable)
+        let response = try await acct.signingFunction(signable: signable)
         return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
     }
 

@@ -16,28 +16,66 @@ final class AccountsResolver: Resolver {
         }
         return ix
     }
+    
+//    private func authzService(identity: FCL.Identity) -> FCL.Service {
+//        return .init(fType: "Service",
+//                     fVsn: "1.0.0",
+//                     type: .authz,
+//                     method: .walletConnect,
+//                     endpoint: FCL.WCMethod(service: type)?.rawValue,
+//                     identity: identity)
+//    }
+
+    
+    private func prepareAccounts(ix: inout Interaction, currentUser: FCL.User) async throws -> FCL.Response {
+        
+        // Handle PreAuthz
+//        if let hasPreAuthz = currentUser.services?.contains(where: { $0.type == .preAuthz }), hasPreAuthz {
+            
+            guard let service = serviceOfType(services: currentUser.services, type: .preAuthz),
+                  let endpoint = service.endpoint
+            else {
+                throw FCLError.missingPreAuthz
+            }
+
+            let preSignable = ix.buildPreSignable(role: Role())
+            guard let url = buildURL(url: endpoint, params: service.params) else {
+                throw FCLError.invaildURL
+            }
+        
+            fcl.preAuthz = nil
+        
+            let response = try await fcl.getStategy().execService(url: url, method: .preAuthz, request: preSignable)
+            fcl.preAuthz = response
+            return response
+//        }
+//
+//        // No PreAuthz
+//        guard let authzList = currentUser.services?.filter({ $0.type == .authz }) else {
+//            throw FCLError.missingAuthz
+//        }
+//
+//
+//        // TODO FIX custom authz
+//        return .init(fType: "PollingResponse",
+//                     fVsn: "1.0.0",
+//                     status: .approved,
+//                     data: .init(addr: currentUser.addr.hex,
+//                                 fType: "AuthnResponse",
+//                                 fVsn: "1.0.0",
+//                                 proposer: authzService(identity: <#T##FCL.Identity#>),
+//                                 payer: <#T##[FCL.Service]?#>,
+//                                 authorization: <#T##[FCL.Service]?#>,
+//                                 signature: nil,
+//                                 keyId: nil))
+    }
 
     func collectAccounts(ix: inout Interaction, accounts: [SignableUser]) async throws -> Interaction {
         guard let currentUser = fcl.currentUser, currentUser.loggedIn else {
             throw Flow.FError.unauthenticated
         }
-
-        guard let service = serviceOfType(services: currentUser.services, type: .preAuthz),
-              let endpoint = service.endpoint
-        else {
-            throw FCLError.missingPreAuthz
-        }
-
-        let preSignable = ix.buildPreSignable(role: Role())
-        guard let data = try? JSONEncoder().encode(preSignable) else {
-            throw FCLError.encodeFailure
-        }
-
-        guard let url = buildURL(url: endpoint, params: service.params) else {
-            throw FCLError.invaildURL
-        }
         
-        let response = try await fcl.getStategy().execService(url: url, method: .preAuthz, request: preSignable)
+        let response = try await prepareAccounts(ix: &ix, currentUser: currentUser)
         let signableUsers = try getAccounts(resp: response)
         var accounts = [String: SignableUser]()
 
@@ -67,6 +105,11 @@ final class AccountsResolver: Resolver {
         ix.accounts = accounts
         return ix
     }
+    
+    func authzOnly(ix: inout Interaction, accounts: [SignableUser]) async throws -> Interaction {
+        
+        return ix
+    }
 
     func getAccounts(resp: FCL.Response) throws -> [SignableUser] {
         var axs = [(role: String, service: FCL.Service)]()
@@ -94,11 +137,8 @@ final class AccountsResolver: Resolver {
                                 role: Role(proposer: role == "PROPOSER",
                                            authorizer: role == "AUTHORIZER",
                                            payer: role == "PAYER",
-                                           param: nil)) { data in
-                Task {
-                    try await fcl.getStategy().execService(service: service, request: data)
-                }
-            }
+                                           param: nil))
         }
     }
 }
+

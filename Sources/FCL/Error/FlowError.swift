@@ -27,6 +27,7 @@ public enum FCLError: String, Error, LocalizedError {
     case convertToTxFailure
     case invaildProposer
     case fetchAccountFailure
+    case failedToConnectWallet
 
     public var errorDescription: String? {
         return rawValue

@@ -10,7 +10,7 @@ import Combine
 import Flow
 import Foundation
 
-struct Signable: Encodable {
+public struct Signable: Encodable {
     let fType: String = "Signable"
     let fVsn: String = "1.0.1"
     let data = [String: String]()
@@ -58,7 +58,7 @@ struct Signable: Encodable {
                        envelopeSigs: outsideSigners)
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(fType, forKey: .fType)
         try container.encode(fVsn, forKey: .fVsn)
@@ -400,8 +400,26 @@ struct Singature: Codable {
 
 //typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
 
-protocol FCLSigner {
-    func sign(signable: Signable) async throws -> FCL.Response
+public protocol FCLSigner {
+    var address: Flow.Address { get }
+    var keyIndex: Int { get }
+    func signingFunction(signable: Signable) async throws -> FCL.Response
+}
+
+extension FCLSigner {
+    var tempID: String {
+        [address.hex.addHexPrefix(), String(keyIndex)].joined(separator: "-")
+    }
+    
+    var signableUser: SignableUser {
+        .init(kind: nil,
+              tempID: tempID,
+              addr: address.hex.addHexPrefix(),
+              signature: nil,
+              keyID: keyIndex,
+              sequenceNum: nil,
+              role: Role())
+    }
 }
 
 struct SignableUser: Encodable {
@@ -437,7 +455,15 @@ struct SignableUser: Encodable {
 }
 
 extension SignableUser: FCLSigner {
-    func sign(signable: Signable) async throws -> FCL.Response {
+    var address: Flow.Address {
+        .init(hex: addr ?? "0x")
+    }
+    
+    var keyIndex: Int {
+        keyID ?? 0
+    }
+    
+    func signingFunction(signable: Signable) async throws -> FCL.Response {
         if let preAuthz = fcl.preAuthz {
             var array = (preAuthz.data?.payer ?? []) + (preAuthz.data?.authorization ?? [])
             if let proposer = preAuthz.data?.proposer {
@@ -480,7 +506,7 @@ struct ProposalKey: Codable {
     }
 }
 
-struct Role: Encodable {
+public struct Role: Encodable {
     var proposer: Bool = false
     var authorizer: Bool = false
     var payer: Bool = false
@@ -491,6 +517,12 @@ struct Role: Encodable {
         authorizer = authorizer || role.authorizer
         payer = payer || role.payer
     }
+}
+
+public enum Roles: String {
+    case proposer
+    case authorizer
+    case payer
 }
 
 @propertyWrapper

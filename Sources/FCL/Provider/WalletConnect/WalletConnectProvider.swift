@@ -77,20 +77,31 @@ extension FCL {
                     currentProposal = nil
                     try await connectToWallet()
                     let response = try await Sign.instance.sessionSettlePublisher.async()
-                    let authnRequest = Request(topic: response.topic, method: WCMethod.authn.rawValue, params: AnyCodable("authn"), chainId: blockchain)
+                    
+                    guard let data = try? JSONEncoder().encode(BaseConfigRequest()),
+                          let dataString = String(data: data, encoding: .utf8) else {
+                        throw FCLError.encodeFailure
+                    }
+                    let authnRequest = Request(topic: response.topic,
+                                               method: WCMethod.authn.rawValue,
+                                               params: AnyCodable([dataString]),
+                                               chainId: blockchain)
                     try await Sign.instance.request(params: authnRequest)
                     let authnResponse = try await Sign.instance.sessionResponsePublisher.async()
                     
-                    if case let .response(value) = authnResponse.result {
-                        let string = try value.result.asJSONEncodedString()
-                        let data = string.data(using: .utf8)!
-                        let model = try JSONDecoder().decode(FCL.Response.self, from: data)
-                        return model
-                    }
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
                     
-                    print("AAAA ==> response \(response)")
+                    guard case let .response(value) = authnResponse.result,
+                        let string = try? value.result.asJSONEncodedString(),
+                        let data = string.data(using: .utf8),
+                        let model = try? decoder.decode(FCL.Response.self, from: data) else {
+                        throw FCLError.decodeFailure
+                    }
+                    return model
                 } catch {
-                    print("BBBBBBB ===> \(error)")
+                    print("authn error ===> \(error)")
+                    throw FCLError.failedToConnectWallet
                 }
             }
             
@@ -99,20 +110,8 @@ extension FCL {
             }
             
             guard let request = request,
-                  let data = try? JSONEncoder().encode(request) else {
-                throw FCLError.encodeFailure
-            }
-            
-            var configData: Data?
-            if let baseConfig = try? BaseConfigRequest().toDictionary() {
-                var body: [String: Any]? = [:]
-                body = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-
-                let configDict = baseConfig.merging(body ?? [:]) { _, new in new }
-                configData = try? JSONSerialization.data(withJSONObject: configDict)
-            }
-            
-            guard let dataString = String(data: configData ?? data, encoding: .utf8) else {
+                  let data = try? JSONEncoder().encode(request),
+                  let dataString = String(data: data, encoding: .utf8) else {
                 throw FCLError.encodeFailure
             }
             
@@ -160,12 +159,23 @@ extension FCL {
                 throw FCLError.invaildNetwork
             }
             
+            guard let endpoint = fcl.config.get(.authn) else {
+                throw Flow.FError.urlEmpty
+            }
+            
+            var topic: String? = nil
+            if let existingPairing = self.pairings.first(where: { $0.peer?.url == endpoint }) {
+                topic = existingPairing.topic
+            }
+            
+//            if let existingPairing = self.sessions.first(where: { $0.peer.url == endpoint }) {
+//                topic = existingPairing.topic
+//            }
+            
             let blockchains: Set<Blockchain> = Set([blockchain])
             let namespaces: [String: ProposalNamespace] = [blockchain.namespace: ProposalNamespace(chains: blockchains, methods: methods, events: [], extensions: nil)]
             
-            guard let uri = try await Sign.instance.connect(requiredNamespaces: namespaces, topic: self.sessions.first?.topic) else {
-                throw FCLError.generateURIFailed
-            }
+            let uri = try await Sign.instance.connect(requiredNamespaces: namespaces, topic: topic) 
             
             try connectWithExampleWallet(uri: uri)
         }
@@ -174,7 +184,6 @@ extension FCL {
             guard let endpoint = fcl.config.get(.authn) else {
                 throw Flow.FError.urlEmpty
             }
-            
             var url = URL(string: endpoint)
             if let uri {
                 url = URL(string: "\(endpoint)/wc?uri=\(uri.absoluteString)")
