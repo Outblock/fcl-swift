@@ -91,20 +91,6 @@ extension FCL {
     }
 
     struct Service: Decodable {
-        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil) {
-            self.fType = fType
-            self.fVsn = fVsn
-            self.type = type
-            self.method = method
-            self.endpoint = endpoint
-            self.uid = uid
-            self.id = id
-            self.identity = identity
-            self.provider = provider
-            self.params = params
-            self.data = data
-        }
-        
         var fType: String?
         var fVsn: String?
         var type: ServiceType?
@@ -130,6 +116,21 @@ extension FCL {
             case params
             case data
         }
+        
+        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil) {
+            self.fType = fType
+            self.fVsn = fVsn
+            self.type = type
+            self.method = method
+            self.endpoint = endpoint
+            self.uid = uid
+            self.id = id
+            self.identity = identity
+            self.provider = provider
+            self.params = params
+            self.data = data
+        }
+
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)

@@ -25,8 +25,24 @@ public extension FCL {
         return try await flow.accessAPI.sendTransaction(transaction: tx)
     }
 
-    func mutate(cadence: String, args: [Flow.Cadence.FValue], gasLimit: Int = 1000) async throws -> Flow.ID {
-        return try await send([.script(cadence), .args(args), .limit(gasLimit)])
+    func mutate(cadence: String,
+                args: [Flow.Cadence.FValue],
+                gasLimit: Int = 1000,
+                proposer: FCLSigner? = nil,
+                authorizors: [FCLSigner]? = nil,
+                payers: [FCLSigner]? = nil) async throws -> Flow.ID {
+        
+        var list: [Build] = [.script(cadence), .args(args), .limit(gasLimit)]
+        if let proposer {
+            list.append(.proposer(proposer))
+        }
+        if let authorizors {
+            list.append(.authorizor(authorizors))
+        }
+        if let payers {
+            list.append(.payer(payers))
+        }
+        return try await send(list)
     }
 
     func mutate(@FCL.Builder builder: () -> [FCL.Build]) async throws -> Flow.ID {
@@ -44,7 +60,6 @@ public extension FCL {
             SequenceNumberResolver(),
             SignatureResolver(),
         ]
-
         _ = try await pipe(ix: &ix, resolvers: resolvers)
         return try await sendIX(ix: ix)
     }
@@ -139,6 +154,14 @@ public extension FCL {
 
         public static func buildBlock(_ components: Build...) -> [Build] {
             components
+        }
+        
+        public static func buildEither(first component: [Build]) -> [Build] {
+            component
+        }
+        
+        public static func buildEither(second component: [Build]) -> [Build] {
+            component
         }
     }
 }

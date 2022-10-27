@@ -168,10 +168,6 @@ extension FCL {
                 topic = existingPairing.topic
             }
             
-//            if let existingPairing = self.sessions.first(where: { $0.peer.url == endpoint }) {
-//                topic = existingPairing.topic
-//            }
-            
             let blockchains: Set<Blockchain> = Set([blockchain])
             let namespaces: [String: ProposalNamespace] = [blockchain.namespace: ProposalNamespace(chains: blockchains, methods: methods, events: [], extensions: nil)]
             

@@ -250,22 +250,28 @@ class ViewModel: NSObject, ObservableObject {
 
     func send() async {
         do {
-            let txId = try await fcl.mutate {
-                cadence {
-                    transactionScript
-                }
-
-                arguments {
-                    [.string("Test2"), .int(1)]
-                }
-
-                gasLimit {
-                    1000
-                }
-            }
-            await MainActor.run {
-                self.preAuthz = txId.hex
-            }
+//            let txId = try await fcl.mutate {
+//                cadence {
+//                    transactionScript
+//                }
+//
+//                arguments {
+//                    [.string("Test2"), .int(1)]
+//                }
+//
+//                gasLimit {
+//                    1000
+//                }
+//            }
+//            await MainActor.run {
+//                self.preAuthz = txId.hex
+//            }
+            
+//            let _ = try await fcl.mutate {
+//                FCL.Build.script("12123")
+//                FCL.Build.args([])
+//            }
+            
         } catch {
             print(error)
         }
