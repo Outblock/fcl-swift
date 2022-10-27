@@ -20,7 +20,7 @@ class InteractionWrapper {
 final class SignatureResolver: Resolver {
     func resolve(ix: inout Interaction) async throws -> Interaction {
         guard ix.tag == .transaction else {
-            throw FCLError.generic
+            return ix
         }
 
         let insideSigners = ix.findInsideSigners
@@ -75,14 +75,12 @@ final class SignatureResolver: Resolver {
     func fetchSignature(ix: Interaction, payload: String, id: String) async throws -> (String, String) {
 //        let ix = wrapper.ix
         guard let acct = ix.accounts[id],
-              let signingFunction = acct.signingFunction,
-              let signable = buildSignable(ix: ix, payload: payload, account: acct),
-              let data = try? JSONEncoder().encode(signable)
+              let signable = buildSignable(ix: ix, payload: payload, account: acct)
         else {
             throw FCLError.generic
         }
 
-        let response = try await signingFunction(data).value
+        let response = try await acct.signingFunction(signable: signable)
         return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
     }
 

@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "Atlantis",
+        "repositoryURL": "https://github.com/ProxymanApp/atlantis",
+        "state": {
+          "branch": null,
+          "revision": "2b26bf7fe2c5751335dca015b9e77514210d28d4",
+          "version": "1.18.2"
+        }
+      },
+      {
         "package": "BigInt",
         "repositoryURL": "https://github.com/attaswift/BigInt.git",
         "state": {
@@ -16,6 +25,15 @@
         "state": {
           "branch": null,
           "revision": "2a354639173d021f4648cf1912b2b00a3a7cd83c",
+          "version": "1.6.0"
+        }
+      },
+      {
+        "package": "CryptoSwift",
+        "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "19b3c3ceed117c5cc883517c4e658548315ba70b",
           "version": "1.6.0"
         }
       },
@@ -38,6 +56,42 @@
         }
       },
       {
+        "package": "PromiseKit",
+        "repositoryURL": "https://github.com/mxcl/PromiseKit.git",
+        "state": {
+          "branch": null,
+          "revision": "43772616c46a44a9977e41924ae01d0e55f2f9ca",
+          "version": "6.18.1"
+        }
+      },
+      {
+        "package": "secp256k1",
+        "repositoryURL": "https://github.com/Boilertalk/secp256k1.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "45e458ec3be46cf0a6eb68bc947f797852dc65d8",
+          "version": "0.1.6"
+        }
+      },
+      {
+        "package": "Starscream",
+        "repositoryURL": "https://github.com/daltoniam/Starscream",
+        "state": {
+          "branch": null,
+          "revision": "e6b65c6d9077ea48b4a7bdda8994a1d3c6969c8d",
+          "version": "3.1.1"
+        }
+      },
+      {
+        "package": "swift-nio-zlib-support",
+        "repositoryURL": "https://github.com/apple/swift-nio-zlib-support.git",
+        "state": {
+          "branch": null,
+          "revision": "37760e9a52030bb9011972c5213c3350fa9d41fd",
+          "version": "1.0.0"
+        }
+      },
+      {
         "package": "SwiftParamTest",
         "repositoryURL": "https://github.com/YusukeHosonuma/SwiftParamTest.git",
         "state": {
@@ -52,6 +106,24 @@
         "state": {
           "branch": null,
           "revision": "0ca79c7944f41b17b4e5823d0edea8658cc879e8",
+          "version": null
+        }
+      },
+      {
+        "package": "WalletConnect",
+        "repositoryURL": "https://github.com/WalletConnect/WalletConnectSwiftV2",
+        "state": {
+          "branch": null,
+          "revision": "76da907f763074f6d7d954ccf5a4b167dd458e3f",
+          "version": null
+        }
+      },
+      {
+        "package": "Web3",
+        "repositoryURL": "https://github.com/flypaper0/Web3.swift",
+        "state": {
+          "branch": "feature/eip-155",
+          "revision": "92a43a8c279b9df25fe23dd6f8311e6fb0ea06ed",
           "version": null
         }
       }

@@ -4,7 +4,6 @@ import Flow
 import XCTest
 
 final class FCLTests: XCTestCase {
-    private var cancellables = Set<AnyCancellable>()
 
     func testEncodeMessageForAuthn() {
         let timestamp = Date().timeIntervalSince1970
@@ -24,14 +23,15 @@ final class FCLTests: XCTestCase {
     }
 
     func testRegexInConfig() {
-        FCL.shared.config(appName: "FCLDemo",
-                          appIcon: "https://placekitten.com/g/200/200",
-                          location: "https://foo.com",
-                          walletNode: "https://fcl-http-post.vercel.app/api",
-                          accessNode: "https://access-testnet.onflow.org",
-                          env: "mainnet",
-                          scope: "email",
-                          authn: "")
+        
+        let metadata = FCL.Metadata(appName: "FCLDemo",
+                                    appDescription: "Demo app of FCL",
+                                    appIcon: URL(string: "https://placekitten.com/g/200/200")!,
+                                    location: URL(string: "https://foo.com")!,
+                                    accountProof: nil,
+                     walletConnectConfig: nil)
+        
+        fcl.config(metadata: metadata, env: .mainnet, provider: .lilico)
 
         let dict = fcl.config.configLens("^app\\.detail\\.")
         XCTAssertNotNil(dict)
@@ -40,9 +40,8 @@ final class FCLTests: XCTestCase {
         XCTAssertEqual(dict["title"], "FCLDemo")
     }
 
-    func testQuery() {
-        let expectation = XCTestExpectation(description: "Query got executed!")
-        fcl.query {
+    func testQuery() async throws {
+        let response: Int = try await fcl.query {
             cadence {
                 """
                 pub fun main(a: Int, b: Int, addr: Address): Int {
@@ -55,64 +54,21 @@ final class FCLTests: XCTestCase {
             arguments {
                 [.int(7), .int(6), .address(Flow.Address(hex: "0x4b7f74fdd447640a"))]
             }
-        }.sink { completion in
-            if case let .failure(error) = completion {
-                XCTFail(error.localizedDescription)
-            }
-        } receiveValue: { response in
-            print(response)
-            XCTAssertEqual(13, response.fields?.value.toInt())
-            expectation.fulfill()
-        }.store(in: &cancellables)
-
-        wait(for: [expectation], timeout: 10.0)
+        }.decode()
+        
+        XCTAssertEqual(13, response)
     }
 
-    func testGetAccount() {
-        let expectation = XCTestExpectation(description: "Query got executed!")
-
-        fcl.getAccount(address: "0x19efd5b9b60bd82e")
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    XCTFail(error.localizedDescription)
-                }
-            } receiveValue: { response in
-                XCTAssertNotNil(response)
-                expectation.fulfill()
-            }.store(in: &cancellables)
-
-        wait(for: [expectation], timeout: 10.0)
+    func testGetAccount() async throws {
+        _ = try await fcl.getAccount(address: "0x19efd5b9b60bd82e")
     }
 
-    func testGetBlock() {
-        let expectation = XCTestExpectation(description: "Query got executed!")
-
-        fcl.getBlock(blockId: "c768c8c39de928e422f9185f1668befd661e15be8822d030a03f060629bc0f87")
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    XCTFail(error.localizedDescription)
-                }
-            } receiveValue: { response in
-                XCTAssertNotNil(response)
-                expectation.fulfill()
-            }.store(in: &cancellables)
-
-        wait(for: [expectation], timeout: 20.0)
+    func testGetBlock() async throws {
+        _ = try await fcl.getBlock(blockId: "4722fcaa0c7939453b4886a7cccb364977372b5b6c103ea4264e75dafbf10ffa")
     }
 
-    func testGetLastestBlock() {
-        let expectation = XCTestExpectation(description: "Query got executed!")
-
-        fcl.getLastestBlock()
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    XCTFail(error.localizedDescription)
-                }
-            } receiveValue: { response in
-                XCTAssertNotNil(response)
-                expectation.fulfill()
-            }.store(in: &cancellables)
-
-        wait(for: [expectation], timeout: 10.0)
+    func testGetLastestBlock() async throws {
+        _ = try await fcl.getLastestBlock()
+        
     }
 }

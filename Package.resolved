@@ -11,12 +11,75 @@
         }
       },
       {
+        "package": "CryptoSwift",
+        "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "19b3c3ceed117c5cc883517c4e658548315ba70b",
+          "version": "1.6.0"
+        }
+      },
+      {
         "package": "Flow",
         "repositoryURL": "https://github.com/outblock/flow-swift.git",
         "state": {
           "branch": null,
           "revision": "f72ab1b06b21590e36ee5517b401237cf455a9f3",
           "version": "0.2.2"
+        }
+      },
+      {
+        "package": "PromiseKit",
+        "repositoryURL": "https://github.com/mxcl/PromiseKit.git",
+        "state": {
+          "branch": null,
+          "revision": "43772616c46a44a9977e41924ae01d0e55f2f9ca",
+          "version": "6.18.1"
+        }
+      },
+      {
+        "package": "secp256k1",
+        "repositoryURL": "https://github.com/Boilertalk/secp256k1.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "45e458ec3be46cf0a6eb68bc947f797852dc65d8",
+          "version": "0.1.6"
+        }
+      },
+      {
+        "package": "Starscream",
+        "repositoryURL": "https://github.com/daltoniam/Starscream",
+        "state": {
+          "branch": null,
+          "revision": "e6b65c6d9077ea48b4a7bdda8994a1d3c6969c8d",
+          "version": "3.1.1"
+        }
+      },
+      {
+        "package": "swift-nio-zlib-support",
+        "repositoryURL": "https://github.com/apple/swift-nio-zlib-support.git",
+        "state": {
+          "branch": null,
+          "revision": "37760e9a52030bb9011972c5213c3350fa9d41fd",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "WalletConnect",
+        "repositoryURL": "https://github.com/WalletConnect/WalletConnectSwiftV2",
+        "state": {
+          "branch": "main",
+          "revision": "099ed68d87d3353abd6fd3c72f295bcfc7b701ed",
+          "version": null
+        }
+      },
+      {
+        "package": "Web3",
+        "repositoryURL": "https://github.com/flypaper0/Web3.swift",
+        "state": {
+          "branch": "feature/eip-155",
+          "revision": "92a43a8c279b9df25fe23dd6f8311e6fb0ea06ed",
+          "version": null
         }
       }
     ]

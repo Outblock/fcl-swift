@@ -11,7 +11,8 @@ import SafariServices
 class SafariWebViewManager: NSObject {
     static var shared = SafariWebViewManager()
     var safariVC: SFSafariViewController?
-
+    var delegate: HTTPSessionDelegate?
+    
     static func openSafariWebView(url: URL) {
         DispatchQueue.main.async {
             let vc = SFSafariViewController(url: url)
@@ -41,7 +42,7 @@ class SafariWebViewManager: NSObject {
     }
 
     func stopPolling() {
-        fcl.api.canContinue = false
+        delegate?.isPending = false
     }
 }
 

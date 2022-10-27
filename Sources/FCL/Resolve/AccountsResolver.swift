@@ -9,6 +9,88 @@ import Combine
 import Flow
 import Foundation
 
+
+extension Interaction {
+    
+    func getPayers() -> [SignableUser] {
+        var result = accounts.filter { dict in
+            dict.value.role.payer
+        }.compactMap{ $0.value }
+        
+        if result.isEmpty {
+            result.append(contentsOf: getAuthz())
+        }
+        
+        return result
+    }
+    
+    func getProposer() -> SignableUser? {
+        var result = accounts.filter { dict in
+            dict.value.role.proposer
+        }.compactMap{ $0.value }
+        
+        if result.isEmpty {
+            result.append(contentsOf: getAuthz())
+        }
+        
+        return result.first
+    }
+    
+    func getAuthorizers() -> [SignableUser] {
+        var result = accounts.filter { dict in
+            dict.value.role.authorizer
+        }.compactMap{ $0.value }
+        
+        if result.isEmpty {
+            result.append(contentsOf: getAuthz())
+        }
+        
+        return result
+    }
+    
+    func getAuthz() -> [SignableUser] {
+        var result: [SignableUser] = []
+        if let authzs = fcl.currentUser?.services?.filter({ $0.type == .authz }) {
+            for authz in authzs {
+                if let identity = authz.identity {
+                    let tempID = [identity.address.addHexPrefix(), String(identity.keyId ?? 0)].joined(separator: "-")
+                    result.append(
+                        .init(kind: nil, tempID: tempID, addr: identity.address, signature: nil, keyID: identity.keyId,
+                              sequenceNum: nil, role: Role(proposer: false, authorizer: false, payer: true))
+                    )
+                }
+            }
+        }
+        
+        return result
+    }
+}
+
+//extension SignableUser {
+//    func toIndentity() -> FCL.Identity? {
+//        if let addr {
+//            return .init(address: addr, keyId: keyIndex)
+//        }
+//        return nil
+//    }
+//
+//    func toService() -> FCL.Service? {
+//
+//        guard let addr else {
+//            return nil
+//        }
+//
+//        return .init(fType: "Service",
+//                     fVsn: "1.0.0",
+//                     type: .authz,
+//                     method: .walletConnect,
+//                     endpoint: URL(string: fcl.config.get(.authn) ?? ""),
+//                     identity: .init(address: addr, keyId: keyIndex),
+//                     data: nil)
+//
+//    }
+//}
+
 final class AccountsResolver: Resolver {
     func resolve(ix: inout Interaction) async throws -> Interaction {
         if ix.isTransaction {
@@ -16,25 +98,67 @@ final class AccountsResolver: Resolver {
         }
         return ix
     }
+    
+    private func authzService(identity: FCL.Identity) -> FCL.Service {
+        return .init(fType: "Service",
+                     fVsn: "1.0.0",
+                     type: .authz,
+                     method: .walletConnect,
+                     endpoint: URL(string: fcl.config.get(.authn) ?? ""),
+                     identity: identity,
+                     data: nil)
+        
+    }
+
+    
+    private func prepareAccounts(ix: inout Interaction, currentUser: FCL.User) async throws -> FCL.Response {
+        
+        // Handle PreAuthz
+        if let hasPreAuthz = currentUser.services?.contains(where: { $0.type == .preAuthz }), hasPreAuthz {
+            
+            guard let service = serviceOfType(services: currentUser.services, type: .preAuthz),
+                  let endpoint = service.endpoint
+            else {
+                throw FCLError.missingPreAuthz
+            }
+
+            let preSignable = ix.buildPreSignable(role: Role())
+            guard let url = buildURL(url: endpoint, params: service.params) else {
+                throw FCLError.invaildURL
+            }
+        
+            fcl.preAuthz = nil
+            let response = try await fcl.getStategy().execService(url: url, method: .preAuthz, request: preSignable)
+            fcl.preAuthz = response
+            return response
+        }
+
+        // No PreAuthz
+        guard let _ = currentUser.services?.filter({ $0.type == .authz }) else {
+            throw FCLError.missingAuthz
+        }
+        
+        return .init(fType: "PollingResponse",
+                     fVsn: "1.0.0",
+                     status: .approved,
+                     data: .init(addr: currentUser.addr.hex,
+                                 fType: "AuthnResponse",
+                                 fVsn: "1.0.0",
+                                 services: nil,
+                                 proposer: ix.getProposer()?.toService(),
+                                 payer: ix.getPayers().compactMap{ $0.toService() },
+                                 authorization: ix.getAuthorizers().compactMap{ $0.toService() },
+                                 signature: nil,
+                                 keyId: nil))
+    }
 
     func collectAccounts(ix: inout Interaction, accounts: [SignableUser]) async throws -> Interaction {
         guard let currentUser = fcl.currentUser, currentUser.loggedIn else {
             throw Flow.FError.unauthenticated
         }
-
-        guard let service = fcl.serviceOfType(services: currentUser.services, type: .preAuthz),
-              let endpoint = service.endpoint
-        else {
-            throw FCLError.missingPreAuthz
-        }
-
-        let preSignable = ix.buildPreSignable(role: Role())
-        guard let data = try? JSONEncoder().encode(preSignable) else {
-            throw FCLError.encodeFailure
-        }
-
-        let response = try await fcl.api.execHttpPost(url: endpoint, params: service.params, data: data)
-        let signableUsers = getAccounts(resp: response)
+        
+        let response = try await prepareAccounts(ix: &ix, currentUser: currentUser)
+        let signableUsers = try getAccounts(resp: response)
         var accounts = [String: SignableUser]()
 
         ix.authorizations.removeAll()
@@ -64,8 +188,8 @@ final class AccountsResolver: Resolver {
         return ix
     }
 
-    func getAccounts(resp: AuthnResponse) -> [SignableUser] {
-        var axs = [(role: String, service: Service)]()
+    func getAccounts(resp: FCL.Response) throws -> [SignableUser] {
+        var axs = [(role: String, service: FCL.Service)]()
         if let proposer = resp.data?.proposer {
             axs.append(("PROPOSER", proposer))
         }
@@ -76,12 +200,12 @@ final class AccountsResolver: Resolver {
             axs.append(("AUTHORIZER", az))
         }
 
-        return axs.compactMap { role, service in
+        return try axs.compactMap { role, service in
 
             guard let address = service.identity?.address,
                   let keyId = service.identity?.keyId
             else {
-                return nil
+                throw FCLError.invalidResponse
             }
 
             return SignableUser(tempID: [address, String(keyId)].joined(separator: "|"),
@@ -90,11 +214,8 @@ final class AccountsResolver: Resolver {
                                 role: Role(proposer: role == "PROPOSER",
                                            authorizer: role == "AUTHORIZER",
                                            payer: role == "PAYER",
-                                           param: nil)) { data in
-                Task {
-                    try await fcl.api.execHttpPost(service: service, data: data)
-                }
-            }
+                                           param: nil))
         }
     }
 }
+

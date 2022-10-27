@@ -10,18 +10,24 @@ import Foundation
 public enum FCLError: String, Error, LocalizedError {
     case generic
     case invaildURL
+    case invaildNetwork
     case invaildService
     case invalidSession
+    case invalidWalletProvider
+    case generateURIFailed
     case declined
     case invalidResponse
     case decodeFailure
     case unauthenticated
+    case missingAuthz
     case missingPreAuthz
     case missingPayer
+    case unHandledService
     case encodeFailure
     case convertToTxFailure
     case invaildProposer
     case fetchAccountFailure
+    case failedToConnectWallet
 
     public var errorDescription: String? {
         return rawValue

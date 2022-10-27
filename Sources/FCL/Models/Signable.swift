@@ -10,7 +10,7 @@ import Combine
 import Flow
 import Foundation
 
-struct Signable: Encodable {
+public struct Signable: Encodable {
     let fType: String = "Signable"
     let fVsn: String = "1.0.1"
     let data = [String: String]()
@@ -58,7 +58,7 @@ struct Signable: Encodable {
                        envelopeSigs: outsideSigners)
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(fType, forKey: .fType)
         try container.encode(fVsn, forKey: .fVsn)
@@ -329,13 +329,13 @@ struct Interaction: Encodable {
     }
 }
 
-struct Block: Encodable {
+struct Block: Codable {
     var id: String?
     var height: Int64?
     var isSealed: Bool?
 }
 
-struct Account: Encodable {
+struct Account: Codable {
     var addr: String?
 }
 
@@ -343,7 +343,7 @@ struct Id: Encodable {
     var id: String?
 }
 
-struct Events: Encodable {
+struct Events: Codable {
     var eventType: String?
     var start: String?
     var end: String?
@@ -355,7 +355,7 @@ struct Events: Encodable {
     }
 }
 
-struct Message: Encodable {
+struct Message: Codable {
     var cadence: String?
     var refBlock: String?
     var computeLimit: Int?
@@ -366,7 +366,7 @@ struct Message: Encodable {
     var arguments: [String] = []
 }
 
-struct Voucher: Encodable {
+struct Voucher: Codable {
     let cadence: String?
     let refBlock: String?
     let computeLimit: Int?
@@ -386,7 +386,7 @@ struct Accounts: Encodable {
     }
 }
 
-struct Singature: Encodable {
+struct Singature: Codable {
     let address: String?
     let keyId: Int?
     let sig: String?
@@ -398,12 +398,31 @@ struct Singature: Encodable {
 //    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse
 // }
 
-struct SignableUser: Encodable {
-//    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse {
-//
-//        return try await fcl.api.execHttpPost(service: service, data: data)
-//    }
+//typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
 
+public protocol FCLSigner {
+    var address: Flow.Address { get }
+    var keyIndex: Int { get }
+    func signingFunction(signable: Signable) async throws -> FCL.Response
+}
+
+extension FCLSigner {
+    var tempID: String {
+        [address.hex.addHexPrefix(), String(keyIndex)].joined(separator: "-")
+    }
+    
+    var signableUser: SignableUser {
+        .init(kind: nil,
+              tempID: tempID,
+              addr: address.hex.addHexPrefix(),
+              signature: nil,
+              keyID: keyIndex,
+              sequenceNum: nil,
+              role: Role())
+    }
+}
+
+struct SignableUser: Encodable {
     var kind: String?
     var tempID: String?
     var addr: String?
@@ -413,14 +432,14 @@ struct SignableUser: Encodable {
     //    var signingFunction: Int?
     var role: Role
 
-    var signingFunction: ((Data) -> Task<AuthnResponse, Error>)?
+//    var signingFunction: FCLSigningFunction<Signable>
 
     enum CodingKeys: String, CodingKey {
         case kind
         case tempID = "tempId"
         case addr
         case keyID = "keyId"
-        case sequenceNum, signature, signingFunction, role
+        case sequenceNum, signature, role
     }
 
     func encode(to encoder: Encoder) throws {
@@ -435,7 +454,73 @@ struct SignableUser: Encodable {
     }
 }
 
-struct ProposalKey: Encodable {
+extension SignableUser: FCLSigner {
+    var address: Flow.Address {
+        .init(hex: addr ?? "0x")
+    }
+    
+    var keyIndex: Int {
+        keyID ?? 0
+    }
+    
+    func signingFunction(signable: Signable) async throws -> FCL.Response {
+        if let preAuthz = fcl.preAuthz {
+            var array = (preAuthz.data?.payer ?? []) + (preAuthz.data?.authorization ?? [])
+            if let proposer = preAuthz.data?.proposer {
+                array.append(proposer)
+            }
+            guard let authz = array.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() }) else {
+                throw FCLError.missingAuthz
+            }
+            
+            return try await fcl.getStategy().execService(service: authz, request: signable)
+        }
+        
+        guard let authzList = fcl.currentUser?.services?.filter({ $0.type == .authz }),
+              let authz = authzList.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() }) else {
+            throw FCLError.missingAuthz
+        }
+
+        return try await fcl.getStategy().execService(service: authz, request: signable)
+    }
+}
+
+
+extension SignableUser {
+    func toIndentity() -> FCL.Identity? {
+        if let addr {
+            return .init(address: addr, keyId: keyIndex)
+        }
+        return nil
+    }
+    
+    func toService() -> FCL.Service? {
+        
+        guard let addr else {
+            return nil
+        }
+        
+        return .init(fType: "Service",
+                     fVsn: "1.0.0",
+                     type: .authz,
+                     method: .walletConnect,
+                     endpoint: URL(string: fcl.config.get(.authn) ?? ""),
+                     identity: .init(address: addr, keyId: keyIndex),
+                     data: nil)
+        
+    }
+}
+
+extension String {
+    func addHexPrefix() -> String {
+        if !hasPrefix("0x") {
+            return "0x" + self
+        }
+        return self
+    }
+}
+
+struct ProposalKey: Codable {
     var address: String?
     var keyID: Int?
     var sequenceNum: Int?
@@ -447,7 +532,7 @@ struct ProposalKey: Encodable {
     }
 }
 
-struct Role: Encodable {
+public struct Role: Encodable {
     var proposer: Bool = false
     var authorizer: Bool = false
     var payer: Bool = false
@@ -458,6 +543,12 @@ struct Role: Encodable {
         authorizer = authorizer || role.authorizer
         payer = payer || role.payer
     }
+}
+
+public enum Roles: String {
+    case proposer
+    case authorizer
+    case payer
 }
 
 @propertyWrapper

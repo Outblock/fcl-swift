@@ -11,6 +11,10 @@ import Foundation
 
 final class SequenceNumberResolver: Resolver {
     func resolve(ix: inout Interaction) async throws -> Interaction {
+        guard ix.tag == .transaction else {
+            return ix
+        }
+
         guard let proposer = ix.proposer,
               let account = ix.accounts[proposer],
               let address = account.addr,

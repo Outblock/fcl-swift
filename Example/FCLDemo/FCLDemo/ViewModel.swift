@@ -1,5 +1,4 @@
 //
-import BigInt
 //  ViewModel.swift
 //  FCLDemo
 //
@@ -13,16 +12,18 @@ import Foundation
 import SafariServices
 import SwiftPrettyPrint
 import SwiftUI
+import BigInt
 
 class ViewModel: NSObject, ObservableObject {
     @Published var address: String = ""
 
     @Published var preAuthz: String = ""
 
-    @Published var provider: FCLProvider = .blocto
+    @Published var provider: FCL.Provider = .lilico
 
     @Published var env: Flow.ChainID = .testnet
 
+    @MainActor
     @Published var isShowWeb: Bool = false
 
     @Published var isPresented: Bool = false
@@ -73,11 +74,19 @@ class ViewModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
+        
+        let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "Awesome App (v0.0)",
+                                            nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
+        
+        let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "fclDemo://", projectID: "c284f5a3346da817aeca9a4e6bc7f935")
+        
         let metadata = FCL.Metadata(appName: "FCLDemo",
-                                    appIcon: "https://placekitten.com/g/200/200",
-                                    location: "https://foo.com",
-                                    appIdentifier: "Awesome App (v0.0)",
-                                    nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
+                                    appDescription: "Demo App for fcl",
+                                    appIcon: URL(string: "https://placekitten.com/g/200/200")!,
+                                    location: URL(string: "https://flow.org")!,
+                                    accountProof: accountProof,
+                                    walletConnectConfig: walletConnect)
+        
         fcl.config(metadata: metadata,
                    env: env,
                    provider: provider)
@@ -205,10 +214,6 @@ class ViewModel: NSObject, ObservableObject {
                 arguments {
                     [.address(Flow.Address(hex: address))]
                 }
-
-                gasLimit {
-                    1000
-                }
             }
             await MainActor.run {
                 self.FUSDBalance = "\(String(block.fields?.value.toUFix64() ?? 0.0)) FUSD"
@@ -233,9 +238,9 @@ class ViewModel: NSObject, ObservableObject {
 
     func authn() async {
         do {
-            let result = try await fcl.authenticate()
+            let _ = try await fcl.authenticate()
             await MainActor.run {
-                self.address = result.address ?? ""
+                self.address = fcl.currentUser?.addr.hex.addHexPrefix() ?? ""
             }
             await verifyAccountProof()
         } catch {
@@ -245,22 +250,28 @@ class ViewModel: NSObject, ObservableObject {
 
     func send() async {
         do {
-            let txId = try await fcl.mutate {
-                cadence {
-                    transactionScript
-                }
-
-                arguments {
-                    [.string("Test2"), .int(1)]
-                }
-
-                gasLimit {
-                    1000
-                }
-            }
-            await MainActor.run {
-                self.preAuthz = txId.hex
-            }
+//            let txId = try await fcl.mutate {
+//                cadence {
+//                    transactionScript
+//                }
+//
+//                arguments {
+//                    [.string("Test2"), .int(1)]
+//                }
+//
+//                gasLimit {
+//                    1000
+//                }
+//            }
+//            await MainActor.run {
+//                self.preAuthz = txId.hex
+//            }
+            
+//            let _ = try await fcl.mutate {
+//                FCL.Build.script("12123")
+//                FCL.Build.args([])
+//            }
+            
         } catch {
             print(error)
         }
@@ -283,12 +294,12 @@ class ViewModel: NSObject, ObservableObject {
                 .args([.string("Test2"), .int(1)]),
                 .limit(1000),
             ])
-            try await txId.onceSealed()
 
             await MainActor.run {
                 self.preAuthz = txId.hex
             }
-
+            
+            _ = try await txId.onceSealed()
         } catch {
             print(error)
         }
@@ -307,4 +318,14 @@ struct SafariView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_: SFSafariViewController, context _: UIViewControllerRepresentableContext<SafariView>) {}
+}
+
+
+extension String {
+    func addHexPrefix() -> String {
+        if !hasPrefix("0x") {
+            return "0x" + self
+        }
+        return self
+    }
 }

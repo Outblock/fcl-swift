@@ -14,7 +14,8 @@ struct ContentView: View {
 
     var signIn: some View {
         return Section {
-            HStack {
+
+                
                 Button {
                     Task {
                         await viewModel.authn()
@@ -24,14 +25,6 @@ struct ContentView: View {
                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 20))
                 }
 
-                Picker("iFrame", selection: $viewModel.provider, content: {
-                    Text("Dapper").tag(FCLProvider.dapper)
-                    Text("Blocoto").tag(FCLProvider.blocto)
-                }).onChange(of: viewModel.provider, perform: { _ in
-                    viewModel.changeWallet()
-                })
-                .pickerStyle(SegmentedPickerStyle())
-            }
             Text(verbatim: viewModel.address)
 
             if let isAccountProof = viewModel.isAccountProof {
@@ -52,8 +45,27 @@ struct ContentView: View {
                         viewModel.changeWallet()
                     })
                     .pickerStyle(SegmentedPickerStyle())
+                } header: {
+                    Text("Network")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                 }
 
+                Section {
+                    Picker("iFrame", selection: $viewModel.provider, content: {
+                        Text("Dapper").tag(FCL.Provider.dapper)
+                        Text("lilico").tag(FCL.Provider.lilico)
+                        Text("Blocoto").tag(FCL.Provider.blocto)
+                    }).onChange(of: viewModel.provider, perform: { _ in
+                        viewModel.changeWallet()
+                    })
+                    .pickerStyle(SegmentedPickerStyle())
+                } header: {
+                    Text("Wallet Provider")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+                
                 signIn
 
                 Section {
@@ -121,7 +133,7 @@ struct ContentView: View {
                         Button("View on flow scan") {
                             viewModel.isShowWeb.toggle()
                         }.sheet(isPresented: $viewModel.isShowWeb, onDismiss: nil) {
-                            SafariView(url: URL(string: "https://flowscan.org/transaction/\(viewModel.preAuthz)")!)
+                            SafariView(url: URL(string: "https://\(viewModel.env == .testnet ? "testnet." : "")flowscan.org/transaction/\(viewModel.preAuthz)")!)
                         }
                     }
 
