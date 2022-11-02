@@ -5,6 +5,8 @@ import Flow
 import Starscream
 import WalletConnectRelay
 import WalletConnectSign
+import WalletConnectNetworking
+import WalletConnectPairing
 
 extension WebSocket: WebSocketConnecting {}
 
@@ -84,8 +86,8 @@ public final class FCL: NSObject, ObservableObject {
             icons: [icon]
         )
 
-        Sign.configure(metadata: metadata)
-        Relay.configure(projectId: projectID, socketFactory: SocketFactory())
+        Pair.configure(metadata: metadata)
+        Networking.configure(projectId: projectID, socketFactory: SocketFactory())
         wcProvider = FCL.WalletConnectProvider()
     }
 

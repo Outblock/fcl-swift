@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/outblock/flow-swift.git",
         "state": {
           "branch": null,
-          "revision": "f72ab1b06b21590e36ee5517b401237cf455a9f3",
-          "version": "0.2.2"
+          "revision": "160c5cd691b99e9dfd9b449202866f559c4c143e",
+          "version": "0.2.9"
         }
       },
       {
@@ -68,18 +68,18 @@
         "package": "WalletConnect",
         "repositoryURL": "https://github.com/WalletConnect/WalletConnectSwiftV2",
         "state": {
-          "branch": "main",
-          "revision": "099ed68d87d3353abd6fd3c72f295bcfc7b701ed",
-          "version": null
+          "branch": null,
+          "revision": "3013d46340be019a59a0c969bfda720b7a9fda42",
+          "version": "1.0.2"
         }
       },
       {
         "package": "Web3",
-        "repositoryURL": "https://github.com/flypaper0/Web3.swift",
+        "repositoryURL": "https://github.com/WalletConnect/Web3.swift",
         "state": {
-          "branch": "feature/eip-155",
-          "revision": "92a43a8c279b9df25fe23dd6f8311e6fb0ea06ed",
-          "version": null
+          "branch": null,
+          "revision": "bdaaed96eee3a9bf7f341165f89a94288961d14c",
+          "version": "1.0.0"
         }
       }
     ]
