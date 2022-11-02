@@ -85,6 +85,14 @@ extension FCL {
         public let method: FCL.ServiceMethod
         public let endpoint: URL
         public let supportNetwork: [Flow.ChainID]
+        
+        public init(id: String, name: String, method: FCL.ServiceMethod, endpoint: URL, supportNetwork: [Flow.ChainID]) {
+            self.id = id
+            self.name = name
+            self.method = method
+            self.endpoint = endpoint
+            self.supportNetwork = supportNetwork
+        }
     }
 
     public enum ServiceMethod: String, Decodable {

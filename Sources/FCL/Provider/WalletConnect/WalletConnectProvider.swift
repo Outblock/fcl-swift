@@ -10,6 +10,7 @@ import Flow
 import Combine
 import WalletConnectSign
 import WalletConnectUtils
+import WalletConnectPairing
 import UIKit
 
 extension FCL {
@@ -93,9 +94,9 @@ extension FCL {
                     decoder.keyDecodingStrategy = .convertFromSnakeCase
                     
                     guard case let .response(value) = authnResponse.result,
-                        let string = try? value.result.asJSONEncodedString(),
-                        let data = string.data(using: .utf8),
-                        let model = try? decoder.decode(FCL.Response.self, from: data) else {
+                          let string = try? value.asJSONEncodedString(),
+                          let data = string.data(using: .utf8),
+                          let model = try? decoder.decode(FCL.Response.self, from: data) else {
                         throw FCLError.decodeFailure
                     }
                     return model
@@ -129,19 +130,19 @@ extension FCL {
                 throw FCLError.generic
             }
             
-            let string = try value.result.asJSONEncodedString()
+            let string = try value.asJSONEncodedString()
             let responseData = string.data(using: .utf8)!
             let model = try JSONDecoder().decode(FCL.Response.self, from: responseData)
             return model
         }
         
         private func reloadSessionAndPair() {
-            self.pairings = Sign.instance.getPairings()
+            self.pairings = Pair.instance.getPairings()
             self.sessions = Sign.instance.getSessions()
         }
         
         private func reloadSession() {
-            self.pairings = Sign.instance.getPairings()
+            self.pairings = Pair.instance.getPairings()
         }
         
         private func reloadPair() {
