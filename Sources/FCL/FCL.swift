@@ -49,7 +49,7 @@ public final class FCL: NSObject, ObservableObject {
             .put(.description, value: metadata.appDescription)
             .put(.icon, value: metadata.appIcon.absoluteString)
             .put(.location, value: metadata.location.absoluteString)
-            .put(.authn, value: provider.endpoint(chainId: env).absoluteString)
+            .put(.authn, value: provider.endpoint(chainId: env))
             .put(.env, value: env.name)
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
 
@@ -93,7 +93,7 @@ public final class FCL: NSObject, ObservableObject {
 
     public func changeProvider(provider: FCL.Provider, env: Flow.ChainID) {
         config
-            .put(.authn, value: provider.endpoint(chainId: env).absoluteString)
+            .put(.authn, value: provider.endpoint(chainId: env))
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
     }
