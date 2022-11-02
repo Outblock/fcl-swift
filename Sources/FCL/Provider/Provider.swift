@@ -28,17 +28,17 @@ extension FCL {
             }
         }
 
-        func endpoint(chainId: Flow.ChainID) -> URL {
+        func endpoint(chainId: Flow.ChainID) -> String {
             switch self {
             case .dapper:
-                return chainId == .mainnet ? URL(string: "https://dapper-http-post.vercel.app/api/flow/authn")! :
+                return chainId == .mainnet ? URL(string: "https://dapper-http-post.vercel.app/api/flow/authn")!.absoluteString :
                     // Do not know if dapper wallet has testnet url, use mainnet instead here
-                    URL(string: "https://dapper-http-post.vercel.app/api/authn")!
+                URL(string: "https://dapper-http-post.vercel.app/api/authn")!.absoluteString
             case .blocto:
-                return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")! :
-                    URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!
+                return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")!.absoluteString :
+                URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!.absoluteString
             case .lilico:
-                return URL(string: "https://link.lilico.app")!
+                return URL(string: "https://link.lilico.app")!.absoluteString
             case let .custom(fclWalletProvider):
                 return fclWalletProvider.endpoint
             }
@@ -83,10 +83,10 @@ extension FCL {
         public let id: String
         public let name: String
         public let method: FCL.ServiceMethod
-        public let endpoint: URL
+        public let endpoint: String
         public let supportNetwork: [Flow.ChainID]
         
-        public init(id: String, name: String, method: FCL.ServiceMethod, endpoint: URL, supportNetwork: [Flow.ChainID]) {
+        public init(id: String, name: String, method: FCL.ServiceMethod, endpoint: String, supportNetwork: [Flow.ChainID]) {
             self.id = id
             self.name = name
             self.method = method
