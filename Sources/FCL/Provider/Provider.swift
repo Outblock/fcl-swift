@@ -9,16 +9,21 @@ import Flow
 import Foundation
 
 extension FCL {
-    public enum Provider: Equatable, Hashable {
+    public enum Provider: Equatable, Hashable, CaseIterable {
         case dapper
+        case dapperPro
         case blocto
         case lilico
         case custom(FCL.WalletProvider)
+        
+        public static var allCases: [FCL.Provider] = [.dapperPro, .lilico, .blocto, .dapper]
 
         var supportNetwork: [Flow.ChainID] {
             switch self {
             case .dapper:
                 return [.mainnet]
+            case .dapperPro:
+                return [.testnet]
             case .blocto:
                 return [.mainnet, .testnet]
             case .lilico:
@@ -28,17 +33,17 @@ extension FCL {
             }
         }
 
-        func endpoint(chainId: Flow.ChainID) -> URL {
+        func endpoint(chainId: Flow.ChainID) -> String {
             switch self {
             case .dapper:
-                return chainId == .mainnet ? URL(string: "https://dapper-http-post.vercel.app/api/flow/authn")! :
-                    // Do not know if dapper wallet has testnet url, use mainnet instead here
-                    URL(string: "https://dapper-http-post.vercel.app/api/authn")!
+                return "https://dapper-http-post.vercel.app/api/flow/authn"
+            case .dapperPro:
+                return "dapper-pro://"
             case .blocto:
-                return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")! :
-                    URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!
+                return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")!.absoluteString :
+                URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!.absoluteString
             case .lilico:
-                return URL(string: "https://link.lilico.app")!
+                return URL(string: "https://link.lilico.app")!.absoluteString
             case let .custom(fclWalletProvider):
                 return fclWalletProvider.endpoint
             }
@@ -49,18 +54,28 @@ extension FCL {
             case .dapper:
                 return .init(id: "dapper",
                              name: "Dapper",
+                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/dapper/logo.jpeg?raw=true")!,
                              method: .httpPost,
+                             endpoint: endpoint(chainId: chainId),
+                             supportNetwork: supportNetwork)
+            case .dapperPro:
+                return .init(id: "dapper-pro",
+                             name: "Dapper Pro",
+                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/dapper-pro/logo.png?raw=true")!,
+                             method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
             case .blocto:
                 return .init(id: "blocto",
                              name: "Blocto",
+                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/blocto/logo.jpg?raw=true")!,
                              method: .httpPost,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
             case .lilico:
                 return .init(id: "lilico",
                              name: "lilico",
+                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/lilico/logo.png?raw=true")!,
                              method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
@@ -82,13 +97,15 @@ extension FCL {
     public struct WalletProvider: Equatable {
         public let id: String
         public let name: String
+        public let logo: URL
         public let method: FCL.ServiceMethod
-        public let endpoint: URL
+        public let endpoint: String
         public let supportNetwork: [Flow.ChainID]
         
-        public init(id: String, name: String, method: FCL.ServiceMethod, endpoint: URL, supportNetwork: [Flow.ChainID]) {
+        public init(id: String, name: String, logo: URL, method: FCL.ServiceMethod, endpoint: String, supportNetwork: [Flow.ChainID]) {
             self.id = id
             self.name = name
+            self.logo = logo
             self.method = method
             self.endpoint = endpoint
             self.supportNetwork = supportNetwork

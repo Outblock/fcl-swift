@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1530B245270AC3D10063690E /* FCL in Frameworks */ = {isa = PBXBuildFile; productRef = 1530B244270AC3D10063690E /* FCL */; };
+		15C8B25228E21D930063FC27 /* Atlantis in Frameworks */ = {isa = PBXBuildFile; productRef = 15C8B25128E21D930063FC27 /* Atlantis */; };
 		15E2F15D26DD07C900FA19BD /* FCLDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E2F15C26DD07C900FA19BD /* FCLDemoApp.swift */; };
 		15E2F15F26DD07C900FA19BD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E2F15E26DD07C900FA19BD /* ContentView.swift */; };
 		15E2F16126DD07CB00FA19BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 15E2F16026DD07CB00FA19BD /* Assets.xcassets */; };
@@ -37,6 +38,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				15EE074B273A5DDB00B03DBC /* SwiftPrettyPrint in Frameworks */,
+				15C8B25228E21D930063FC27 /* Atlantis in Frameworks */,
 				1530B245270AC3D10063690E /* FCL in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -111,6 +113,7 @@
 			packageProductDependencies = (
 				1530B244270AC3D10063690E /* FCL */,
 				15EE074A273A5DDB00B03DBC /* SwiftPrettyPrint */,
+				15C8B25128E21D930063FC27 /* Atlantis */,
 			);
 			productName = FCLDemo;
 			productReference = 15E2F15926DD07C900FA19BD /* FCLDemo.app */;
@@ -141,6 +144,7 @@
 			mainGroup = 15E2F15026DD07C900FA19BD;
 			packageReferences = (
 				15EE0749273A5DDB00B03DBC /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */,
+				15C8B25028E21D930063FC27 /* XCRemoteSwiftPackageReference "atlantis" */,
 			);
 			productRefGroup = 15E2F15A26DD07C900FA19BD /* Products */;
 			projectDirPath = "";
@@ -363,6 +367,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		15C8B25028E21D930063FC27 /* XCRemoteSwiftPackageReference "atlantis" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ProxymanApp/atlantis";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		15EE0749273A5DDB00B03DBC /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/lmcmz/SwiftPrettyPrint";
@@ -377,6 +389,11 @@
 		1530B244270AC3D10063690E /* FCL */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FCL;
+		};
+		15C8B25128E21D930063FC27 /* Atlantis */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15C8B25028E21D930063FC27 /* XCRemoteSwiftPackageReference "atlantis" */;
+			productName = Atlantis;
 		};
 		15EE074A273A5DDB00B03DBC /* SwiftPrettyPrint */ = {
 			isa = XCSwiftPackageProductDependency;
