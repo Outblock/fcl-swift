@@ -18,7 +18,7 @@ extension FCL {
         
         public static var allCases: [FCL.Provider] = [.dapperPro, .lilico, .blocto, .dapper]
 
-        var supportNetwork: [Flow.ChainID] {
+        public var supportNetwork: [Flow.ChainID] {
             switch self {
             case .dapper:
                 return [.mainnet]
@@ -33,7 +33,7 @@ extension FCL {
             }
         }
 
-        func endpoint(chainId: Flow.ChainID) -> String {
+        public func endpoint(chainId: Flow.ChainID) -> String {
             switch self {
             case .dapper:
                 return "https://dapper-http-post.vercel.app/api/flow/authn"
@@ -49,7 +49,7 @@ extension FCL {
             }
         }
 
-        func provider(chainId: Flow.ChainID) -> FCL.WalletProvider {
+        public func provider(chainId: Flow.ChainID) -> FCL.WalletProvider {
             switch self {
             case .dapper:
                 return .init(id: "dapper",
