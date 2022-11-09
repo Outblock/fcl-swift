@@ -32,7 +32,7 @@ public extension FCL {
                 authorizors: [FCLSigner]? = nil,
                 payers: [FCLSigner]? = nil) async throws -> Flow.ID {
         
-        var list: [Build] = [.script(cadence), .args(args), .limit(gasLimit)]
+        var list: [Build] = [.transaction(cadence), .args(args), .limit(gasLimit)]
         if let proposer {
             list.append(.proposer(proposer))
         }
@@ -71,9 +71,9 @@ public extension FCL {
     internal func prepare(ix: inout Interaction, builder: [Build]) -> Interaction {
         builder.forEach { build in
             switch build {
-            case let .script(script):
-                ix.tag = .script
-                ix.message.cadence = script
+//            case let .script(script):
+//                ix.tag = .script
+//                ix.message.cadence = script
             case let .args(args):
                 let fclArgs = args.compactMap { Flow.Argument(value: $0) }.toFCLArguments()
                 ix.message.arguments = Array(fclArgs.map { $0.0 })
@@ -135,7 +135,7 @@ extension Flow.TransactionBuild {
 
 public extension FCL {
     enum Build {
-        case script(String)
+//        case script(String)
         case transaction(String)
         case args([Flow.Cadence.FValue])
         case limit(Int)
