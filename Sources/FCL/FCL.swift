@@ -29,8 +29,9 @@ public final class FCL: NSObject, ObservableObject {
 
     public let version = "@outblock/fcl-swift@0.0.3"
 
-    @Published public var currentUser: User?
-
+    @Published
+    public var currentUser: User?
+    
     lazy var defaultAddressRegistry = AddressRegistry()
 
     internal var httpProvider = FCL.HTTPProvider()
@@ -91,7 +92,11 @@ public final class FCL: NSObject, ObservableObject {
         wcProvider = FCL.WalletConnectProvider()
     }
 
-    public func changeProvider(provider: FCL.Provider, env: Flow.ChainID) {
+    public func changeProvider(provider: FCL.Provider, env: Flow.ChainID) throws {
+        if !provider.supportNetwork.contains(env) {
+            throw FCLError.unsupportNetwork
+        }
+        
         config
             .put(.authn, value: provider.endpoint(chainId: env))
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)

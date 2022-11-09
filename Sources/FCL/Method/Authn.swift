@@ -13,13 +13,14 @@ public extension FCL {
         currentUser = nil
     }
 
-    internal func reauthenticate() async throws -> FCL.Response {
+    func reauthenticate() async throws -> FCL.Response {
         unauthenticate()
         return try await authenticate()
     }
 
     func authenticate() async throws -> FCL.Response {
-        guard let endpoint = config.get(.authn), let url = URL(string: endpoint) else {
+        guard let endpoint = config.get(.authn),
+                let url = URL(string: endpoint) else {
             throw Flow.FError.urlEmpty
         }
         

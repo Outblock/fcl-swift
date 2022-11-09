@@ -106,7 +106,11 @@ class ViewModel: NSObject, ObservableObject {
     }
 
     func changeWallet() {
-        fcl.changeProvider(provider: provider, env: env)
+        do {
+            try fcl.changeProvider(provider: provider, env: env)
+        } catch {
+            // Handle unspport network
+        }
     }
 
     func lookupAcount(address: String) async {
