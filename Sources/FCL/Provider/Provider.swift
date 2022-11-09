@@ -54,28 +54,28 @@ extension FCL {
             case .dapper:
                 return .init(id: "dapper",
                              name: "Dapper",
-                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/dapper/logo.jpeg?raw=true")!,
+                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/dapper/logo.jpeg")!,
                              method: .httpPost,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
             case .dapperPro:
                 return .init(id: "dapper-pro",
                              name: "Dapper Pro",
-                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/dapper-pro/logo.png?raw=true")!,
+                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/dapper-pro/logo.png")!,
                              method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
             case .blocto:
                 return .init(id: "blocto",
                              name: "Blocto",
-                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/blocto/logo.jpg?raw=true")!,
+                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/blocto/logo.jpg")!,
                              method: .httpPost,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
             case .lilico:
                 return .init(id: "lilico",
                              name: "lilico",
-                             logo: URL(string: "https://github.com/outblock/fcl-swift/assets/lilico/logo.png?raw=true")!,
+                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/lilico/logo.png")!,
                              method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
