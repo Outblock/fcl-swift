@@ -63,7 +63,7 @@ extension FCL {
             reloadSession()
             reloadPair()
             
-            try? Sign.instance.cleanup()
+            // try? Sign.instance.cleanup()
         }
         
         func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where T : Encodable {
