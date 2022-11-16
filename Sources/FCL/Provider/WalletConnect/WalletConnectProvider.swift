@@ -177,6 +177,7 @@ extension FCL {
                 try connectWithExampleWallet(uri: nil)
             } else {
                 let uri = try await Pair.instance.create()
+                try await Sign.instance.connect(requiredNamespaces: namespaces, topic: uri.topic)
                 try connectWithExampleWallet(uri: uri)
             }
         }
