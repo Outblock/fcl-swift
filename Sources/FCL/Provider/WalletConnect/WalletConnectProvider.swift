@@ -172,9 +172,13 @@ extension FCL {
             let blockchains: Set<Blockchain> = Set([blockchain])
             let namespaces: [String: ProposalNamespace] = [blockchain.namespace: ProposalNamespace(chains: blockchains, methods: methods, events: [], extensions: nil)]
             
-            let uri = try await Sign.instance.connect(requiredNamespaces: namespaces, topic: topic) 
-            
-            try connectWithExampleWallet(uri: uri)
+            if let topic {
+                try await Sign.instance.connect(requiredNamespaces: namespaces, topic: topic)
+                try connectWithExampleWallet(uri: nil)
+            } else {
+                let uri = try await Pair.instance.create()
+                try connectWithExampleWallet(uri: uri)
+            }
         }
         
         private func connectWithExampleWallet(uri: WalletConnectURI? = nil) throws{
@@ -182,8 +186,8 @@ extension FCL {
                 throw Flow.FError.urlEmpty
             }
             var url = URL(string: endpoint)
-            if let uri {
-                url = URL(string: "\(endpoint)/wc?uri=\(uri.absoluteString)")
+            if let encodedURI = uri?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) {
+                url = URL(string: "\(endpoint)/wc?uri=\(encodedURI)")
             }
             
             DispatchQueue.main.async {
