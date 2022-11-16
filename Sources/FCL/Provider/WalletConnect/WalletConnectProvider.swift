@@ -187,7 +187,7 @@ extension FCL {
                 throw Flow.FError.urlEmpty
             }
             var url = URL(string: endpoint)
-            if let encodedURI = uri?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) {
+            if let encodedURI = uri?.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) {
                 url = URL(string: "\(endpoint)/wc?uri=\(encodedURI)")
             }
             
