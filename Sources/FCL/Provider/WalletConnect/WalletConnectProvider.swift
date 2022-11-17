@@ -56,6 +56,7 @@ extension FCL {
         var sessions: [Session] = []
         var pairings: [Pairing] = []
         var currentProposal: Session.Proposal?
+        var currentSession: Session?
         private var publishers = [AnyCancellable]()
         
         init() {
@@ -78,6 +79,7 @@ extension FCL {
                     currentProposal = nil
                     try await connectToWallet()
                     let response = try await Sign.instance.sessionSettlePublisher.async()
+                    currentSession = response
                     
                     guard let data = try? JSONEncoder().encode(BaseConfigRequest()),
                           let dataString = String(data: data, encoding: .utf8) else {
@@ -149,6 +151,31 @@ extension FCL {
             self.sessions = Sign.instance.getSessions()
         }
         
+        public func disconnect(topic: String? = nil) async throws {
+            if let topic {
+                try await Pair.instance.disconnect(topic: topic)
+            } else {
+                if let currentSession {
+                    try await Pair.instance.disconnect(topic: currentSession.topic)
+                }
+            }
+        }
+        
+        public func disconnectAll() async {
+            await withTaskGroup(of: Void.self) { group in
+                Sign.instance.getSessions().forEach { session in
+                    group.addTask {
+                        try? await Pair.instance.disconnect(topic: session.topic)
+                    }
+                }
+                
+                Pair.instance.getPairings().forEach { pair in
+                    group.addTask {
+                        try? await Pair.instance.disconnect(topic: pair.topic)
+                    }
+                }
+            }
+        }
         
         private func connectToWallet() async throws {
             reloadSessionAndPair()
@@ -204,7 +231,6 @@ extension FCL {
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] status in
                     if status == .connected {
-//                        self?.onClientConnected?()
                         print("Client connected")
                     }
                 }.store(in: &publishers)
@@ -212,8 +238,6 @@ extension FCL {
             Sign.instance.sessionResponsePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] response in
-                    
-                    // Response
                     print("Session Response ===> \(response)")
                 }.store(in: &publishers)
             
@@ -222,14 +246,12 @@ extension FCL {
                 .sink { [weak self] sessionProposal in
                     print("[RESPONDER] WC: Did receive session proposal")
                     self?.currentProposal = sessionProposal
-//                        self?.showSessionProposal(Proposal(proposal: sessionProposal)) // FIXME: Remove mock
                     self?.reloadSessionAndPair()
                 }.store(in: &publishers)
 
             Sign.instance.sessionSettlePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] response in
-//                    self?.reloadActiveSessions()
                     print("Session Settle ===> \(response)")
                     self?.reloadSessionAndPair()
                 }.store(in: &publishers)
@@ -238,7 +260,6 @@ extension FCL {
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] sessionRequest in
                     print("[RESPONDER] WC: Did receive session request")
-//                    self?.showSessionRequest(sessionRequest)
                 }.store(in: &publishers)
             
 
@@ -246,8 +267,6 @@ extension FCL {
             Sign.instance.sessionDeletePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
-//                    self?.reloadActiveSessions()
-//                    self?.navigationController?.popToRootViewController(animated: true)
                     self?.reloadSessionAndPair()
                 }.store(in: &publishers)
         }

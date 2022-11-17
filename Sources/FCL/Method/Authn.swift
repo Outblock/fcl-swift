@@ -11,6 +11,9 @@ import Foundation
 public extension FCL {
     func unauthenticate() {
         currentUser = nil
+        Task {
+            try? await fcl.wcProvider?.disconnect()
+        }
     }
 
     func reauthenticate() async throws -> FCL.Response {

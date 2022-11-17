@@ -73,7 +73,6 @@ public final class FCL: NSObject, ObservableObject {
         guard let name = config.get(.title),
               let description = config.get(.description),
               let icon = config.get(.icon),
-//              let location = config.get(.location),
               let projectID = config.get(.projectID),
               let urlScheme = config.get(.urlSheme)
         else {
