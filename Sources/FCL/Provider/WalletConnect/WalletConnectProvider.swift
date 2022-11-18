@@ -107,8 +107,12 @@ extension FCL {
                     }
                     return model
                 } catch {
+                    Task {
+                        try? fcl.keychain.deleteAll()
+                        await disconnectAll()
+                    }
                     print("authn error ===> \(error)")
-                    throw FCLError.failedToConnectWallet
+                    throw error
                 }
             }
             
