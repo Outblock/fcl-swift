@@ -7,6 +7,14 @@
 
 import Flow
 import Foundation
+import WalletConnectKMS
+
+extension String {
+    enum StorageKey: String {
+        case currentUser
+        case wcSession
+    }
+}
 
 public extension FCL {
     func unauthenticate() {
@@ -14,6 +22,8 @@ public extension FCL {
         Task {
             try? await fcl.wcProvider?.disconnect()
         }
+        
+        try? fcl.keychain.delete(key: .StorageKey.currentUser.rawValue)
     }
 
     func reauthenticate() async throws -> FCL.Response {
@@ -28,7 +38,20 @@ public extension FCL {
         }
         
         let response = try await fcl.getStategy().execService(url: url, method: .authn, request: FCL.Status.approved)
-        fcl.currentUser = buildUser(authn: response)
+        let currentUser = buildUser(authn: response)
+        fcl.currentUser = currentUser
+        
+        if let currentUser, let data = try? JSONEncoder().encode(currentUser) {
+            try? fcl.keychain.add(data: data, forKey: .StorageKey.currentUser.rawValue)
+        }
+        
         return response
+    }
+    
+    internal func buildUser(authn: FCL.Response) -> FCL.User? {
+        guard let address = authn.data?.addr else { return nil }
+        return FCL.User(addr: Flow.Address(hex: address),
+                    loggedIn: true,
+                    services: authn.data?.services)
     }
 }

@@ -9,7 +9,7 @@ import Flow
 import Foundation
 
 extension FCL {
-    public struct User: Decodable {
+    public struct User: Codable {
         public let addr: Flow.Address
         public private(set) var loggedIn: Bool = false
 

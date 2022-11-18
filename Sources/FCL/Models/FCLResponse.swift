@@ -72,7 +72,7 @@ extension FCL {
         }
     }
 
-    struct AuthnData: Decodable {
+    struct AuthnData: Codable {
         let addr: String?
         let fType: String?
         let fVsn: String?
@@ -90,7 +90,7 @@ extension FCL {
         case declined = "DECLINED"
     }
 
-    struct Service: Decodable {
+    struct Service: Codable {
         var fType: String?
         var fVsn: String?
         var type: ServiceType?
@@ -153,7 +153,7 @@ extension FCL {
         }
     }
 
-    struct FCLDataResponse: Decodable {
+    struct FCLDataResponse: Codable {
         let fType: String
         let fVsn: String
         let nonce: String?
@@ -161,25 +161,25 @@ extension FCL {
         let email: FCLEmail?
         let signatures: [AuthnData]?
 
-        struct FCLEmail: Decodable {
+        struct FCLEmail: Codable {
             let email: String
             let email_verified: Bool
         }
     }
 
-    struct Identity: Decodable {
+    struct Identity: Codable {
         public let address: String
-        let keyId: Int?
+        public let keyId: Int?
     }
 
-    struct ServiceProvider: Decodable {
+    struct ServiceProvider: Codable {
         public let fType: String?
         public let fVsn: String?
         public let address: String
         public let name: String
     }
 
-    public enum ServiceType: String, Decodable {
+    public enum ServiceType: String, Codable {
         case authn
         case authz
         case preAuthz = "pre-authz"

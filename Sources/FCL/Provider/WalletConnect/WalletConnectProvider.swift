@@ -81,6 +81,10 @@ extension FCL {
                     let response = try await Sign.instance.sessionSettlePublisher.async()
                     currentSession = response
                     
+                    if let data = response.topic.data(using: .utf8) {
+                        try? fcl.keychain.add(data: data, forKey: .StorageKey.wcSession.rawValue)
+                    }
+                    
                     guard let data = try? JSONEncoder().encode(BaseConfigRequest()),
                           let dataString = String(data: data, encoding: .utf8) else {
                         throw FCLError.encodeFailure
@@ -194,6 +198,9 @@ extension FCL {
             var topic: String? = nil
             if let existingPairing = self.pairings.first(where: { $0.peer?.url == endpoint }) {
                 topic = existingPairing.topic
+            } else if let data = try? fcl.keychain.readData(key: .StorageKey.wcSession.rawValue),
+                        let sessionTopic = String(data: data, encoding: .utf8) {
+                topic = sessionTopic
             }
             
             let blockchains: Set<Blockchain> = Set([blockchain])

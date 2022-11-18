@@ -7,6 +7,7 @@ import WalletConnectRelay
 import WalletConnectSign
 import WalletConnectNetworking
 import WalletConnectPairing
+import WalletConnectKMS
 
 extension WebSocket: WebSocketConnecting {}
 
@@ -33,14 +34,22 @@ public final class FCL: NSObject, ObservableObject {
     public var currentUser: User?
     
     lazy var defaultAddressRegistry = AddressRegistry()
-
     internal var httpProvider = FCL.HTTPProvider()
     internal var wcProvider: FCL.WalletConnectProvider?
-    
     internal var preAuthz: FCL.Response?
+    internal var keychain = KeychainStorage(serviceIdentifier: "@outblock/fcl-swift")
+    internal var perferenceStorage = UserDefaults.standard
     
     // MARK: - Back Channel
 
+    public override init() {
+        super.init()
+        if let data = try? keychain.readData(key: .StorageKey.currentUser.rawValue),
+           let user = try? JSONDecoder().decode(FCL.User.self, from: data) {
+            currentUser = user
+        }
+    }
+    
     public func config(metadata: FCL.Metadata,
                        env: Flow.ChainID,
                        provider: FCL.Provider)
@@ -113,13 +122,6 @@ public final class FCL: NSObject, ObservableObject {
 }
 
 // MARK: - Util
-
-internal func buildUser(authn: FCL.Response) -> FCL.User? {
-    guard let address = authn.data?.addr else { return nil }
-    return FCL.User(addr: Flow.Address(hex: address),
-                loggedIn: true,
-                services: authn.data?.services)
-}
 
 internal func serviceOfType(services: [FCL.Service]?, type: FCL.ServiceType) -> FCL.Service? {
     return services?.first(where: { service in

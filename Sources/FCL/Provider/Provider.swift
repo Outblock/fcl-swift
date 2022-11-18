@@ -112,7 +112,7 @@ extension FCL {
         }
     }
 
-    public enum ServiceMethod: String, Decodable {
+    public enum ServiceMethod: String, Codable {
         case httpPost = "HTTP/POST"
         case walletConnect = "WC/RPC"
         
