@@ -23,7 +23,7 @@ public extension FCL {
             try? await fcl.wcProvider?.disconnect()
         }
         
-        try? fcl.keychain.delete(key: .StorageKey.currentUser.rawValue)
+        try? fcl.keychain.deleteAll()
     }
 
     func reauthenticate() async throws -> FCL.Response {
