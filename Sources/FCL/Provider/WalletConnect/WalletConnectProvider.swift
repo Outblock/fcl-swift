@@ -116,8 +116,9 @@ extension FCL {
                 }
             }
             
-            guard let session = self.sessions.first else {
-                throw FCLError.unauthenticated
+            guard let data = try? fcl.keychain.readData(key: .StorageKey.wcSession.rawValue),
+                  let sessionTopic = String(data: data, encoding: .utf8) else {
+                      throw FCLError.unauthenticated
             }
             
             guard let request = request,
@@ -126,7 +127,7 @@ extension FCL {
                 throw FCLError.encodeFailure
             }
             
-            let request1 = Request(topic: session.topic,
+            let request1 = Request(topic: sessionTopic,
                                   method: WCMethod(service: method).rawValue,
                                   params: AnyCodable([dataString]),
                                   chainId: blockchain)
