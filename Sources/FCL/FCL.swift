@@ -34,6 +34,10 @@ public final class FCL: NSObject, ObservableObject {
     public var currentUser: User?
     
     lazy var defaultAddressRegistry = AddressRegistry()
+    
+    public var currentEnv: Flow.ChainID?
+    public var currentProvider: FCL.Provider?
+    
     internal var httpProvider = FCL.HTTPProvider()
     internal var wcProvider: FCL.WalletConnectProvider?
     internal var preAuthz: FCL.Response?
@@ -47,6 +51,12 @@ public final class FCL: NSObject, ObservableObject {
         if let data = try? keychain.readData(key: .StorageKey.currentUser.rawValue),
            let user = try? JSONDecoder().decode(FCL.User.self, from: data) {
             currentUser = user
+        }
+        
+        if let provider = perferenceStorage.object(forKey: .PreferenceKey.provider.rawValue) as? FCL.Provider,
+           let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
+            currentProvider = provider
+            try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
         }
     }
     
@@ -76,6 +86,10 @@ public final class FCL: NSObject, ObservableObject {
             
             setupWalletConnect()
         }
+        
+        currentProvider = provider
+        perferenceStorage.set(provider, forKey: .PreferenceKey.provider.rawValue)
+        perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
     }
 
     private func setupWalletConnect() {
@@ -109,6 +123,10 @@ public final class FCL: NSObject, ObservableObject {
             .put(.authn, value: provider.endpoint(chainId: env))
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
+        
+        currentProvider = provider
+        perferenceStorage.set(provider, forKey: .PreferenceKey.provider.rawValue)
+        perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
     }
     
     internal func getStategy() throws -> FCLStrategy {

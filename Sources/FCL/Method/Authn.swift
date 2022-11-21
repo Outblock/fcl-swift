@@ -14,6 +14,11 @@ extension String {
         case currentUser
         case wcSession
     }
+    
+    enum PreferenceKey: String {
+        case provider
+        case env
+    }
 }
 
 public extension FCL {
