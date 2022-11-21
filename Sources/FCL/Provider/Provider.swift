@@ -48,6 +48,10 @@ extension FCL {
                 return fclWalletProvider.endpoint
             }
         }
+        
+        var id: String {
+            provider(chainId: .mainnet).id
+        }
 
         public func provider(chainId: Flow.ChainID) -> FCL.WalletProvider {
             switch self {
@@ -91,6 +95,13 @@ extension FCL {
 
         public static func == (lhs: Provider, rhs: Provider) -> Bool {
             return lhs.provider(chainId: flow.chainID) == rhs.provider(chainId: flow.chainID)
+        }
+        
+        init?(id: String) {
+            guard let item = FCL.Provider.allCases.first(where: {$0.id == id}) else {
+                return nil
+            }
+            self = item
         }
     }
 

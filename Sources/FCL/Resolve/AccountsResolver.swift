@@ -65,31 +65,6 @@ extension FCL.Interaction {
     }
 }
 
-//extension FCL.SignableUser {
-//    func toIndentity() -> FCL.Identity? {
-//        if let addr {
-//            return .init(address: addr, keyId: keyIndex)
-//        }
-//        return nil
-//    }
-//
-//    func toService() -> FCL.Service? {
-//
-//        guard let addr else {
-//            return nil
-//        }
-//
-//        return .init(fType: "Service",
-//                     fVsn: "1.0.0",
-//                     type: .authz,
-//                     method: .walletConnect,
-//                     endpoint: URL(string: fcl.config.get(.authn) ?? ""),
-//                     identity: .init(address: addr, keyId: keyIndex),
-//                     data: nil)
-//
-//    }
-//}
-
 final class AccountsResolver: Resolver {
     func resolve(ix: inout FCL.Interaction) async throws -> FCL.Interaction {
         if ix.isTransaction {

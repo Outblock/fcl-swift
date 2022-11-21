@@ -53,7 +53,8 @@ public final class FCL: NSObject, ObservableObject {
             currentUser = user
         }
         
-        if let provider = perferenceStorage.object(forKey: .PreferenceKey.provider.rawValue) as? FCL.Provider,
+        if let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
+           let provider = FCL.Provider(id: providerId),
            let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
             currentProvider = provider
             try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
@@ -88,7 +89,7 @@ public final class FCL: NSObject, ObservableObject {
         }
         
         currentProvider = provider
-        perferenceStorage.set(provider, forKey: .PreferenceKey.provider.rawValue)
+        perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
         perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
     }
 
@@ -125,7 +126,7 @@ public final class FCL: NSObject, ObservableObject {
             .put(.env, value: env.name)
         
         currentProvider = provider
-        perferenceStorage.set(provider, forKey: .PreferenceKey.provider.rawValue)
+        perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
         perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
     }
     
