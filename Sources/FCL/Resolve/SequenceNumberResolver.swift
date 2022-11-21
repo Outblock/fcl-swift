@@ -10,7 +10,7 @@ import Flow
 import Foundation
 
 final class SequenceNumberResolver: Resolver {
-    func resolve(ix: inout Interaction) async throws -> Interaction {
+    func resolve(ix: inout FCL.Interaction) async throws -> FCL.Interaction {
         guard ix.tag == .transaction else {
             return ix
         }

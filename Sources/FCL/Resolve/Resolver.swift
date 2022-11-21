@@ -9,5 +9,5 @@ import Combine
 import Foundation
 
 protocol Resolver {
-    func resolve(ix: inout Interaction) async throws -> Interaction
+    func resolve(ix: inout FCL.Interaction) async throws -> FCL.Interaction
 }

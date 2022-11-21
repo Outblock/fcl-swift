@@ -10,7 +10,7 @@ import Flow
 import Foundation
 
 final class RefBlockResolver: Resolver {
-    func resolve(ix: inout Interaction) async throws -> Interaction {
+    func resolve(ix: inout FCL.Interaction) async throws -> FCL.Interaction {
         if ix.isTransaction {
             let block = try await flow.accessAPI.getLatestBlock(sealed: true)
             ix.message.refBlock = block.id.hex
