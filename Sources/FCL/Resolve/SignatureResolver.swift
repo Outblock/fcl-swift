@@ -81,7 +81,7 @@ final class SignatureResolver: Resolver {
         }
 
         let response = try await acct.signingFunction(signable: signable)
-        return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
+        return (id, response.signature.hex)
     }
 
     func encodeOutsideMessage(transaction: Flow.Transaction, ix: Interaction, insideSigners: [String]) -> String? {

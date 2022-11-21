@@ -6,9 +6,24 @@
 //
 
 import Foundation
+import Flow
 
 public struct FCLResponse: Codable {
     public let address: String?
+}
+
+extension FCL.Response: AuthzResponse {
+    public var addr: Flow.Address {
+        .init(hex: compositeSignature?.addr ?? "")
+    }
+    
+    public var keyId: Int {
+        compositeSignature?.keyId ?? 0
+    }
+    
+    public var signature: Flow.Signature {
+        .init(hex: data?.signature ?? compositeSignature?.signature ?? "")
+    }
 }
 
 extension FCL {

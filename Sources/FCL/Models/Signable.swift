@@ -403,7 +403,13 @@ struct Singature: Codable {
 public protocol FCLSigner {
     var address: Flow.Address { get }
     var keyIndex: Int { get }
-    func signingFunction(signable: Signable) async throws -> FCL.Response
+    func signingFunction(signable: Signable) async throws -> AuthzResponse
+}
+
+public protocol AuthzResponse {
+    var addr: Flow.Address { get }
+    var keyId: Int { get }
+    var signature: Flow.Signature { get }
 }
 
 extension FCLSigner {
@@ -463,7 +469,7 @@ extension SignableUser: FCLSigner {
         keyID ?? 0
     }
     
-    func signingFunction(signable: Signable) async throws -> FCL.Response {
+    func signingFunction(signable: Signable) async throws -> AuthzResponse {
         if let preAuthz = fcl.preAuthz {
             var array = (preAuthz.data?.payer ?? []) + (preAuthz.data?.authorization ?? [])
             if let proposer = preAuthz.data?.proposer {

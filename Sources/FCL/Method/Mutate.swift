@@ -71,9 +71,6 @@ public extension FCL {
     internal func prepare(ix: inout Interaction, builder: [Build]) -> Interaction {
         builder.forEach { build in
             switch build {
-//            case let .script(script):
-//                ix.tag = .script
-//                ix.message.cadence = script
             case let .args(args):
                 let fclArgs = args.compactMap { Flow.Argument(value: $0) }.toFCLArguments()
                 ix.message.arguments = Array(fclArgs.map { $0.0 })
@@ -135,7 +132,6 @@ extension Flow.TransactionBuild {
 
 public extension FCL {
     enum Build {
-//        case script(String)
         case transaction(String)
         case args([Flow.Cadence.FValue])
         case limit(Int)
