@@ -11,18 +11,16 @@ import Flow
 import Foundation
 
 extension FCL {
-    
-    
     public struct Signable: Encodable {
-        let fType: String = "Signable"
-        let fVsn: String = "1.0.1"
-        let data = [String: String]()
-        let message: String
-        let keyId: Int?
-        let addr: String?
-        let roles: Role
-        let cadence: String?
-        let args: [Flow.Argument]
+        public let fType: String = "Signable"
+        public let fVsn: String = "1.0.1"
+        public let data = [String: String]()
+        public let message: String
+        public let keyId: Int?
+        public let addr: String?
+        public let roles: Role
+        public let cadence: String?
+        public let args: [Flow.Argument]
         var interaction = Interaction()
         
         enum CodingKeys: String, CodingKey {
@@ -425,10 +423,10 @@ extension FCL {
     }
 
     public struct Role: Encodable {
-        var proposer: Bool = false
-        var authorizer: Bool = false
-        var payer: Bool = false
-        var param: Bool?
+        public var proposer: Bool = false
+        public var authorizer: Bool = false
+        public var payer: Bool = false
+        public var param: Bool?
 
         mutating func merge(role: Role) {
             proposer = proposer || role.proposer
