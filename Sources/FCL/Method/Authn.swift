@@ -56,7 +56,8 @@ public extension FCL {
     internal func buildUser(authn: FCL.Response) -> FCL.User? {
         guard let address = authn.data?.addr else { return nil }
         return FCL.User(addr: Flow.Address(hex: address),
-                    loggedIn: true,
-                    services: authn.data?.services)
+                        keyId: authn.data?.keyId ?? 0,
+                        loggedIn: true,
+                        services: authn.data?.services)
     }
 }
