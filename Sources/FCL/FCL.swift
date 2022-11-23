@@ -88,9 +88,11 @@ public final class FCL: NSObject, ObservableObject {
             setupWalletConnect()
         }
         
-        currentProvider = provider
-        perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
-        perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
+        if !metadata.autoConnect {
+            currentProvider = provider
+            perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
+            perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
+        }
     }
 
     private func setupWalletConnect() {

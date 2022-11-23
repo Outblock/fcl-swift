@@ -19,7 +19,7 @@ public extension FCL {
             case description = "app.detail.description"
             case env
             case location
-//            case openIDScope = "service.OpenID.scopes"
+            case autoConnect
             case domainTag = "fcl.appDomainTag"
             case authn
 
