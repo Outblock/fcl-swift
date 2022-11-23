@@ -82,12 +82,13 @@ public extension FCL {
                 ix.message.computeLimit = gasLimit
             case let .proposer(signer):
                 var signableUser = signer.signableUser
+                signableUser.signer = signer
                 signableUser.role = Role(proposer: true)
                 ix.accounts[signer.tempID] = signableUser
             case let .authorizor(signers):
                 for signer in signers {
                     var signableUser = signer.signableUser
-                    signableUser.role = Role(proposer: true)
+                    signableUser.role = Role(authorizer: true)
                     signableUser.signer = signer
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
@@ -98,7 +99,8 @@ public extension FCL {
             case let .payer(signers):
                 for signer in signers {
                     var signableUser = signer.signableUser
-                    signableUser.role = Role(proposer: true)
+                    signableUser.role = Role(payer: true)
+                    signableUser.signer = signer
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
                     if ix.accounts.keys.contains(tempID) {
