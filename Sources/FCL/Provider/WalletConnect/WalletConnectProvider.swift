@@ -138,7 +138,7 @@ extension FCL {
             let authzResponse = try await Sign.instance.sessionResponsePublisher.async()
             
             guard case let .response(value) = authzResponse.result else {
-                throw FCLError.generic
+                throw FCLError.invaildAuthzReponse
             }
             
             let string = try value.asJSONEncodedString()

@@ -12,9 +12,9 @@ import Foundation
 extension FCL.Interaction {
     
     func getPayers() -> [FCL.SignableUser] {
-        var result = accounts.filter { dict in
-            dict.value.role.payer
-        }.compactMap{ $0.value }
+        var result = accounts.values.filter { value in
+            value.role.payer
+        }
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
@@ -24,9 +24,9 @@ extension FCL.Interaction {
     }
     
     func getProposer() -> FCL.SignableUser? {
-        var result = accounts.filter { dict in
-            dict.value.role.proposer
-        }.compactMap{ $0.value }
+        var result = accounts.values.filter { value in
+            value.role.proposer
+        }
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
@@ -36,9 +36,9 @@ extension FCL.Interaction {
     }
     
     func getAuthorizers() -> [FCL.SignableUser] {
-        var result = accounts.filter { dict in
-            dict.value.role.authorizer
-        }.compactMap{ $0.value }
+        var result = accounts.values.filter { value in
+            value.role.authorizer
+        }
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
