@@ -16,7 +16,7 @@ extension FCL.Interaction {
             value.role.payer
         }
         
-        result.sort(by: { ($0.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) > ($1.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) })
+        result.sort(by: { ($0.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) < ($1.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) })
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
@@ -42,7 +42,7 @@ extension FCL.Interaction {
             value.role.authorizer
         }
         
-        result.sort(by: { ($0.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) > ($1.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) })
+        result.sort(by: { ($0.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) < ($1.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) })
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
