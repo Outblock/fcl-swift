@@ -55,6 +55,7 @@ public final class FCL: NSObject, ObservableObject {
         
         if let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
            let provider = FCL.Provider(id: providerId),
+           provider.supportAutoConnect,
            let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
             currentProvider = provider
             try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
@@ -88,7 +89,7 @@ public final class FCL: NSObject, ObservableObject {
             setupWalletConnect()
         }
         
-        if !metadata.autoConnect {
+        if !metadata.autoConnect && provider.supportAutoConnect {
             currentProvider = provider
             perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
@@ -127,9 +128,11 @@ public final class FCL: NSObject, ObservableObject {
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
         
-        currentProvider = provider
-        perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
-        perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
+        if provider.supportAutoConnect {
+            currentProvider = provider
+            perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
+            perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
+        }
     }
     
     internal func getStategy() throws -> FCLStrategy {

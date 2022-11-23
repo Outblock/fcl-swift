@@ -18,6 +18,10 @@ extension FCL {
         
         public static var allCases: [FCL.Provider] = [.dapperPro, .lilico, .blocto, .dapper]
 
+        public var supportAutoConnect: Bool {
+            provider(chainId: .mainnet).supportAutoConnect
+        }
+        
         public var supportNetwork: [Flow.ChainID] {
             switch self {
             case .dapper:
@@ -113,7 +117,16 @@ extension FCL {
         public let endpoint: String
         public let supportNetwork: [Flow.ChainID]
         
-        public init(id: String, name: String, logo: URL, method: FCL.ServiceMethod, endpoint: String, supportNetwork: [Flow.ChainID]) {
+        public var supportAutoConnect: Bool {
+            method == .walletConnect
+        }
+        
+        public init(id: String,
+                    name: String,
+                    logo: URL,
+                    method: FCL.ServiceMethod,
+                    endpoint: String,
+                    supportNetwork: [Flow.ChainID]) {
             self.id = id
             self.name = name
             self.logo = logo

@@ -56,7 +56,7 @@ extension FCL.Interaction {
         if let authzs = fcl.currentUser?.services?.filter({ $0.type == .authz }) {
             for authz in authzs {
                 if let identity = authz.identity {
-                    let tempID = [identity.address.addHexPrefix(), String(identity.keyId ?? 0)].joined(separator: "-")
+                    let tempID = [identity.address.addHexPrefix(), String(identity.keyId ?? 0)].joined(separator: "|")
                     result.append(
                         .init(kind: nil, tempID: tempID, addr: identity.address, signature: nil, keyID: identity.keyId,
                               sequenceNum: nil, role: FCL.Role(proposer: false, authorizer: false, payer: true))
@@ -136,13 +136,22 @@ final class AccountsResolver: Resolver {
         }
         
         let response = try await prepareAccounts(ix: &ix, currentUser: currentUser)
-        let signableUsers = try getAccounts(resp: response)
+        var signableUsers = try getAccounts(resp: response)
         var accounts = [String: FCL.SignableUser]()
 
-        ix.accounts.removeAll()
+        for user in ix.accounts.values {
+            if signableUsers.contains(user) {
+                continue
+            }
+            signableUsers.append(user)
+        }
+        
+        signableUsers.sort(by: { ($0.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) < ($1.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) })
+        signableUsers.sort(by: { ($0.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) < ($1.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) })
+        
         signableUsers.forEach { user in
             if let addr = user.addr, let keyID = user.keyID {
-                let tempID = [addr, String(keyID)].joined(separator: "-")
+                let tempID = [addr, String(keyID)].joined(separator: "|")
                 var temp = user
                 temp.tempID = tempID
 
@@ -188,7 +197,7 @@ final class AccountsResolver: Resolver {
                 throw FCLError.invalidResponse
             }
 
-            return FCL.SignableUser(tempID: [address, String(keyId)].joined(separator: "-"),
+            return FCL.SignableUser(tempID: [address, String(keyId)].joined(separator: "|"),
                                     addr: address,
                                     keyID: keyId,
                                     role: FCL.Role(proposer: role == "PROPOSER",

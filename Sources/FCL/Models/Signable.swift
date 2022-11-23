@@ -378,7 +378,7 @@ extension FCL {
         let sig: String?
     }
     
-    struct SignableUser: Encodable {
+    struct SignableUser: Encodable, Equatable {
         var kind: String?
         var tempID: String?
         var addr: String?
@@ -407,6 +407,13 @@ extension FCL {
             try container.encode(keyID, forKey: .keyID)
             try container.encode(sequenceNum, forKey: .sequenceNum)
             try container.encode(role, forKey: .role)
+        }
+        
+        static func == (lhs: SignableUser, rhs: SignableUser) -> Bool {
+            guard let lId = lhs.tempID, let rId = rhs.tempID else {
+                return false
+            }
+            return lId == rId
         }
     }
     
@@ -474,7 +481,7 @@ public protocol AuthzResponse {
 
 extension FCLSigner {
     var tempID: String {
-        [address.hex.addHexPrefix(), String(keyIndex)].joined(separator: "-")
+        [address.hex.addHexPrefix(), String(keyIndex)].joined(separator: "|")
     }
     
     var signableUser: FCL.SignableUser {
@@ -484,7 +491,8 @@ extension FCLSigner {
               signature: nil,
               keyID: keyIndex,
               sequenceNum: nil,
-              role: FCL.Role())
+              role: FCL.Role(),
+              signer: self)
     }
 }
 
