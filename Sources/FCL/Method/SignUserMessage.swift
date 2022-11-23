@@ -35,9 +35,7 @@ public extension FCL {
             throw Flow.FError.unauthenticated
         }
 
-        guard let service = serviceOfType(services: currentUser.services, type: .userSignature),
-              let endpoint = service.endpoint
-        else {
+        guard let service = serviceOfType(services: currentUser.services, type: .userSignature) else {
             throw FCLError.invaildService
         }
 
@@ -46,15 +44,9 @@ public extension FCL {
             let message: String
         }
 
-        guard let messageData = message.data(using: .utf8),
-              let data = try? JSONEncoder().encode(SignableMessage(addr: currentUser.addr.hex, message: messageData.hexValue))
-        else {
+        guard let messageData = message.data(using: .utf8) else {
             throw FCLError.encodeFailure
         }
-//        
-//        guard let fullURL = buildURL(url: endpoint, params: service.params) else {
-//            throw FCLError.invaildURL
-//        }
 
         let model = try await fcl.getStategy().execService(service: service, request: SignableMessage(addr: currentUser.addr.hex, message: messageData.hexValue))
         guard let data = model.data, let signature = data.signature, let address = data.addr, let keyId = data.keyId else {

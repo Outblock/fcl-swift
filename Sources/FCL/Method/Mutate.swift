@@ -88,6 +88,7 @@ public extension FCL {
                 for signer in signers {
                     var signableUser = signer.signableUser
                     signableUser.role = Role(proposer: true)
+                    signableUser.signer = signer
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
                     if ix.accounts.keys.contains(tempID) {

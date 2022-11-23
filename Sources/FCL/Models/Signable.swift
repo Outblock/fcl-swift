@@ -385,10 +385,9 @@ extension FCL {
         var signature: String?
         var keyID: Int?
         var sequenceNum: Int?
-        //    var signingFunction: Int?
         var role: Role
 
-    //    var signingFunction: FCLSigningFunction<Signable>
+        var signer: FCLSigner?
 
         enum CodingKeys: String, CodingKey {
             case kind
@@ -444,12 +443,6 @@ extension FCL {
 
 // MARK: - CurrentUser
 
-// protocol SignableUserFetchSignature {
-//    func signingFunction(service: Service, data: Data) async throws -> AuthnResponse
-// }
-
-//typealias FCLSigningFunction<T:Encodable> = ((T) -> Task<FCL.Response, Error>)?
-
 extension Flow.Argument {
     func toFCLArgument() -> FCL.Argument {
         func randomString(length: Int) -> String {
@@ -493,8 +486,6 @@ extension FCLSigner {
     }
 }
 
-
-
 extension FCL.SignableUser: FCLSigner {
     var address: Flow.Address {
         .init(hex: addr ?? "0x")
@@ -505,6 +496,10 @@ extension FCL.SignableUser: FCLSigner {
     }
     
     func signingFunction(signable: FCL.Signable) async throws -> AuthzResponse {
+        if let signer {
+            return try await signer.signingFunction(signable: signable)
+        }
+        
         if let preAuthz = fcl.preAuthz {
             var array = (preAuthz.data?.payer ?? []) + (preAuthz.data?.authorization ?? [])
             if let proposer = preAuthz.data?.proposer {
