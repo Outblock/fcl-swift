@@ -135,27 +135,29 @@ final class AccountsResolver: Resolver {
         let signableUsers = try getAccounts(resp: response)
         var accounts = [String: FCL.SignableUser]()
 
-        ix.authorizations.removeAll()
+        ix.accounts.removeAll()
         signableUsers.forEach { user in
-            let tempID = [user.addr!, String(user.keyID!)].joined(separator: "-")
-            var temp = user
-            temp.tempID = tempID
+            if let addr = user.addr, let keyID = user.keyID {
+                let tempID = [addr, String(keyID)].joined(separator: "-")
+                var temp = user
+                temp.tempID = tempID
 
-            if accounts.keys.contains(tempID) {
-                accounts[tempID]?.role.merge(role: temp.role)
-            }
-            accounts[tempID] = temp
+                if accounts.keys.contains(tempID) {
+                    accounts[tempID]?.role.merge(role: temp.role)
+                }
+                accounts[tempID] = temp
 
-            if user.role.proposer {
-                ix.proposer = tempID
-            }
+                if user.role.proposer {
+                    ix.proposer = tempID
+                }
 
-            if user.role.payer {
-                ix.payer = tempID
-            }
+                if user.role.payer {
+                    ix.payer = tempID
+                }
 
-            if user.role.authorizer {
-                ix.authorizations.append(tempID)
+                if user.role.authorizer {
+                    ix.authorizations.append(tempID)
+                }
             }
         }
         ix.accounts = accounts
@@ -182,13 +184,15 @@ final class AccountsResolver: Resolver {
                 throw FCLError.invalidResponse
             }
 
-            return FCL.SignableUser(tempID: [address, String(keyId)].joined(separator: "|"),
+            return FCL.SignableUser(tempID: [address, String(keyId)].joined(separator: "-"),
                                     addr: address,
                                     keyID: keyId,
                                     role: FCL.Role(proposer: role == "PROPOSER",
                                                    authorizer: role == "AUTHORIZER",
                                                    payer: role == "PAYER",
-                                                   param: nil))
+                                                   param: nil),
+                                    signer: service.signer
+            )
         }
     }
 }

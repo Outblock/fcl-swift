@@ -117,6 +117,8 @@ extension FCL {
         var provider: ServiceProvider?
         var params: [String: String]?
         var data: FCLDataResponse?
+        
+        var signer: FCLSigner?
 
         enum CodingKeys: String, CodingKey {
             case fType
@@ -132,7 +134,7 @@ extension FCL {
             case data
         }
         
-        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil) {
+        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil, signer: FCLSigner? = nil) {
             self.fType = fType
             self.fVsn = fVsn
             self.type = type
@@ -144,6 +146,7 @@ extension FCL {
             self.provider = provider
             self.params = params
             self.data = data
+            self.signer = signer
         }
 
 

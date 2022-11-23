@@ -542,7 +542,8 @@ extension FCL.SignableUser {
                      method: .walletConnect,
                      endpoint: URL(string: fcl.config.get(.authn) ?? ""),
                      identity: .init(address: addr, keyId: keyIndex),
-                     data: nil)
+                     data: nil,
+                     signer: signer)
         
     }
 }
