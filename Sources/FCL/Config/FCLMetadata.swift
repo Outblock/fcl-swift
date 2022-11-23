@@ -13,7 +13,7 @@ public extension FCL {
         let appDescription: String
         let appIcon: URL
         let location: URL
-        let autoConnect: Bool = true
+        var autoConnect: Bool = true
         let accountProof: AccountProofConfig?
         let walletConnectConfig: WalletConnectConfig?
 
