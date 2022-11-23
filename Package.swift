@@ -18,6 +18,7 @@ let package = Package(
         .package(url: "https://github.com/outblock/flow-swift.git", .exact("0.2.9")),
         .package(url: "https://github.com/daltoniam/Starscream", .exact("3.1.1")),
         .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", .exact("1.0.5")),
+        .package(url: "https://github.com/apple/swift-collections", .exact("1.0.3"))
     ],
     targets: [
         .target(
@@ -27,6 +28,7 @@ let package = Package(
                 .product(name: "Starscream", package: "Starscream"),
                 .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
                 .product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"),
+                .product(name: "OrderedCollections", package: "swift-collections"),
             ],
             path: "Sources/FCL"
         ),

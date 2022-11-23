@@ -9,6 +9,7 @@ import BigInt
 import Combine
 import Flow
 import Foundation
+import OrderedCollections
 
 extension FCL {
     public struct Signable: Encodable {
@@ -147,12 +148,12 @@ extension FCL {
     
     struct Interaction: Encodable {
         var tag: Tag = .unknown
-        var assigns = [String: String]()
+        var assigns = OrderedDictionary<String, String>()
         var status: Status = .ok
         var reason: String?
-        var accounts = [String: SignableUser]()
-        var params = [String: String]()
-        var arguments = [String: Argument]()
+        var accounts = OrderedDictionary<String, SignableUser>()
+        var params = OrderedDictionary<String, String>()
+        var arguments = OrderedDictionary<String, Argument>()
         var message = Message()
         var proposer: String?
         var authorizations = [String]()

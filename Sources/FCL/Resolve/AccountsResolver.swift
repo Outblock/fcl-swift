@@ -8,6 +8,7 @@
 import Combine
 import Flow
 import Foundation
+import OrderedCollections
 
 extension FCL.Interaction {
     
@@ -133,7 +134,7 @@ final class AccountsResolver: Resolver {
         
         let response = try await prepareAccounts(ix: &ix, currentUser: currentUser)
         let signableUsers = try getAccounts(resp: response)
-        var accounts = [String: FCL.SignableUser]()
+        var accounts = OrderedDictionary<String, FCL.SignableUser>()
 
         ix.accounts.removeAll()
         signableUsers.forEach { user in
