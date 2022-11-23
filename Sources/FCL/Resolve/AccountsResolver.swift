@@ -8,7 +8,6 @@
 import Combine
 import Flow
 import Foundation
-import OrderedCollections
 
 extension FCL.Interaction {
     
@@ -16,6 +15,8 @@ extension FCL.Interaction {
         var result = accounts.values.filter { value in
             value.role.payer
         }
+        
+        result.sort(by: { ($0.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) > ($1.signerIndex?[FCL.Roles.payer.rawValue] ?? 0) })
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
@@ -40,6 +41,8 @@ extension FCL.Interaction {
         var result = accounts.values.filter { value in
             value.role.authorizer
         }
+        
+        result.sort(by: { ($0.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) > ($1.signerIndex?[FCL.Roles.authorizer.rawValue] ?? 0) })
         
         if result.isEmpty {
             result.append(contentsOf: getAuthz())
@@ -134,7 +137,7 @@ final class AccountsResolver: Resolver {
         
         let response = try await prepareAccounts(ix: &ix, currentUser: currentUser)
         let signableUsers = try getAccounts(resp: response)
-        var accounts = OrderedDictionary<String, FCL.SignableUser>()
+        var accounts = [String: FCL.SignableUser]()
 
         ix.accounts.removeAll()
         signableUsers.forEach { user in

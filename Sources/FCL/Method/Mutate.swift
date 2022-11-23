@@ -86,10 +86,14 @@ public extension FCL {
                 signableUser.role = Role(proposer: true)
                 ix.accounts[signer.tempID] = signableUser
             case let .authorizor(signers):
-                for signer in signers {
+                for (index, signer) in signers.enumerated() {
                     var signableUser = signer.signableUser
                     signableUser.role = Role(authorizer: true)
                     signableUser.signer = signer
+                    if signableUser.signerIndex == nil {
+                        signableUser.signerIndex = [String: Int]()
+                    }
+                    signableUser.signerIndex?[Roles.authorizer.rawValue] = index
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
                     if ix.accounts.keys.contains(tempID) {
@@ -97,10 +101,14 @@ public extension FCL {
                     }
                 }
             case let .payer(signers):
-                for signer in signers {
+                for (index, signer) in signers.enumerated() {
                     var signableUser = signer.signableUser
                     signableUser.role = Role(payer: true)
                     signableUser.signer = signer
+                    if signableUser.signerIndex == nil {
+                        signableUser.signerIndex = [String: Int]()
+                    }
+                    signableUser.signerIndex?[Roles.payer.rawValue] = index
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
                     if ix.accounts.keys.contains(tempID) {
