@@ -127,7 +127,7 @@ class ViewModel: NSObject, ObservableObject {
 
     func getLastestBlock() async {
         do {
-            let block = try await fcl.getLastestBlock()
+            let block = try await fcl.getLatestBlock()
             await MainActor.run {
                 self.isPresented = true
                 self.currentObject = prettyPrint(block)
@@ -218,9 +218,9 @@ class ViewModel: NSObject, ObservableObject {
                 arguments {
                     [.address(Flow.Address(hex: address))]
                 }
-            }
+            }.decode(Decimal.self)
             await MainActor.run {
-                self.FUSDBalance = "\(String(block.fields?.value.toUFix64() ?? 0.0)) FUSD"
+                self.FUSDBalance = "\(block.toTokenFormat()) FUSD"
             }
         } catch {
             print(error)
@@ -254,27 +254,12 @@ class ViewModel: NSObject, ObservableObject {
 
     func send() async {
         do {
-//            let txId = try await fcl.mutate {
-//                cadence {
-//                    transactionScript
-//                }
-//
-//                arguments {
-//                    [.string("Test2"), .int(1)]
-//                }
-//
-//                gasLimit {
-//                    1000
-//                }
-//            }
-//            await MainActor.run {
-//                self.preAuthz = txId.hex
-//            }
+            let txId = try await fcl.mutate(cadence: transactionScript,
+                                            args: [.string("Test2"), .int(1)])
             
-//            let _ = try await fcl.mutate {
-//                FCL.Build.script("12123")
-//                FCL.Build.args([])
-//            }
+            await MainActor.run {
+                self.preAuthz = txId.hex
+            }
             
         } catch {
             print(error)
@@ -322,14 +307,4 @@ struct SafariView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_: SFSafariViewController, context _: UIViewControllerRepresentableContext<SafariView>) {}
-}
-
-
-extension String {
-    func addHexPrefix() -> String {
-        if !hasPrefix("0x") {
-            return "0x" + self
-        }
-        return self
-    }
 }

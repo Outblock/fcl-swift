@@ -23,8 +23,8 @@ public extension FCL {
                 [
                     .address(Flow.Address(hex: compSigs.first?.addr ?? "")),
                     .string(message.data(using: .utf8)?.hexValue ?? ""),
-                    .array(compSigs.compactMap { Flow.Argument(value: .int($0.keyId)) }),
-                    .array(compSigs.compactMap { Flow.Argument(value: .string($0.signature)) }),
+                    .array(compSigs.compactMap { .int($0.keyId) }),
+                    .array(compSigs.compactMap { .string($0.signature) }),
                 ]
             }
         }.decode()

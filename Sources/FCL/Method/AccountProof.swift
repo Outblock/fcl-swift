@@ -39,8 +39,8 @@ public extension FCL {
                 [
                     .address(Flow.Address(hex: data.address ?? "")),
                     .string(encodedTag.hexValue),
-                    .array(signatures.compactMap { Flow.Argument(value: .int($0.keyId ?? -1)) }),
-                    .array(signatures.compactMap { Flow.Argument(value: .string($0.signature ?? "")) }),
+                    .array(signatures.compactMap { .int($0.keyId ?? -1) }),
+                    .array(signatures.compactMap { .string($0.signature ?? "") }),
                 ]
             }
         }.decode()

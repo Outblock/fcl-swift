@@ -46,7 +46,9 @@ public extension FCL {
         let currentUser = buildUser(authn: response)
         fcl.currentUser = currentUser
         
-        if let currentUser, let data = try? JSONEncoder().encode(currentUser) {
+        if let currentUser, let data = try? JSONEncoder().encode(currentUser),
+            let provider = fcl.currentProvider,
+            provider.supportAutoConnect {
             try? fcl.keychain.add(data: data, forKey: .StorageKey.currentUser.rawValue)
         }
         

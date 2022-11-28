@@ -26,7 +26,7 @@ public extension FCL {
     }
 
     func mutate(cadence: String,
-                args: [Flow.Cadence.FValue],
+                args: [Flow.Cadence.FValue] = [],
                 gasLimit: Int = 1000,
                 proposer: FCLSigner? = nil,
                 authorizors: [FCLSigner]? = nil,

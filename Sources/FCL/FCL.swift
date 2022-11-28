@@ -48,17 +48,20 @@ public final class FCL: NSObject, ObservableObject {
 
     public override init() {
         super.init()
-        if let data = try? keychain.readData(key: .StorageKey.currentUser.rawValue),
-           let user = try? JSONDecoder().decode(FCL.User.self, from: data) {
-            currentUser = user
-        }
         
         if let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
            let provider = FCL.Provider(id: providerId),
-           provider.supportAutoConnect,
-           let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
+           provider.supportAutoConnect {
             currentProvider = provider
-            try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
+            
+            if let data = try? keychain.readData(key: .StorageKey.currentUser.rawValue),
+               let user = try? JSONDecoder().decode(FCL.User.self, from: data) {
+                currentUser = user
+            }
+            
+            if let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
+                try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
+            }
         }
     }
     
