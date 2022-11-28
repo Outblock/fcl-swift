@@ -14,16 +14,14 @@ struct ContentView: View {
 
     var signIn: some View {
         return Section {
-
-                
-                Button {
-                    Task {
-                        await viewModel.authn()
-                    }
-                } label: {
-                    Label("Sign In", systemImage: "person")
-                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 20))
+            Button {
+                Task {
+                    await viewModel.authn()
                 }
+            } label: {
+                Label("Sign In", systemImage: "person")
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 20))
+            }
 
             Text(verbatim: viewModel.address)
 
@@ -33,6 +31,7 @@ struct ContentView: View {
             }
         }
     }
+    
 
     var body: some View {
         NavigationView {
@@ -47,6 +46,16 @@ struct ContentView: View {
                     .pickerStyle(SegmentedPickerStyle())
                 } header: {
                     Text("Network")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+                
+                Section {
+                    Button("Open Discovery") {
+                        fcl.openDiscovery()
+                    }
+                } header: {
+                    Text("Wallet Discovery")
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }

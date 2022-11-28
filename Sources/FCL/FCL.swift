@@ -8,6 +8,8 @@ import WalletConnectSign
 import WalletConnectNetworking
 import WalletConnectPairing
 import WalletConnectKMS
+import SwiftUI
+import UIKit
 
 extension WebSocket: WebSocketConnecting {}
 
@@ -67,8 +69,7 @@ public final class FCL: NSObject, ObservableObject {
     
     public func config(metadata: FCL.Metadata,
                        env: Flow.ChainID,
-                       provider: FCL.Provider)
-    {
+                       provider: FCL.Provider) {
         _ = config
             .put(.title, value: metadata.appName)
             .put(.description, value: metadata.appDescription)
@@ -136,6 +137,13 @@ public final class FCL: NSObject, ObservableObject {
             perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
         }
+    }
+    
+    public func openDiscovery() {
+        let discoveryVC = UIHostingController(rootView: DiscoveryView())
+        discoveryVC.view.backgroundColor = .clear
+        discoveryVC.modalPresentationStyle = .overFullScreen
+        UIApplication.shared.topMostViewController?.present(discoveryVC, animated: true)
     }
     
     internal func getStategy() throws -> FCLStrategy {

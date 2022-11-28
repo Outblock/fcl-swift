@@ -21,14 +21,7 @@ class SafariWebViewManager: NSObject {
             vc.modalPresentationStyle = .formSheet
 //            vc.isModalInPresentation = true
             SafariWebViewManager.shared.safariVC = vc
-
-            if var topController = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first?.rootViewController {
-                while let presentedViewController = topController.presentedViewController {
-                    topController = presentedViewController
-                }
-
-                topController.present(vc, animated: true, completion: nil)
-            }
+            UIApplication.shared.topMostViewController?.present(vc, animated: true, completion: nil)
         }
     }
 
