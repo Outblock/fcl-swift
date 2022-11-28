@@ -35,24 +35,18 @@ This is a Swift Package, and can be installed via Xcode with the URL of this rep
 Values only need to be set once. We recommend doing this once and as early in the life cycle as possible. To set a configuration value, the `put` method on the `config` instance needs to be called, the `put` method returns the `config` instance so they can be chained.
 
 ```swift
-fcl.config
-    .put(.title, value: "Foo")
-    .put(.wallet, value: "https://fcl-discovery.onflow.org/testnet/authn")
-    .put(.accessNode, value: "https://access-testnet.onflow.org")
-    .put(.authn, value: "https://dapper-http-post.vercel.app/api/authn")
-    .put(.location, value: "https://foo.com")
-    .put(.env, value: "testnet")
-    
-// OR
+let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "xxxx", nonce: "xxxx")
+let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "xxxx", projectID: "xxxx")
+let metadata = FCL.Metadata(appName: "xxx",
+                            appDescription: "xxx",
+                            appIcon: URL(string: "xxxx")!,
+                            location: URL(string: "xxx")!,
+                            accountProof: accountProof,
+                            walletConnectConfig: walletConnect)
 
-fcl.config(appName: "Foo",
-           appIcon: "https://bar.com",
-           location: "https://foo.com",
-           walletNode: "https://fcl-http-post.vercel.app/api",
-           accessNode: "https://access-testnet.onflow.org",
-           env: "testnet"
-           scope: "email",
-           authn: provider.endpoint)
+fcl.config(metadata: metadata,
+           env: env,
+           provider: provider)
 
 ```
 
@@ -115,13 +109,20 @@ Calling this method will authenticate the current user via any wallet that suppo
 #### Usage
 
 ```swift
-fcl
-  .config()
-  .put("accessNode.api", "https://access-testnet.onflow.org")
-  .put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn");
+let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "xxxx", nonce: "xxxx")
+let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "xxxx", projectID: "xxxx")
+let metadata = FCL.Metadata(appName: "xxx",
+                            appDescription: "xxx",
+                            appIcon: URL(string: "xxxx")!,
+                            location: URL(string: "xxx")!,
+                            accountProof: accountProof,
+                            walletConnectConfig: walletConnect)
+let provider: FCL.Provider = .lilico
+fcl.config(metadata: metadata,
+           env: env,
+           provider: provider)
 
-
-fcl.authenticate().sink()
+fcl.authenticate()
 ```
 
 ## `authz`
@@ -135,33 +136,17 @@ A **convenience method** that produces the needed authorization details for the 
 
 ```swift
 
-fcl.mutate {
-    cadence {
-        """
-           transaction(test: String, testInt: Int) {
-               prepare(signer: AuthAccount) {
-                    log(signer.address)
-                    log(test)
-                    log(testInt)
-               }
-           }
-        """
-    }
-
-    arguments {
-        [.string("Test2"), .int(1)]
-    }
-
-    gasLimit {
-        1000
-    }
-}.sink { completion in
-    if case let .failure(error) = completion {
-        // Handle error here
-    }
-} receiveValue: { txId in
-    // txId -> Transaction id
-}.store(in: &cancellables)
+try await fcl.mutate(cadence: 
+                    """
+                       transaction(test: String, testInt: Int) {
+                           prepare(signer: AuthAccount) {
+                                log(signer.address)
+                                log(test)
+                                log(testInt)
+                           }
+                       }
+                    """,
+                    args: [.string("Test2"), .int(1)])
 ```
 
 ---
@@ -203,7 +188,6 @@ _Pass in the following as a single object with the following keys.All keys are o
 #### Usage
 
 ```swift
-
 fcl.query {
     cadence {
         """
@@ -217,11 +201,7 @@ fcl.query {
     arguments {
         [.int(7), .int(6), .address(Flow.Address(hex: "0x01"))]
     }
-}.sink { completion in
-    // Handle completion
-} receiveValue: { result in
-    print(result.fields?.value.toInt()) // 13
-}.store(in: &cancellables)
+}
 ```
 
 ## `mutate`
@@ -249,35 +229,18 @@ _Pass in the following as a single object with the following keys. All keys are 
 #### Usage
 
 ```swift
-fcl.mutate {
-    cadence {
-        """
-           transaction(test: String, testInt: Int) {
-               prepare(signer: AuthAccount) {
-                    log(signer.address)
-                    log(test)
-                    log(testInt)
-               }
-           }
-        """
-    }
 
-    arguments {
-        [.string("Test2"), .int(1)]
-    }
-
-    gasLimit {
-        1000
-    }
-}
-.sink { completion in
-    if case let .failure(error) = completion {
-        // Handle error here
-    }
-} receiveValue: { txId in
-    // txId -> Transaction id
-}
-.store(in: &cancellables)
+try await fcl.mutate(cadence: 
+                    """
+                       transaction(test: String, testInt: Int) {
+                           prepare(signer: AuthAccount) {
+                                log(signer.address)
+                                log(test)
+                                log(testInt)
+                           }
+                       }
+                    """,
+                    args: [.string("Test2"), .int(1)])
 
 ```
 
@@ -305,8 +268,6 @@ A builder function that returns the interaction to get the latest block.
 
 ```swift
 fcl.getLastestBlock()
-.sink(...)
-.store(in: &cancellables)
 ```
 
 ## TODO: Add more example 

@@ -9,7 +9,7 @@ import Foundation
 import Flow
 
 public extension FCL {
-    func query(script: String, args: [Flow.Argument]) async throws -> Flow.ScriptResponse {
+    func query(script: String, args: [Flow.Cadence.FValue] = []) async throws -> Flow.ScriptResponse {
         let chainID: Flow.ChainID = fcl.config.get(.env) == "testnet" ? .testnet : .mainnet
         let script = Flow.Script(text: fcl.defaultAddressRegistry.processScript(script: script, chainId: chainID))
         
@@ -41,7 +41,7 @@ public extension FCL {
                 break
             }
         }
-        return try await query(script: script.text, args: args)
+        return try await query(script: script.text, args: args.compactMap{ $0.value })
     }
     
 }

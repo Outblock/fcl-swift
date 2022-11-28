@@ -28,3 +28,12 @@ extension String {
         }
     }
 }
+
+extension String {
+    func addHexPrefix() -> String {
+        if !hasPrefix("0x") {
+            return "0x" + self
+        }
+        return self
+    }
+}

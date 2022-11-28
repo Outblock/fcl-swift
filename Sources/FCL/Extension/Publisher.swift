@@ -34,7 +34,6 @@ extension Publisher {
     }
 }
 
-
 extension AnyPublisher {
     func async() async throws -> Output {
         try await withCheckedThrowingContinuation { continuation in

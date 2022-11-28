@@ -7,6 +7,7 @@ import WalletConnectRelay
 import WalletConnectSign
 import WalletConnectNetworking
 import WalletConnectPairing
+import WalletConnectKMS
 
 extension WebSocket: WebSocketConnecting {}
 
@@ -33,14 +34,37 @@ public final class FCL: NSObject, ObservableObject {
     public var currentUser: User?
     
     lazy var defaultAddressRegistry = AddressRegistry()
-
+    
+    public var currentEnv: Flow.ChainID?
+    public var currentProvider: FCL.Provider?
+    
     internal var httpProvider = FCL.HTTPProvider()
     internal var wcProvider: FCL.WalletConnectProvider?
-    
     internal var preAuthz: FCL.Response?
+    internal var keychain = KeychainStorage(serviceIdentifier: "@outblock/fcl-swift")
+    internal var perferenceStorage = UserDefaults.standard
     
     // MARK: - Back Channel
 
+    public override init() {
+        super.init()
+        
+        if let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
+           let provider = FCL.Provider(id: providerId),
+           provider.supportAutoConnect {
+            currentProvider = provider
+            
+            if let data = try? keychain.readData(key: .StorageKey.currentUser.rawValue),
+               let user = try? JSONDecoder().decode(FCL.User.self, from: data) {
+                currentUser = user
+            }
+            
+            if let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
+                try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
+            }
+        }
+    }
+    
     public func config(metadata: FCL.Metadata,
                        env: Flow.ChainID,
                        provider: FCL.Provider)
@@ -66,6 +90,12 @@ public final class FCL: NSObject, ObservableObject {
                 .put(.urlSheme, value: walletConnect.urlScheme)
             
             setupWalletConnect()
+        }
+        
+        if !metadata.autoConnect && provider.supportAutoConnect {
+            currentProvider = provider
+            perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
+            perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
         }
     }
 
@@ -100,6 +130,12 @@ public final class FCL: NSObject, ObservableObject {
             .put(.authn, value: provider.endpoint(chainId: env))
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
+        
+        if provider.supportAutoConnect {
+            currentProvider = provider
+            perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
+            perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
+        }
     }
     
     internal func getStategy() throws -> FCLStrategy {
@@ -113,13 +149,6 @@ public final class FCL: NSObject, ObservableObject {
 }
 
 // MARK: - Util
-
-internal func buildUser(authn: FCL.Response) -> FCL.User? {
-    guard let address = authn.data?.addr else { return nil }
-    return FCL.User(addr: Flow.Address(hex: address),
-                loggedIn: true,
-                services: authn.data?.services)
-}
 
 internal func serviceOfType(services: [FCL.Service]?, type: FCL.ServiceType) -> FCL.Service? {
     return services?.first(where: { service in

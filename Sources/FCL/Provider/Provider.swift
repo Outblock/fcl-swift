@@ -18,6 +18,10 @@ extension FCL {
         
         public static var allCases: [FCL.Provider] = [.dapperPro, .lilico, .blocto, .dapper]
 
+        public var supportAutoConnect: Bool {
+            provider(chainId: .mainnet).supportAutoConnect
+        }
+        
         public var supportNetwork: [Flow.ChainID] {
             switch self {
             case .dapper:
@@ -47,6 +51,10 @@ extension FCL {
             case let .custom(fclWalletProvider):
                 return fclWalletProvider.endpoint
             }
+        }
+        
+        var id: String {
+            provider(chainId: .mainnet).id
         }
 
         public func provider(chainId: Flow.ChainID) -> FCL.WalletProvider {
@@ -92,6 +100,13 @@ extension FCL {
         public static func == (lhs: Provider, rhs: Provider) -> Bool {
             return lhs.provider(chainId: flow.chainID) == rhs.provider(chainId: flow.chainID)
         }
+        
+        init?(id: String) {
+            guard let item = FCL.Provider.allCases.first(where: {$0.id == id}) else {
+                return nil
+            }
+            self = item
+        }
     }
 
     public struct WalletProvider: Equatable {
@@ -102,7 +117,16 @@ extension FCL {
         public let endpoint: String
         public let supportNetwork: [Flow.ChainID]
         
-        public init(id: String, name: String, logo: URL, method: FCL.ServiceMethod, endpoint: String, supportNetwork: [Flow.ChainID]) {
+        public var supportAutoConnect: Bool {
+            method == .walletConnect
+        }
+        
+        public init(id: String,
+                    name: String,
+                    logo: URL,
+                    method: FCL.ServiceMethod,
+                    endpoint: String,
+                    supportNetwork: [Flow.ChainID]) {
             self.id = id
             self.name = name
             self.logo = logo
@@ -112,7 +136,7 @@ extension FCL {
         }
     }
 
-    public enum ServiceMethod: String, Decodable {
+    public enum ServiceMethod: String, Codable {
         case httpPost = "HTTP/POST"
         case walletConnect = "WC/RPC"
         

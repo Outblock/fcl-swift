@@ -9,16 +9,8 @@ import Combine
 import Flow
 import Foundation
 
-class InteractionWrapper {
-    let ix: Interaction
-
-    init(ix: Interaction) {
-        self.ix = ix
-    }
-}
-
 final class SignatureResolver: Resolver {
-    func resolve(ix: inout Interaction) async throws -> Interaction {
+    func resolve(ix: inout FCL.Interaction) async throws -> FCL.Interaction {
         guard ix.tag == .transaction else {
             return ix
         }
@@ -72,7 +64,7 @@ final class SignatureResolver: Resolver {
         return ix
     }
 
-    func fetchSignature(ix: Interaction, payload: String, id: String) async throws -> (String, String) {
+    func fetchSignature(ix: FCL.Interaction, payload: String, id: String) async throws -> (String, String) {
 //        let ix = wrapper.ix
         guard let acct = ix.accounts[id],
               let signable = buildSignable(ix: ix, payload: payload, account: acct)
@@ -81,10 +73,10 @@ final class SignatureResolver: Resolver {
         }
 
         let response = try await acct.signingFunction(signable: signable)
-        return (id, (response.data?.signature ?? response.compositeSignature?.signature) ?? "")
+        return (id, response.signature.hex)
     }
 
-    func encodeOutsideMessage(transaction: Flow.Transaction, ix: Interaction, insideSigners: [String]) -> String? {
+    func encodeOutsideMessage(transaction: Flow.Transaction, ix: FCL.Interaction, insideSigners: [String]) -> String? {
         var tx = transaction
         insideSigners.forEach { address in
             if let account = ix.accounts[address],
@@ -101,15 +93,15 @@ final class SignatureResolver: Resolver {
         return tx.signableEnvelope?.hexValue
     }
 
-    func buildSignable(ix: Interaction, payload: String, account: SignableUser) -> Signable? {
-        return Signable(message: payload,
-                        keyId: account.keyID,
-                        addr: account.addr,
-                        roles: account.role,
-                        cadence: ix.message.cadence,
-                        args: ix.message.arguments.compactMap { tempId in
-                            ix.arguments[tempId]?.asArgument
-                        }, // TODO: Add args
-                        interaction: ix)
+    func buildSignable(ix: FCL.Interaction, payload: String, account: FCL.SignableUser) -> FCL.Signable? {
+        return FCL.Signable(message: payload,
+                            keyId: account.keyID,
+                            addr: account.addr,
+                            roles: account.role,
+                            cadence: ix.message.cadence,
+                            args: ix.message.arguments.compactMap { tempId in
+                                ix.arguments[tempId]?.asArgument
+                            }, // TODO: Add args
+                            interaction: ix)
     }
 }

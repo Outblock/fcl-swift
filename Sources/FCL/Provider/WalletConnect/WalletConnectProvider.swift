@@ -81,6 +81,10 @@ extension FCL {
                     let response = try await Sign.instance.sessionSettlePublisher.async()
                     currentSession = response
                     
+                    if let data = response.topic.data(using: .utf8) {
+                        try? fcl.keychain.add(data: data, forKey: .StorageKey.wcSession.rawValue)
+                    }
+                    
                     guard let data = try? JSONEncoder().encode(BaseConfigRequest()),
                           let dataString = String(data: data, encoding: .utf8) else {
                         throw FCLError.encodeFailure
@@ -103,13 +107,18 @@ extension FCL {
                     }
                     return model
                 } catch {
+                    Task {
+                        try? fcl.keychain.deleteAll()
+                        await disconnectAll()
+                    }
                     print("authn error ===> \(error)")
-                    throw FCLError.failedToConnectWallet
+                    throw error
                 }
             }
             
-            guard let session = self.sessions.first else {
-                throw FCLError.unauthenticated
+            guard let data = try? fcl.keychain.readData(key: .StorageKey.wcSession.rawValue),
+                  let sessionTopic = String(data: data, encoding: .utf8) else {
+                      throw FCLError.unauthenticated
             }
             
             guard let request = request,
@@ -118,7 +127,7 @@ extension FCL {
                 throw FCLError.encodeFailure
             }
             
-            let request1 = Request(topic: session.topic,
+            let request1 = Request(topic: sessionTopic,
                                   method: WCMethod(service: method).rawValue,
                                   params: AnyCodable([dataString]),
                                   chainId: blockchain)
@@ -129,7 +138,7 @@ extension FCL {
             let authzResponse = try await Sign.instance.sessionResponsePublisher.async()
             
             guard case let .response(value) = authzResponse.result else {
-                throw FCLError.generic
+                throw FCLError.invaildAuthzReponse
             }
             
             let string = try value.asJSONEncodedString()
@@ -194,6 +203,9 @@ extension FCL {
             var topic: String? = nil
             if let existingPairing = self.pairings.first(where: { $0.peer?.url == endpoint }) {
                 topic = existingPairing.topic
+            } else if let data = try? fcl.keychain.readData(key: .StorageKey.wcSession.rawValue),
+                        let sessionTopic = String(data: data, encoding: .utf8) {
+                topic = sessionTopic
             }
             
             let blockchains: Set<Blockchain> = Set([blockchain])

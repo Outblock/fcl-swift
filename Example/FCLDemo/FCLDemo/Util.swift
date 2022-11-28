@@ -87,3 +87,22 @@ extension String {
         return String(self[start ..< end])
     }
 }
+
+extension String {
+    func addHexPrefix() -> String {
+        if !hasPrefix("0x") {
+            return "0x" + self
+        }
+        return self
+    }
+}
+
+extension Decimal {
+    func toTokenFormat(decimal: Int = 8) -> String {
+        let formatter = NumberFormatter()
+        formatter.maximumFractionDigits = decimal
+        formatter.minimumFractionDigits = 1
+        formatter.numberStyle = .decimal
+        return formatter.string(for: self) ?? String(NSDecimalNumber(decimal: self).doubleValue)
+    }
+}

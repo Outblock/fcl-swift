@@ -16,8 +16,8 @@ extension Array where Element: Hashable {
 }
 
 extension Array where Element == Flow.Argument {
-    func toFCLArguments() -> [(String, Argument)] {
-        var list = [(String, Argument)]()
+    func toFCLArguments() -> [(String, FCL.Argument)] {
+        var list = [(String, FCL.Argument)]()
         forEach { arg in
             let fclArg = arg.toFCLArgument()
             list.append((fclArg.tempId, fclArg))

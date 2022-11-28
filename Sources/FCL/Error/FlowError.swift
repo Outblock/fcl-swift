@@ -14,6 +14,7 @@ public enum FCLError: String, Error, LocalizedError {
     case invaildService
     case invalidSession
     case invalidWalletProvider
+    case invaildAuthzReponse
     case generateURIFailed
     case declined
     case invalidResponse

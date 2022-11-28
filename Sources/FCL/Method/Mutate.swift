@@ -26,7 +26,7 @@ public extension FCL {
     }
 
     func mutate(cadence: String,
-                args: [Flow.Cadence.FValue],
+                args: [Flow.Cadence.FValue] = [],
                 gasLimit: Int = 1000,
                 proposer: FCLSigner? = nil,
                 authorizors: [FCLSigner]? = nil,
@@ -71,9 +71,6 @@ public extension FCL {
     internal func prepare(ix: inout Interaction, builder: [Build]) -> Interaction {
         builder.forEach { build in
             switch build {
-//            case let .script(script):
-//                ix.tag = .script
-//                ix.message.cadence = script
             case let .args(args):
                 let fclArgs = args.compactMap { Flow.Argument(value: $0) }.toFCLArguments()
                 ix.message.arguments = Array(fclArgs.map { $0.0 })
@@ -85,12 +82,18 @@ public extension FCL {
                 ix.message.computeLimit = gasLimit
             case let .proposer(signer):
                 var signableUser = signer.signableUser
+                signableUser.signer = signer
                 signableUser.role = Role(proposer: true)
                 ix.accounts[signer.tempID] = signableUser
             case let .authorizor(signers):
-                for signer in signers {
+                for (index, signer) in signers.enumerated() {
                     var signableUser = signer.signableUser
-                    signableUser.role = Role(proposer: true)
+                    signableUser.role = Role(authorizer: true)
+                    signableUser.signer = signer
+                    if signableUser.signerIndex == nil {
+                        signableUser.signerIndex = [String: Int]()
+                    }
+                    signableUser.signerIndex?[Roles.authorizer.rawValue] = index
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
                     if ix.accounts.keys.contains(tempID) {
@@ -98,9 +101,14 @@ public extension FCL {
                     }
                 }
             case let .payer(signers):
-                for signer in signers {
+                for (index, signer) in signers.enumerated() {
                     var signableUser = signer.signableUser
-                    signableUser.role = Role(proposer: true)
+                    signableUser.role = Role(payer: true)
+                    signableUser.signer = signer
+                    if signableUser.signerIndex == nil {
+                        signableUser.signerIndex = [String: Int]()
+                    }
+                    signableUser.signerIndex?[Roles.payer.rawValue] = index
                     ix.accounts[signer.tempID] = signableUser
                     let tempID = signer.tempID
                     if ix.accounts.keys.contains(tempID) {
@@ -135,7 +143,6 @@ extension Flow.TransactionBuild {
 
 public extension FCL {
     enum Build {
-//        case script(String)
         case transaction(String)
         case args([Flow.Cadence.FValue])
         case limit(Int)

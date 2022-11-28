@@ -6,9 +6,24 @@
 //
 
 import Foundation
+import Flow
 
 public struct FCLResponse: Codable {
     public let address: String?
+}
+
+extension FCL.Response: AuthzResponse {
+    public var addr: Flow.Address {
+        .init(hex: compositeSignature?.addr ?? "")
+    }
+    
+    public var keyId: Int {
+        compositeSignature?.keyId ?? 0
+    }
+    
+    public var signature: Flow.Signature {
+        .init(hex: data?.signature ?? compositeSignature?.signature ?? "")
+    }
 }
 
 extension FCL {
@@ -72,7 +87,7 @@ extension FCL {
         }
     }
 
-    struct AuthnData: Decodable {
+    struct AuthnData: Codable {
         let addr: String?
         let fType: String?
         let fVsn: String?
@@ -90,7 +105,7 @@ extension FCL {
         case declined = "DECLINED"
     }
 
-    struct Service: Decodable {
+    struct Service: Codable {
         var fType: String?
         var fVsn: String?
         var type: ServiceType?
@@ -102,6 +117,8 @@ extension FCL {
         var provider: ServiceProvider?
         var params: [String: String]?
         var data: FCLDataResponse?
+        
+        var signer: FCLSigner?
 
         enum CodingKeys: String, CodingKey {
             case fType
@@ -117,7 +134,7 @@ extension FCL {
             case data
         }
         
-        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil) {
+        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil, signer: FCLSigner? = nil) {
             self.fType = fType
             self.fVsn = fVsn
             self.type = type
@@ -129,6 +146,7 @@ extension FCL {
             self.provider = provider
             self.params = params
             self.data = data
+            self.signer = signer
         }
 
 
@@ -153,7 +171,7 @@ extension FCL {
         }
     }
 
-    struct FCLDataResponse: Decodable {
+    struct FCLDataResponse: Codable {
         let fType: String
         let fVsn: String
         let nonce: String?
@@ -161,25 +179,25 @@ extension FCL {
         let email: FCLEmail?
         let signatures: [AuthnData]?
 
-        struct FCLEmail: Decodable {
+        struct FCLEmail: Codable {
             let email: String
             let email_verified: Bool
         }
     }
 
-    struct Identity: Decodable {
+    struct Identity: Codable {
         public let address: String
-        let keyId: Int?
+        public let keyId: Int?
     }
 
-    struct ServiceProvider: Decodable {
+    struct ServiceProvider: Codable {
         public let fType: String?
         public let fVsn: String?
         public let address: String
         public let name: String
     }
 
-    public enum ServiceType: String, Decodable {
+    public enum ServiceType: String, Codable {
         case authn
         case authz
         case preAuthz = "pre-authz"

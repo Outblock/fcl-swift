@@ -10,7 +10,7 @@ import Flow
 import Foundation
 
 final class CadenceResolver: Resolver {
-    func resolve(ix: inout Interaction) async throws -> Interaction {
+    func resolve(ix: inout FCL.Interaction) async throws -> FCL.Interaction {
         if ix.isTransaction || ix.isScript {
             let items = fcl.config.dict.filter { item in
                 item.key.range(of: "^0x", options: .regularExpression) != nil

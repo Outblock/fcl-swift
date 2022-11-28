@@ -13,6 +13,7 @@ public extension FCL {
         let appDescription: String
         let appIcon: URL
         let location: URL
+        var autoConnect: Bool = true
         let accountProof: AccountProofConfig?
         let walletConnectConfig: WalletConnectConfig?
 
@@ -20,12 +21,14 @@ public extension FCL {
                     appDescription: String,
                     appIcon: URL,
                     location: URL,
+                    autoConnect: Bool = true,
                     accountProof: FCL.Metadata.AccountProofConfig? = nil,
                     walletConnectConfig: FCL.Metadata.WalletConnectConfig? = nil) {
             self.appName = appName
             self.appDescription = appDescription
             self.appIcon = appIcon
             self.location = location
+            self.autoConnect = autoConnect
             self.accountProof = accountProof
             self.walletConnectConfig = walletConnectConfig
         }
