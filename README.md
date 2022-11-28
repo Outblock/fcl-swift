@@ -16,9 +16,7 @@ SDKs are open source, and you can use them according to the licence.
 - [x] Verify user signature
 - [x] Account Proof
 - [x] Verify account proof
-
-#### Todo list:
-- [ ] Support custom `authz` func 
+- [x] Support custom `authz` func 
 
 ## Getting Started
 
