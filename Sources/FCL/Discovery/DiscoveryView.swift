@@ -21,7 +21,7 @@ public struct DiscoveryView: View {
             Spacer()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            VStack {
+            VStack(spacing: 0) {
                 
                 HStack {
                     Text("Connect Wallet")
@@ -36,7 +36,7 @@ public struct DiscoveryView: View {
                     }
                     
                 }
-                .padding(.vertical, 12)
+                .padding(.vertical, 18)
                 .padding(.horizontal, 18)
                 
                 Divider()
@@ -51,11 +51,13 @@ public struct DiscoveryView: View {
                             
                             let info = provider.provider(chainId: .testnet)
                             Button {
-                                
                                 Task {
                                     do {
+                                        presentationMode.wrappedValue.dismiss()
                                         try fcl.changeProvider(provider: provider, env: .testnet)
                                         let _ = try await fcl.authenticate()
+                                    } catch {
+                                        print(error)
                                     }
                                 }
                             } label: {
@@ -75,6 +77,7 @@ public struct DiscoveryView: View {
                     .padding(18)
                     .padding(.bottom, UIApplication.shared.topMostViewController?.view.safeAreaInsets.bottom ?? .zero)
                 }
+                .background(Color(UIColor.secondarySystemBackground).edgesIgnoringSafeArea(.bottom))
             }
             .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.bottom))
             .cornerRadius(8, corners: [.topLeft, .topRight])

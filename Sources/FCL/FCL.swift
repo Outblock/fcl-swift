@@ -146,6 +146,13 @@ public final class FCL: NSObject, ObservableObject {
         UIApplication.shared.topMostViewController?.present(discoveryVC, animated: true)
     }
     
+    public func closeDiscoveryIfNeed() {
+        guard let vc = UIApplication.shared.topMostViewController as? UIHostingController<DiscoveryView> else {
+            return
+        }
+        vc.dismiss(animated: true)
+    }
+    
     internal func getStategy() throws -> FCLStrategy {
         guard let methodString = config.get(.providerMethod),
               let method = FCL.ServiceMethod(rawValue: methodString) else {

@@ -26,7 +26,7 @@ extension UIApplication {
 
 extension UIViewController {
     
-    func topMostViewController() -> UIViewController {
+    func topMostViewController() -> UIViewController? {
         if self.presentedViewController == nil {
             return self
         }
@@ -42,7 +42,7 @@ extension UIViewController {
             return tab.topMostViewController()
         }
         
-        return self.presentedViewController!.topMostViewController()
+        return self.presentedViewController?.topMostViewController()
     }
     
 }
