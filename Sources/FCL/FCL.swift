@@ -97,6 +97,13 @@ public final class FCL: NSObject, ObservableObject {
             currentProvider = provider
             perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
+        } else {
+            guard let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
+                  let provider = FCL.Provider(id: providerId),
+                  provider.supportAutoConnect else {
+                      return
+            }
+            _ = config.put(.authn, value: provider.endpoint(chainId: env))
         }
     }
 
