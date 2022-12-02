@@ -7,7 +7,7 @@
 
 import SwiftUI
 #if DEBUG
-    import Atlantis
+import Atlantis
 #endif
 
 @main

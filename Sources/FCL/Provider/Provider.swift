@@ -11,12 +11,12 @@ import Foundation
 extension FCL {
     public enum Provider: Equatable, Hashable, CaseIterable {
         case dapper
-        case dapperPro
+        case dapperSC
         case blocto
         case lilico
         case custom(FCL.WalletProvider)
         
-        public static var allCases: [FCL.Provider] = [.dapperPro, .lilico, .blocto, .dapper]
+        public static var allCases: [FCL.Provider] = [.dapperSC, .lilico, .blocto, .dapper]
 
         public var supportAutoConnect: Bool {
             provider(chainId: .mainnet).supportAutoConnect
@@ -26,7 +26,7 @@ extension FCL {
             switch self {
             case .dapper:
                 return [.mainnet]
-            case .dapperPro:
+            case .dapperSC:
                 return [.testnet]
             case .blocto:
                 return [.mainnet, .testnet]
@@ -41,7 +41,7 @@ extension FCL {
             switch self {
             case .dapper:
                 return "https://dapper-http-post.vercel.app/api/flow/authn"
-            case .dapperPro:
+            case .dapperSC:
                 return "dapper-pro://"
             case .blocto:
                 return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")!.absoluteString :
@@ -66,10 +66,10 @@ extension FCL {
                              method: .httpPost,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
-            case .dapperPro:
-                return .init(id: "dapper-pro",
-                             name: "Dapper Pro",
-                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/dapper-pro/logo.png")!,
+            case .dapperSC:
+                return .init(id: "dapper-sc",
+                             name: "Dapper SC",
+                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/dapper-sc/logo.png")!,
                              method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
@@ -154,7 +154,6 @@ extension FCL {
 protocol FCLStrategy {
     func execService<T: Encodable>(service: FCL.Service, request: T?) async throws -> FCL.Response
     func execService<T: Encodable>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response
-//    func execService(url: URL) async throws -> FCL.Response
 }
 
 extension FCLStrategy {
@@ -170,14 +169,6 @@ extension FCLStrategy {
 
         return try await execService(url: fullURL, method: service.type ?? .unknow, request: request)
     }
-    
-//    func execService(url: URL) async throws -> FCL.Response {
-//        return try await execService(url: url, method: .authn, request: "authn")
-//    }
-
-//    func execService<T: Encodable>(url: URL, request: T? = nil) async throws -> FCL.Response {
-//        return try await execService(url: url, request: request)
-//    }
 }
 
 
