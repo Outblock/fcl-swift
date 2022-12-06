@@ -97,6 +97,59 @@ extension FCL {
         let authorization: [Service]?
         let signature: String?
         let keyId: Int?
+        let expires: Int?
+        let code: String?
+        let paddr: String?
+        let hks: String?
+        let l6n: String?
+        
+        var expiresDate: Date? {
+            if let expires {
+                return Date(timeIntervalSince1970: TimeInterval(expires) / 1000)
+            }
+            return nil
+        }
+        
+        var isExpired: Bool? {
+            if let expiresDate, expiresDate > Date() {
+                return true
+            }
+            return false
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case fType
+            case fVsn
+            case addr
+            case services
+            case proposer
+            case payer
+            case authorization
+            case signature
+            case keyId
+            case expires
+            case code
+            case paddr
+            case hks
+            case l6n
+        }
+        
+        internal init(addr: String? = nil, fType: String? = nil, fVsn: String? = nil, services: [FCL.Service]? = nil, proposer: FCL.Service? = nil, payer: [FCL.Service]? = nil, authorization: [FCL.Service]? = nil, signature: String? = nil, keyId: Int? = nil, expires: Int? = nil, code: String? = nil, paddr: String? = nil, hks: String? = nil, l6n: String? = nil) {
+            self.addr = addr
+            self.fType = fType
+            self.fVsn = fVsn
+            self.services = services
+            self.proposer = proposer
+            self.payer = payer
+            self.authorization = authorization
+            self.signature = signature
+            self.keyId = keyId
+            self.expires = expires
+            self.code = code
+            self.paddr = paddr
+            self.hks = hks
+            self.l6n = l6n
+        }
     }
 
     enum Status: String, Codable {

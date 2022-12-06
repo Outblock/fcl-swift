@@ -12,9 +12,20 @@ import WalletConnectSign
 import WalletConnectUtils
 import WalletConnectPairing
 import UIKit
+import Starscream
+
+extension WebSocket: WebSocketConnecting {}
+
+internal class SocketFactory: WebSocketFactory {
+    var socket: WebSocket?
+    func create(with url: URL) -> WebSocketConnecting {
+        let socket = WebSocket(url: url)
+        self.socket = socket
+        return socket
+    }
+}
 
 extension FCL {
-    
     enum WCMethod: String, CaseIterable {
         case authn = "flow_authn"
         case authz = "flow_authz"

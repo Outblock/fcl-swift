@@ -11,17 +11,6 @@ import WalletConnectKMS
 import SwiftUI
 import UIKit
 
-extension WebSocket: WebSocketConnecting {}
-
-private class SocketFactory: WebSocketFactory {
-    var socket: WebSocket?
-    func create(with url: URL) -> WebSocketConnecting {
-        let socket = WebSocket(url: url)
-        self.socket = socket
-        return socket
-    }
-}
-
 public let fcl = FCL.shared
 
 public final class FCL: NSObject, ObservableObject {

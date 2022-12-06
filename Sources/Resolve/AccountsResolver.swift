@@ -151,7 +151,7 @@ final class AccountsResolver: Resolver {
         
         signableUsers.forEach { user in
             if let addr = user.addr, let keyID = user.keyID {
-                let tempID = [addr, String(keyID)].joined(separator: "|")
+                let tempID = [addr.addHexPrefix(), String(keyID)].joined(separator: "|")
                 var temp = user
                 temp.tempID = tempID
 
@@ -197,7 +197,7 @@ final class AccountsResolver: Resolver {
                 throw FCLError.invalidResponse
             }
 
-            return FCL.SignableUser(tempID: [address, String(keyId)].joined(separator: "|"),
+            return FCL.SignableUser(tempID: [address.addHexPrefix(), String(keyId)].joined(separator: "|"),
                                     addr: address,
                                     keyID: keyId,
                                     role: FCL.Role(proposer: role == "PROPOSER",
