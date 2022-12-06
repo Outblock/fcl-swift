@@ -33,7 +33,7 @@ public final class FCL: NSObject, ObservableObject {
 
     private var providers: [FCL.Provider] = [.dapper, .lilico, .blocto]
 
-    public let version = "@outblock/fcl-swift@0.0.5"
+    public let version = "@outblock/fcl-swift@0.0.6"
 
     @Published
     public var currentUser: User?
