@@ -75,9 +75,7 @@ class ViewModel: NSObject, ObservableObject {
     override init() {
         super.init()
         
-        let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "Awesome App (v0.0)",
-                                            nonce: "75f8587e5bd5f9dcc9909d0dae1f0ac5814458b2ae129620502cb936fde7120a")
-        
+        let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "Awesome App (v0.0)")
         let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "fclDemo://", projectID: "c284f5a3346da817aeca9a4e6bc7f935")
         
         let metadata = FCL.Metadata(appName: "FCLDemo",
@@ -95,10 +93,14 @@ class ViewModel: NSObject, ObservableObject {
             .put("0xFungibleToken", value: "0xf233dcee88fe0abe")
             .put("0xFUSD", value: "0x3c5959b568896393")
 
-        fcl.$currentUser.sink { user in
+        fcl.$currentUser
+            .receive(on: DispatchQueue.main)
+            .sink { user in
             if let user = user {
                 print("<==== Current User =====>")
                 print(user)
+                self.address = user.addr.hex
+                self.verifyAccountProof()
             } else {
                 print("<==== No User =====>")
             }
@@ -168,17 +170,19 @@ class ViewModel: NSObject, ObservableObject {
         }
     }
 
-    func verifyAccountProof() async {
-        do {
-            let result = try await fcl.verifyAccountProof()
-            print("verifyAccountProof ==> \(result)")
-            await MainActor.run {
-                isAccountProof = result
-            }
-        } catch {
-            print(error)
-            await MainActor.run {
-                isAccountProof = false
+    func verifyAccountProof() {
+        Task {
+            do {
+                let result = try await fcl.verifyAccountProof()
+                print("verifyAccountProof ==> \(result)")
+                await MainActor.run {
+                    isAccountProof = result
+                }
+            } catch {
+                print(error)
+                await MainActor.run {
+                    isAccountProof = false
+                }
             }
         }
     }
@@ -243,10 +247,6 @@ class ViewModel: NSObject, ObservableObject {
     func authn() async {
         do {
             let _ = try await fcl.authenticate()
-            await MainActor.run {
-                self.address = fcl.currentUser?.addr.hex.addHexPrefix() ?? ""
-            }
-            await verifyAccountProof()
         } catch {
             print(error)
         }

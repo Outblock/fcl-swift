@@ -37,7 +37,7 @@ public extension FCL {
             let appIdentifier: String
             let nonce: String
             
-            public init(appIdentifier: String, nonce: String) {
+            public init(appIdentifier: String, nonce: String = fcl.generateNonce()) {
                 self.appIdentifier = appIdentifier
                 self.nonce = nonce
             }

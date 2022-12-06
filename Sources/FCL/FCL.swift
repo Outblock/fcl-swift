@@ -13,9 +13,12 @@ import UIKit
 
 extension WebSocket: WebSocketConnecting {}
 
-struct SocketFactory: WebSocketFactory {
+private class SocketFactory: WebSocketFactory {
+    var socket: WebSocket?
     func create(with url: URL) -> WebSocketConnecting {
-        return WebSocket(url: url)
+        let socket = WebSocket(url: url)
+        self.socket = socket
+        return socket
     }
 }
 
@@ -153,11 +156,16 @@ public final class FCL: NSObject, ObservableObject {
         UIApplication.shared.topMostViewController?.present(discoveryVC, animated: true)
     }
     
-    public func closeDiscoveryIfNeed() {
+    public func closeDiscoveryIfNeed(completion: (() -> Void)? = nil ) {
         guard let vc = UIApplication.shared.topMostViewController as? UIHostingController<DiscoveryView> else {
             return
         }
-        vc.dismiss(animated: true)
+        vc.dismiss(animated: true, completion: completion)
+    }
+    
+    public func generateNonce() -> String {
+        let letters = "0123456789abcdef"
+        return String((0..<64).map{ _ in letters.randomElement()! })
     }
     
     internal func getStategy() throws -> FCLStrategy {
@@ -165,7 +173,6 @@ public final class FCL: NSObject, ObservableObject {
               let method = FCL.ServiceMethod(rawValue: methodString) else {
             throw FCLError.invalidWalletProvider
         }
-        
         return method.provider
     }
 }

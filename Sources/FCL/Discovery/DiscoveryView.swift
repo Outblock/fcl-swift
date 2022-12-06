@@ -51,15 +51,19 @@ public struct DiscoveryView: View {
                             
                             let info = provider.provider(chainId: .testnet)
                             Button {
-                                Task {
-                                    do {
-                                        presentationMode.wrappedValue.dismiss()
-                                        try fcl.changeProvider(provider: provider, env: .testnet)
-                                        let _ = try await fcl.authenticate()
-                                    } catch {
-                                        print(error)
+                                isShown = false
+                                
+                                fcl.closeDiscoveryIfNeed {
+                                    Task {
+                                        do {
+                                            try fcl.changeProvider(provider: provider, env: .testnet)
+                                            let _ = try await fcl.authenticate()
+                                        } catch {
+                                            print(error)
+                                        }
                                     }
                                 }
+                                   
                             } label: {
                                 VStack {
                                     ImageView(url: info.logo)
