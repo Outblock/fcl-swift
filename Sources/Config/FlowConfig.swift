@@ -25,7 +25,7 @@ public extension FCL {
 
             // Wallet Provider
             case providerMethod
-            
+
             // Account Proof
             case appId = "appIdentifier"
             case nonce = "accountProofNonce"

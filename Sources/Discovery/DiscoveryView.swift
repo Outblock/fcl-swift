@@ -1,6 +1,6 @@
 //
 //  SwiftUIView.swift
-//  
+//
 //
 //  Created by Hao Fu on 9/11/2022.
 //
@@ -8,25 +8,22 @@
 import SwiftUI
 
 public struct DiscoveryView: View {
-    
     @Environment(\.presentationMode)
     var presentationMode
-    
+
     @State
     var isShown: Bool = false
-    
+
     public var body: some View {
-        
         VStack(spacing: 0) {
             Spacer()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
+
             VStack(spacing: 0) {
-                
                 HStack {
                     Text("Connect Wallet")
                     Spacer()
-                    
+
                     Button {
                         isShown = false
                         presentationMode.wrappedValue.dismiss()
@@ -34,46 +31,41 @@ public struct DiscoveryView: View {
                         Image(systemName: "xmark")
                             .foregroundColor(.primary)
                     }
-                    
                 }
                 .padding(.vertical, 18)
                 .padding(.horizontal, 18)
-                
+
                 Divider()
                     .foregroundColor(.secondary)
-                
+
                 ScrollView(.horizontal) {
                     HStack(alignment: .center, spacing: 18) {
-                        ForEach(FCL.Provider.allCases.filter {
-                            $0.supportNetwork.contains(.testnet)
-                        },
-                                id: \.hashValue) { provider in
-                            
-                            let info = provider.provider(chainId: .testnet)
+                        ForEach(FCL.Provider.getEnvCases(), id: \.hashValue) { provider in
+
+                            let info = provider.provider(chainId: fcl.currentEnv)
                             Button {
                                 isShown = false
                                 fcl.closeDiscoveryIfNeed {
                                     Task {
                                         do {
-                                            try fcl.changeProvider(provider: provider, env: .testnet)
-                                            let _ = try await fcl.authenticate()
+                                            try fcl.changeProvider(provider: provider, env: fcl.currentEnv)
+                                            _ = try await fcl.authenticate()
                                         } catch {
                                             print(error)
                                         }
                                     }
                                 }
-                                   
+
                             } label: {
                                 VStack {
                                     ImageView(url: info.logo)
                                         .frame(maxWidth: 70, maxHeight: 70)
                                         .cornerRadius(10)
-                                    
+
                                     Text(info.name)
                                         .font(.footnote)
                                         .foregroundColor(.primary)
                                 }
-                                
                             }
                         }
                     }
@@ -86,7 +78,7 @@ public struct DiscoveryView: View {
             .cornerRadius(8, corners: [.topLeft, .topRight])
         }
         .edgesIgnoringSafeArea(.all)
-        .background(Color.black.opacity( isShown ? 0.1 : 0).edgesIgnoringSafeArea(.top))
+        .background(Color.black.opacity(isShown ? 0.1 : 0).edgesIgnoringSafeArea(.top))
         .animation(isShown ? .easeInOut.delay(0.15) : .none, value: isShown)
         .onAppear {
             isShown = true
@@ -110,4 +102,3 @@ struct DiscoveryView_Previews: PreviewProvider {
         .background(Color(UIColor.systemBlue))
     }
 }
-

@@ -1,29 +1,29 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Hao Fu on 26/9/2022.
 //
 
-import Foundation
 import Flow
+import Foundation
 
 public extension FCL {
     func query(script: String, args: [Flow.Cadence.FValue] = []) async throws -> Flow.ScriptResponse {
         let chainID: Flow.ChainID = fcl.config.get(.env) == "testnet" ? .testnet : .mainnet
         let script = Flow.Script(text: fcl.defaultAddressRegistry.processScript(script: script, chainId: chainID))
-        
+
         let items = fcl.config.dict.filter { item in
             item.key.range(of: "^0x", options: .regularExpression) != nil
         }
-        
+
         let newScript = items.reduce(script.text) { partialResult, item in
             partialResult?.replacingOccurrences(of: item.key, with: item.value)
         } ?? ""
-        
+
         return try await flow.accessAPI.executeScriptAtLatestBlock(script: Flow.Script(text: newScript), arguments: args)
     }
-    
+
     /// Submit scripts to query the blockchain.
     /// - parameters:
     ///     - signers: A list of `FlowSigner` to sign the transaction
@@ -41,7 +41,6 @@ public extension FCL {
                 break
             }
         }
-        return try await query(script: script.text, args: args.compactMap{ $0.value })
+        return try await query(script: script.text, args: args.compactMap { $0.value })
     }
-    
 }

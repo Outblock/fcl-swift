@@ -1,13 +1,13 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Hao Fu on 29/11/2022.
 //
 
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 class ImageLoader: ObservableObject {
     var didChange = PassthroughSubject<Data, Never>()
@@ -18,7 +18,7 @@ class ImageLoader: ObservableObject {
     }
 
     init(url: URL) {
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        let task = URLSession.shared.dataTask(with: url) { data, _, _ in
             guard let data = data else { return }
             DispatchQueue.main.async {
                 self.data = data
@@ -29,20 +29,20 @@ class ImageLoader: ObservableObject {
 }
 
 struct ImageView: View {
-    @ObservedObject var imageLoader:ImageLoader
-    @State var image:UIImage = UIImage()
+    @ObservedObject var imageLoader: ImageLoader
+    @State var image = UIImage()
 
     init(url: URL) {
         imageLoader = ImageLoader(url: url)
     }
 
     var body: some View {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .onReceive(imageLoader.didChange) { data in
+        Image(uiImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .onReceive(imageLoader.didChange) { data in
                 self.image = UIImage(data: data) ?? UIImage()
-        }
+            }.background(Color(UIColor.tertiarySystemBackground))
     }
 }
 
@@ -52,13 +52,10 @@ struct ImageView_Previews: PreviewProvider {
             .onTapGesture {
                 fcl.openDiscovery()
             }
-        
     }
 }
 
-
 struct RoundedCorner: Shape {
-
     var radius: CGFloat = .infinity
     var corners: UIRectCorner = .allCorners
 
@@ -70,6 +67,6 @@ struct RoundedCorner: Shape {
 
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape( RoundedCorner(radius: radius, corners: corners) )
+        clipShape(RoundedCorner(radius: radius, corners: corners))
     }
 }

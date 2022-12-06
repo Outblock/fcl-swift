@@ -4,7 +4,6 @@ import Flow
 import XCTest
 
 final class FCLTests: XCTestCase {
-
     func testEncodeMessageForAuthn() {
         let timestamp = Date().timeIntervalSince1970
         let result1 = FCL.WalletUtil.encodeMessageForProvableAuthnSigning(address: .init(hex: "0x6704b72eb8c51187"),
@@ -23,14 +22,13 @@ final class FCLTests: XCTestCase {
     }
 
     func testRegexInConfig() {
-        
         let metadata = FCL.Metadata(appName: "FCLDemo",
                                     appDescription: "Demo app of FCL",
                                     appIcon: URL(string: "https://placekitten.com/g/200/200")!,
                                     location: URL(string: "https://foo.com")!,
                                     accountProof: nil,
-                     walletConnectConfig: nil)
-        
+                                    walletConnectConfig: nil)
+
         fcl.config(metadata: metadata, env: .mainnet, provider: .lilico)
 
         let dict = fcl.config.configLens("^app\\.detail\\.")
@@ -55,7 +53,7 @@ final class FCLTests: XCTestCase {
                 [.int(7), .int(6), .address(Flow.Address(hex: "0x4b7f74fdd447640a"))]
             }
         }.decode()
-        
+
         XCTAssertEqual(13, response)
     }
 
@@ -69,6 +67,5 @@ final class FCLTests: XCTestCase {
 
     func testGetLastestBlock() async throws {
         _ = try await fcl.getLastestBlock()
-        
     }
 }

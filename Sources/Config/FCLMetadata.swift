@@ -23,7 +23,8 @@ public extension FCL {
                     location: URL,
                     autoConnect: Bool = true,
                     accountProof: FCL.Metadata.AccountProofConfig? = nil,
-                    walletConnectConfig: FCL.Metadata.WalletConnectConfig? = nil) {
+                    walletConnectConfig: FCL.Metadata.WalletConnectConfig? = nil)
+        {
             self.appName = appName
             self.appDescription = appDescription
             self.appIcon = appIcon
@@ -32,11 +33,11 @@ public extension FCL {
             self.accountProof = accountProof
             self.walletConnectConfig = walletConnectConfig
         }
-        
+
         public struct AccountProofConfig {
             let appIdentifier: String
             let nonce: String
-            
+
             public init(appIdentifier: String, nonce: String = fcl.generateNonce()) {
                 self.appIdentifier = appIdentifier
                 self.nonce = nonce
@@ -46,7 +47,7 @@ public extension FCL {
         public struct WalletConnectConfig {
             let urlScheme: String
             let projectID: String
-            
+
             public init(urlScheme: String, projectID: String) {
                 self.urlScheme = urlScheme
                 self.projectID = projectID

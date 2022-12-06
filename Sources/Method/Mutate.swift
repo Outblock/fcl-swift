@@ -30,8 +30,8 @@ public extension FCL {
                 gasLimit: Int = 1000,
                 proposer: FCLSigner? = nil,
                 authorizors: [FCLSigner]? = nil,
-                payers: [FCLSigner]? = nil) async throws -> Flow.ID {
-        
+                payers: [FCLSigner]? = nil) async throws -> Flow.ID
+    {
         var list: [Build] = [.transaction(cadence), .args(args), .limit(gasLimit)]
         if let proposer {
             list.append(.proposer(proposer))
@@ -48,7 +48,7 @@ public extension FCL {
     func mutate(@FCL.Builder builder: () -> [FCL.Build]) async throws -> Flow.ID {
         return try await send(builder())
     }
-    
+
     func send(_ builds: [Build]) async throws -> Flow.ID {
         var ix = Interaction()
         _ = prepare(ix: &ix, builder: builds)
@@ -162,11 +162,11 @@ public extension FCL {
         public static func buildBlock(_ components: Build...) -> [Build] {
             components
         }
-        
+
         public static func buildEither(first component: [Build]) -> [Build] {
             component
         }
-        
+
         public static func buildEither(second component: [Build]) -> [Build] {
             component
         }

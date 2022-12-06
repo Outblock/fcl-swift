@@ -1,13 +1,13 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Hao Fu on 26/9/2022.
 //
 
-import Foundation
-import Flow
 import AuthenticationServices
+import Flow
+import Foundation
 
 protocol HTTPSessionDelegate {
     // TODO: Improve this
@@ -23,29 +23,27 @@ extension FCL {
         internal var session: ASWebAuthenticationSession?
         // TODO: Improve this
         internal var isPending = true
-        
+
         override init() {
             super.init()
             client.delegate = self
         }
-        
-        func execService<T>(url: URL, method: FCL.ServiceType, request: T?) async throws -> FCL.Response where  T : Encodable {
+
+        func execService<T>(url: URL, method _: FCL.ServiceType, request _: T?) async throws -> FCL.Response where T: Encodable {
             guard let request else {
                 return try await client.execHttpPost(url: url)
             }
-                    
+
             guard let data = try? JSONEncoder().encode(request) else {
                 throw FCLError.encodeFailure
             }
-            
+
             return try await client.execHttpPost(url: url, data: data)
         }
-        
     }
 }
 
 extension FCL.HTTPProvider: HTTPSessionDelegate {
-    
     // MARK: - Session
 
     func openAuthenticationSession(service: FCL.Service) throws {
@@ -72,7 +70,7 @@ extension FCL.HTTPProvider: HTTPSessionDelegate {
             }
         }
     }
-    
+
     internal func closeSession() {
         DispatchQueue.main.async {
             self.session?.cancel()

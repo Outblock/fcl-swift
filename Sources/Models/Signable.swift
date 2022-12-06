@@ -22,13 +22,13 @@ extension FCL {
         public let cadence: String?
         public let args: [Flow.Argument]
         var interaction = Interaction()
-        
+
         enum CodingKeys: String, CodingKey {
             case fType = "f_type"
             case fVsn = "f_vsn"
             case roles, data, message, keyId, addr, cadence, args, interaction, voucher
         }
-        
+
         var voucher: Voucher {
             let insideSigners: [Singature] = interaction.findInsideSigners.compactMap { id in
                 guard let account = interaction.accounts[id] else { return nil }
@@ -36,29 +36,29 @@ extension FCL {
                                  keyId: account.keyID,
                                  sig: account.signature)
             }
-            
+
             let outsideSigners: [Singature] = interaction.findOutsideSigners.compactMap { id in
                 guard let account = interaction.accounts[id] else { return nil }
                 return Singature(address: account.addr?.sansPrefix(),
                                  keyId: account.keyID,
                                  sig: account.signature)
             }
-            
+
             return Voucher(cadence: interaction.message.cadence,
                            refBlock: interaction.message.refBlock,
                            computeLimit: interaction.message.computeLimit,
                            arguments: interaction.message.arguments.compactMap { tempId in
-                interaction.arguments[tempId]?.asArgument
-            },
+                               interaction.arguments[tempId]?.asArgument
+                           },
                            proposalKey: interaction.createProposalKey(),
                            payer: interaction.accounts[interaction.payer ?? ""]?.addr?.sansPrefix(),
                            authorizers: interaction.authorizations
-                .compactMap { cid in interaction.accounts[cid]?.addr?.sansPrefix() }
-                .uniqued(),
+                               .compactMap { cid in interaction.accounts[cid]?.addr?.sansPrefix() }
+                               .uniqued(),
                            payloadSigs: insideSigners,
                            envelopeSigs: outsideSigners)
         }
-        
+
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(fType, forKey: .fType)
@@ -74,7 +74,7 @@ extension FCL {
             try container.encode(voucher, forKey: .voucher)
         }
     }
-    
+
     struct PreSignable: Encodable {
         let fType: String = "PreSignable"
         let fVsn: String = "1.0.1"
@@ -83,7 +83,7 @@ extension FCL {
         var args: [Flow.Argument] = []
         let data = [String: String]()
         var interaction = Interaction()
-        
+
         var voucher: Voucher {
             let insideSigners: [Singature] = interaction.findInsideSigners.compactMap { id in
                 guard let account = interaction.accounts[id] else { return nil }
@@ -91,36 +91,36 @@ extension FCL {
                                  keyId: account.keyID,
                                  sig: account.signature)
             }
-            
+
             let outsideSigners: [Singature] = interaction.findOutsideSigners.compactMap { id in
                 guard let account = interaction.accounts[id] else { return nil }
                 return Singature(address: account.addr,
                                  keyId: account.keyID,
                                  sig: account.signature)
             }
-            
+
             return Voucher(cadence: interaction.message.cadence,
                            refBlock: interaction.message.refBlock,
                            computeLimit: interaction.message.computeLimit,
                            arguments: interaction.message.arguments.compactMap { tempId in
-                interaction.arguments[tempId]?.asArgument
-            },
+                               interaction.arguments[tempId]?.asArgument
+                           },
                            proposalKey: interaction.createProposalKey(),
                            payer: interaction.payer,
                            authorizers: interaction.authorizations
-                .compactMap { cid in interaction.accounts[cid]?.addr }
-                .uniqued(),
+                               .compactMap { cid in interaction.accounts[cid]?.addr }
+                               .uniqued(),
                            payloadSigs: insideSigners,
                            envelopeSigs: outsideSigners)
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case fType = "f_type"
             case fVsn = "f_vsn"
             case roles, cadence, args, interaction
             case voucher
         }
-        
+
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(fType, forKey: .fType)
@@ -132,7 +132,7 @@ extension FCL {
             try container.encode(voucher, forKey: .voucher)
         }
     }
-    
+
     struct Argument: Encodable {
         var kind: String
         var tempId: String
@@ -140,11 +140,11 @@ extension FCL {
         var asArgument: Flow.Argument
         var xform: Xform
     }
-    
+
     struct Xform: Codable {
         var label: String
     }
-    
+
     struct Interaction: Encodable {
         var tag: Tag = .unknown
         var assigns = [String: String]()
@@ -162,12 +162,12 @@ extension FCL {
         var block = Block()
         var account = Account()
         var collection = Id()
-        
+
         enum Status: String, CaseIterable, Codable {
             case ok = "OK"
             case bad = "BAD"
         }
-        
+
         enum Tag: String, CaseIterable, Codable {
             case unknown = "UNKNOWN"
             case script = "SCRIPT"
@@ -184,21 +184,21 @@ extension FCL {
             case getBlockHeader = "GET_BLOCK_HEADER"
             case getCollection = "GET_COLLECTION"
         }
-        
+
         var isUnknown: Bool { `is`(.unknown) }
         var isScript: Bool { `is`(.script) }
         var isTransaction: Bool { `is`(.transaction) }
-        
+
         func `is`(_ tag: Tag) -> Bool {
             self.tag == tag
         }
-        
+
         @discardableResult
         mutating func setTag(_ tag: Tag) -> Self {
             self.tag = tag
             return self
         }
-        
+
         var findInsideSigners: [String] {
             // Inside Signers Are: (authorizers + proposer) - payer
             var inside = Set(authorizations)
@@ -210,7 +210,7 @@ extension FCL {
             }
             return Array(inside)
         }
-        
+
         var findOutsideSigners: [String] {
             // Outside Signers Are: (payer)
             guard let payer = payer else {
@@ -219,19 +219,19 @@ extension FCL {
             let outside = Set([payer])
             return Array(outside)
         }
-        
+
         func createProposalKey() -> ProposalKey {
             guard let proposer = proposer,
                   let account = accounts[proposer]
             else {
                 return ProposalKey()
             }
-            
+
             return ProposalKey(address: account.addr?.sansPrefix(),
                                keyID: account.keyID,
                                sequenceNum: account.sequenceNum)
         }
-        
+
         func createFlowProposalKey() async throws -> Flow.TransactionProposalKey {
             guard let proposer = proposer,
                   var account = accounts[proposer],
@@ -240,9 +240,9 @@ extension FCL {
             else {
                 throw FCLError.invaildProposer
             }
-            
+
             let flowAddress = Flow.Address(hex: address)
-            
+
             if account.sequenceNum == nil {
                 let accountData = try await flow.accessAPI.getAccountAtLatestBlock(address: flowAddress)
                 account.sequenceNum = Int(accountData.keys[keyID].sequenceNumber)
@@ -257,23 +257,23 @@ extension FCL {
                 return key
             }
         }
-        
+
         func buildPreSignable(role: Role) -> PreSignable {
             return PreSignable(roles: role,
                                cadence: message.cadence ?? "",
                                args: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument },
                                interaction: self)
         }
-        
+
         func toFlowTransaction() async throws -> Flow.Transaction {
             let proposalKey = try await createFlowProposalKey()
-            
+
             guard let payerAccount = payer,
                   let payerAddress = accounts[payerAccount]?.addr
             else {
                 throw FCLError.missingPayer
             }
-            
+
             var tx = Flow.Transaction(script: Flow.Script(text: message.cadence ?? ""),
                                       arguments: message.arguments.compactMap { tempId in arguments[tempId]?.asArgument },
                                       referenceBlockId: Flow.ID(hex: message.refBlock ?? ""),
@@ -281,10 +281,10 @@ extension FCL {
                                       proposalKey: proposalKey,
                                       payer: Flow.Address(hex: payerAddress),
                                       authorizers: authorizations
-                .compactMap { cid in accounts[cid]?.addr }
-                .uniqued()
-                .compactMap { Flow.Address(hex: $0) })
-            
+                                          .compactMap { cid in accounts[cid]?.addr }
+                                          .uniqued()
+                                          .compactMap { Flow.Address(hex: $0) })
+
             let insideSigners = findInsideSigners
             insideSigners.forEach { address in
                 if let account = accounts[address],
@@ -297,9 +297,9 @@ extension FCL {
                                            signature: Data(signature.hexValue))
                 }
             }
-            
+
             let outsideSigners = findOutsideSigners
-            
+
             outsideSigners.forEach { address in
                 if let account = accounts[address],
                    let address = account.addr,
@@ -314,33 +314,33 @@ extension FCL {
             return tx
         }
     }
-    
+
     struct Block: Codable {
         var id: String?
         var height: Int64?
         var isSealed: Bool?
     }
-    
+
     struct Account: Codable {
         var addr: String?
     }
-    
+
     struct Id: Encodable {
         var id: String?
     }
-    
+
     struct Events: Codable {
         var eventType: String?
         var start: String?
         var end: String?
         var blockIDS: [String] = []
-        
+
         enum CodingKeys: String, CodingKey {
             case eventType, start, end
             case blockIDS = "blockIds"
         }
     }
-    
+
     struct Message: Codable {
         var cadence: String?
         var refBlock: String?
@@ -351,7 +351,7 @@ extension FCL {
         var params: [String] = []
         var arguments: [String] = []
     }
-    
+
     struct Voucher: Codable {
         let cadence: String?
         let refBlock: String?
@@ -363,21 +363,21 @@ extension FCL {
         let payloadSigs: [Singature]?
         let envelopeSigs: [Singature]?
     }
-    
+
     struct Accounts: Encodable {
         let currentUser: SignableUser
-        
+
         enum CodingKeys: String, CodingKey {
             case currentUser = "CURRENT_USER"
         }
     }
-    
+
     struct Singature: Codable {
         let address: String?
         let keyId: Int?
         let sig: String?
     }
-    
+
     struct SignableUser: Encodable, Equatable {
         var kind: String?
         var tempID: String?
@@ -408,7 +408,7 @@ extension FCL {
             try container.encode(sequenceNum, forKey: .sequenceNum)
             try container.encode(role, forKey: .role)
         }
-        
+
         static func == (lhs: SignableUser, rhs: SignableUser) -> Bool {
             guard let lId = lhs.tempID, let rId = rhs.tempID else {
                 return false
@@ -416,7 +416,7 @@ extension FCL {
             return lId == rId
         }
     }
-    
+
     struct ProposalKey: Codable {
         var address: String?
         var keyID: Int?
@@ -458,7 +458,7 @@ extension Flow.Argument {
             let letters = "abcdefghijklmnopqrstuvwxyz0123456789"
             return String((0 ..< length).map { _ in letters.randomElement()! })
         }
-        
+
         return FCL.Argument(kind: "ARGUMENT",
                             tempId: randomString(length: 10),
                             value: value,
@@ -483,7 +483,7 @@ extension FCLSigner {
     var tempID: String {
         [address.hex.addHexPrefix(), String(keyIndex)].joined(separator: "|")
     }
-    
+
     var signableUser: FCL.SignableUser {
         .init(kind: nil,
               tempID: tempID,
@@ -500,16 +500,16 @@ extension FCL.SignableUser: FCLSigner {
     var address: Flow.Address {
         .init(hex: addr ?? "0x")
     }
-    
+
     var keyIndex: Int {
         keyID ?? 0
     }
-    
+
     func signingFunction(signable: FCL.Signable) async throws -> AuthzResponse {
         if let signer {
             return try await signer.signingFunction(signable: signable)
         }
-        
+
         if let preAuthz = fcl.preAuthz {
             var array = (preAuthz.data?.payer ?? []) + (preAuthz.data?.authorization ?? [])
             if let proposer = preAuthz.data?.proposer {
@@ -518,19 +518,19 @@ extension FCL.SignableUser: FCLSigner {
             guard let authz = array.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() }) else {
                 throw FCLError.missingAuthz
             }
-            
+
             return try await fcl.getStategy().execService(service: authz, request: signable)
         }
-        
+
         guard let authzList = fcl.currentUser?.services?.filter({ $0.type == .authz }),
-              let authz = authzList.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() }) else {
+              let authz = authzList.first(where: { $0.identity?.address.addHexPrefix() == addr?.addHexPrefix() })
+        else {
             throw FCLError.missingAuthz
         }
 
         return try await fcl.getStategy().execService(service: authz, request: signable)
     }
 }
-
 
 extension FCL.SignableUser {
     func toIndentity() -> FCL.Identity? {
@@ -539,13 +539,12 @@ extension FCL.SignableUser {
         }
         return nil
     }
-    
+
     func toService() -> FCL.Service? {
-        
         guard let addr else {
             return nil
         }
-        
+
         return .init(fType: "Service",
                      fVsn: "1.0.0",
                      type: .authz,
@@ -554,6 +553,5 @@ extension FCL.SignableUser {
                      identity: .init(address: addr, keyId: keyIndex),
                      data: nil,
                      signer: signer)
-        
     }
 }

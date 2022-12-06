@@ -29,9 +29,23 @@ struct ContentView: View {
                 Label("Account Proof", systemImage: isAccountProof ? "checkmark.circle.fill" : "xmark.circle.fill")
                     .foregroundColor(isAccountProof ? .green : .red)
             }
+
+            if fcl.currentUser?.loggedIn ?? false {
+                Button {
+                    Task {
+                        do {
+                            try await fcl.unauthenticate()
+                        } catch {
+                            print(error)
+                        }
+                    }
+                } label: {
+                    Label("Sign out", systemImage: "person.badge.minus")
+                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 20))
+                }
+            }
         }
     }
-    
 
     var body: some View {
         NavigationView {
@@ -49,7 +63,7 @@ struct ContentView: View {
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Section {
                     Button("Open Discovery") {
                         fcl.openDiscovery()
@@ -62,9 +76,9 @@ struct ContentView: View {
 
                 Section {
                     Picker("iFrame", selection: $viewModel.provider, content: {
-                        Text("Dapper").tag(FCL.Provider.dapper)
-                        Text("lilico").tag(FCL.Provider.lilico)
-                        Text("Blocoto").tag(FCL.Provider.blocto)
+                        ForEach(viewModel.walletList, id: \.hashValue) { provider in
+                            Text(provider.name).tag(provider)
+                        }
                     }).onChange(of: viewModel.provider, perform: { _ in
                         viewModel.changeWallet()
                     })
@@ -74,7 +88,7 @@ struct ContentView: View {
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
-                
+
                 signIn
 
                 Section {

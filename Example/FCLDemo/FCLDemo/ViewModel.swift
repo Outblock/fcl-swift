@@ -4,6 +4,7 @@
 //
 //  Created by lmcmz on 30/8/21.
 //
+import BigInt
 import Combine
 import CryptoKit
 import FCL
@@ -12,16 +13,17 @@ import Foundation
 import SafariServices
 import SwiftPrettyPrint
 import SwiftUI
-import BigInt
 
 class ViewModel: NSObject, ObservableObject {
     @Published var address: String = ""
 
     @Published var preAuthz: String = ""
 
-    @Published var provider: FCL.Provider = .lilico
+    @Published var provider: FCL.Provider = fcl.currentProvider ?? .lilico
 
-    @Published var env: Flow.ChainID = .testnet
+    @Published var env: Flow.ChainID = fcl.currentEnv
+
+    @Published var walletList = FCL.Provider.getEnvCases()
 
     @MainActor
     @Published var isShowWeb: Bool = false
@@ -74,17 +76,17 @@ class ViewModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        
+
         let accountProof = FCL.Metadata.AccountProofConfig(appIdentifier: "Awesome App (v0.0)")
         let walletConnect = FCL.Metadata.WalletConnectConfig(urlScheme: "fclDemo://", projectID: "c284f5a3346da817aeca9a4e6bc7f935")
-        
+
         let metadata = FCL.Metadata(appName: "FCLDemo",
                                     appDescription: "Demo App for fcl",
                                     appIcon: URL(string: "https://placekitten.com/g/200/200")!,
                                     location: URL(string: "https://flow.org")!,
                                     accountProof: accountProof,
                                     walletConnectConfig: walletConnect)
-        
+
         fcl.config(metadata: metadata,
                    env: env,
                    provider: provider)
@@ -96,15 +98,32 @@ class ViewModel: NSObject, ObservableObject {
         fcl.$currentUser
             .receive(on: DispatchQueue.main)
             .sink { user in
-            if let user = user {
-                print("<==== Current User =====>")
-                print(user)
-                self.address = user.addr.hex
-                self.verifyAccountProof()
-            } else {
-                print("<==== No User =====>")
-            }
-        }.store(in: &cancellables)
+                self.address = user?.addr.hex ?? ""
+                if let user = user {
+                    print("<==== Current User =====>")
+                    print(user)
+                    self.verifyAccountProof()
+                } else {
+                    print("<==== No User =====>")
+                }
+            }.store(in: &cancellables)
+
+        fcl.$currentEnv
+            .receive(on: DispatchQueue.main)
+            .sink { env in
+                self.env = env
+                self.walletList = FCL.Provider.getEnvCases(env: env)
+            }.store(in: &cancellables)
+
+        fcl.$currentProvider
+            .receive(on: DispatchQueue.main)
+            .sink { provider in
+                if let provider {
+                    self.provider = provider
+                }
+            }.store(in: &cancellables)
+
+        fcl.delegate = self
     }
 
     func changeWallet() {
@@ -246,7 +265,7 @@ class ViewModel: NSObject, ObservableObject {
 
     func authn() async {
         do {
-            let _ = try await fcl.authenticate()
+            _ = try await fcl.reauthenticate()
         } catch {
             print(error)
         }
@@ -256,11 +275,11 @@ class ViewModel: NSObject, ObservableObject {
         do {
             let txId = try await fcl.mutate(cadence: transactionScript,
                                             args: [.string("Test2"), .int(1)])
-            
+
             await MainActor.run {
                 self.preAuthz = txId.hex
             }
-            
+
         } catch {
             print(error)
         }
@@ -287,7 +306,7 @@ class ViewModel: NSObject, ObservableObject {
             await MainActor.run {
                 self.preAuthz = txId.hex
             }
-            
+
             _ = try await txId.onceSealed()
         } catch {
             print(error)
@@ -307,4 +326,14 @@ struct SafariView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_: SFSafariViewController, context _: UIViewControllerRepresentableContext<SafariView>) {}
+}
+
+extension ViewModel: FCLDelegate {
+    func showLoading() {
+        ProgressHUD.show("Loading...")
+    }
+
+    func hideLoading() {
+        ProgressHUD.dismiss()
+    }
 }

@@ -11,9 +11,9 @@ import Foundation
 extension FCL {
     final class HTTPClient {
         internal let defaultUserAgent = "Flow SWIFT SDK"
-        
+
         var delegate: HTTPSessionDelegate?
-        
+
         enum HTTPMethod: String {
             case get = "GET"
             case post = "POST"
@@ -65,23 +65,30 @@ extension FCL {
                 configData = try? JSONSerialization.data(withJSONObject: configDict)
             }
 
-            let result = try await fetchService(url: url, method: method, params: params, data: configData ?? data)
-            switch result.status {
-            case .approved:
-                return result
-            case .declined:
-                return result
-            case .pending:
-                delegate?.isPending = true
-                guard let local = result.local,
-                      let updates = result.updates ?? result.authorizationUpdates
-                else {
-                    throw FCLError.generic
+            fcl.delegate?.showLoading()
+            do {
+                let result = try await fetchService(url: url, method: method, params: params, data: configData ?? data)
+                fcl.delegate?.hideLoading()
+                switch result.status {
+                case .approved:
+                    return result
+                case .declined:
+                    return result
+                case .pending:
+                    delegate?.isPending = true
+                    guard let local = result.local,
+                          let updates = result.updates ?? result.authorizationUpdates
+                    else {
+                        throw FCLError.generic
+                    }
+
+                    try delegate?.openAuthenticationSession(service: local)
+
+                    return try await poll(service: updates)
                 }
-
-                try delegate?.openAuthenticationSession(service: local)
-
-                return try await poll(service: updates)
+            } catch {
+                fcl.delegate?.hideLoading()
+                throw error
             }
         }
 

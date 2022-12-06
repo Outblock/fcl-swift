@@ -5,8 +5,8 @@
 //  Created by lmcmz on 28/8/21.
 //
 
-import Foundation
 import Flow
+import Foundation
 
 public struct FCLResponse: Codable {
     public let address: String?
@@ -16,11 +16,11 @@ extension FCL.Response: AuthzResponse {
     public var addr: Flow.Address {
         .init(hex: compositeSignature?.addr ?? "")
     }
-    
+
     public var keyId: Int {
         compositeSignature?.keyId ?? 0
     }
-    
+
     public var signature: Flow.Signature {
         .init(hex: data?.signature ?? compositeSignature?.signature ?? "")
     }
@@ -73,7 +73,7 @@ extension FCL {
             reason = try? container.decode(String.self, forKey: .reason)
             compositeSignature = try? container.decode(AuthnData.self, forKey: .compositeSignature)
         }
-        
+
         internal init(fType: String? = nil, fVsn: String? = nil, status: FCL.Status, updates: FCL.Service? = nil, local: FCL.Service? = nil, data: FCL.AuthnData? = nil, reason: String? = nil, compositeSignature: FCL.AuthnData? = nil, authorizationUpdates: FCL.Service? = nil) {
             self.fType = fType
             self.fVsn = fVsn
@@ -102,21 +102,21 @@ extension FCL {
         let paddr: String?
         let hks: String?
         let l6n: String?
-        
+
         var expiresDate: Date? {
             if let expires {
                 return Date(timeIntervalSince1970: TimeInterval(expires) / 1000)
             }
             return nil
         }
-        
+
         var isExpired: Bool? {
             if let expiresDate, expiresDate > Date() {
                 return true
             }
             return false
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case fType
             case fVsn
@@ -133,7 +133,7 @@ extension FCL {
             case hks
             case l6n
         }
-        
+
         internal init(addr: String? = nil, fType: String? = nil, fVsn: String? = nil, services: [FCL.Service]? = nil, proposer: FCL.Service? = nil, payer: [FCL.Service]? = nil, authorization: [FCL.Service]? = nil, signature: String? = nil, keyId: Int? = nil, expires: Int? = nil, code: String? = nil, paddr: String? = nil, hks: String? = nil, l6n: String? = nil) {
             self.addr = addr
             self.fType = fType
@@ -170,7 +170,7 @@ extension FCL {
         var provider: ServiceProvider?
         var params: [String: String]?
         var data: FCLDataResponse?
-        
+
         var signer: FCLSigner?
 
         enum CodingKeys: String, CodingKey {
@@ -186,8 +186,8 @@ extension FCL {
             case params
             case data
         }
-        
-        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String : String]? = nil, data: FCL.FCLDataResponse? = nil, signer: FCLSigner? = nil) {
+
+        internal init(fType: String? = nil, fVsn: String? = nil, type: FCL.ServiceType? = nil, method: FCL.ServiceMethod? = nil, endpoint: URL? = nil, uid: String? = nil, id: String? = nil, identity: FCL.Identity? = nil, provider: FCL.ServiceProvider? = nil, params: [String: String]? = nil, data: FCL.FCLDataResponse? = nil, signer: FCLSigner? = nil) {
             self.fType = fType
             self.fVsn = fVsn
             self.type = type
@@ -201,7 +201,6 @@ extension FCL {
             self.data = data
             self.signer = signer
         }
-
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -283,5 +282,4 @@ extension FCL {
             }
         }
     }
-
 }

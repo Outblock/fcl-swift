@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1530B245270AC3D10063690E /* FCL in Frameworks */ = {isa = PBXBuildFile; productRef = 1530B244270AC3D10063690E /* FCL */; };
+		15A9D9D8293FA8C60085C9EE /* ProgressHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A9D9D7293FA8C60085C9EE /* ProgressHUD.swift */; };
 		15E2F15D26DD07C900FA19BD /* FCLDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E2F15C26DD07C900FA19BD /* FCLDemoApp.swift */; };
 		15E2F15F26DD07C900FA19BD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E2F15E26DD07C900FA19BD /* ContentView.swift */; };
 		15E2F16126DD07CB00FA19BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 15E2F16026DD07CB00FA19BD /* Assets.xcassets */; };
@@ -20,6 +21,7 @@
 
 /* Begin PBXFileReference section */
 		1530B241270AC3770063690E /* fcl-swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "fcl-swift"; path = ../..; sourceTree = "<group>"; };
+		15A9D9D7293FA8C60085C9EE /* ProgressHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHUD.swift; sourceTree = "<group>"; };
 		15E2F15926DD07C900FA19BD /* FCLDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FCLDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		15E2F15C26DD07C900FA19BD /* FCLDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCLDemoApp.swift; sourceTree = "<group>"; };
 		15E2F15E26DD07C900FA19BD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				15E2F15C26DD07C900FA19BD /* FCLDemoApp.swift */,
 				15E2F17526DD133800FA19BD /* ViewModel.swift */,
 				15EE0744273A501000B03DBC /* DetaiView.swift */,
+				15A9D9D7293FA8C60085C9EE /* ProgressHUD.swift */,
 				15E2F15E26DD07C900FA19BD /* ContentView.swift */,
 				15E2F16026DD07CB00FA19BD /* Assets.xcassets */,
 				15E2F16526DD07CB00FA19BD /* Info.plist */,
@@ -170,6 +173,7 @@
 			files = (
 				15E2F15F26DD07C900FA19BD /* ContentView.swift in Sources */,
 				15E2F17626DD133800FA19BD /* ViewModel.swift in Sources */,
+				15A9D9D8293FA8C60085C9EE /* ProgressHUD.swift in Sources */,
 				15E2F15D26DD07C900FA19BD /* FCLDemoApp.swift in Sources */,
 				15EE0745273A501000B03DBC /* DetaiView.swift in Sources */,
 				15EE0741273A452900B03DBC /* Util.swift in Sources */,

@@ -3,13 +3,13 @@ import BigInt
 import Combine
 import Flow
 import Starscream
-import WalletConnectRelay
-import WalletConnectSign
-import WalletConnectNetworking
-import WalletConnectPairing
-import WalletConnectKMS
 import SwiftUI
 import UIKit
+import WalletConnectKMS
+import WalletConnectNetworking
+import WalletConnectPairing
+import WalletConnectRelay
+import WalletConnectSign
 
 public let fcl = FCL.shared
 
@@ -26,42 +26,48 @@ public final class FCL: NSObject, ObservableObject {
 
     @Published
     public var currentUser: User?
-    
+
     lazy var defaultAddressRegistry = AddressRegistry()
-    
-    public var currentEnv: Flow.ChainID?
+
+    @Published
+    public var currentEnv: Flow.ChainID = .mainnet
+
+    @Published
     public var currentProvider: FCL.Provider?
-    
+
     internal var httpProvider = FCL.HTTPProvider()
     internal var wcProvider: FCL.WalletConnectProvider?
     internal var preAuthz: FCL.Response?
     internal var keychain = KeychainStorage(serviceIdentifier: "@outblock/fcl-swift")
     internal var perferenceStorage = UserDefaults.standard
-    
+
     // MARK: - Back Channel
 
-    public override init() {
+    override public init() {
         super.init()
-        
+
         if let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
            let provider = FCL.Provider(id: providerId),
-           provider.supportAutoConnect {
+           provider.supportAutoConnect
+        {
             currentProvider = provider
-            
+
             if let data = try? keychain.readData(key: .StorageKey.currentUser.rawValue),
-               let user = try? JSONDecoder().decode(FCL.User.self, from: data) {
+               let user = try? JSONDecoder().decode(FCL.User.self, from: data)
+            {
                 currentUser = user
             }
-            
+
             if let env = perferenceStorage.string(forKey: .PreferenceKey.env.rawValue) {
                 try? changeProvider(provider: provider, env: Flow.ChainID(name: env))
             }
         }
     }
-    
+
     public func config(metadata: FCL.Metadata,
                        env: Flow.ChainID,
-                       provider: FCL.Provider) {
+                       provider: FCL.Provider)
+    {
         _ = config
             .put(.title, value: metadata.appName)
             .put(.description, value: metadata.appDescription)
@@ -81,19 +87,22 @@ public final class FCL: NSObject, ObservableObject {
             _ = config
                 .put(.projectID, value: walletConnect.projectID)
                 .put(.urlSheme, value: walletConnect.urlScheme)
-            
+
             setupWalletConnect()
         }
-        
-        if !metadata.autoConnect && provider.supportAutoConnect {
-            currentProvider = provider
+
+        currentProvider = provider
+        currentEnv = env
+
+        if !metadata.autoConnect, provider.supportAutoConnect {
             perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
         } else {
             guard let providerId = perferenceStorage.string(forKey: .PreferenceKey.provider.rawValue),
                   let provider = FCL.Provider(id: providerId),
-                  provider.supportAutoConnect else {
-                      return
+                  provider.supportAutoConnect
+            else {
+                return
             }
             _ = config.put(.authn, value: provider.endpoint(chainId: env))
         }
@@ -125,41 +134,43 @@ public final class FCL: NSObject, ObservableObject {
         if !provider.supportNetwork.contains(env) {
             throw FCLError.unsupportNetwork
         }
-        
+
         config
             .put(.authn, value: provider.endpoint(chainId: env))
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
-        
+
         currentProvider = provider
+        currentEnv = env
         if provider.supportAutoConnect {
             perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
         }
     }
-    
+
     public func openDiscovery() {
         let discoveryVC = UIHostingController(rootView: DiscoveryView())
         discoveryVC.view.backgroundColor = .clear
         discoveryVC.modalPresentationStyle = .overFullScreen
         UIApplication.shared.topMostViewController?.present(discoveryVC, animated: true)
     }
-    
-    public func closeDiscoveryIfNeed(completion: (() -> Void)? = nil ) {
+
+    public func closeDiscoveryIfNeed(completion: (() -> Void)? = nil) {
         guard let vc = UIApplication.shared.topMostViewController as? UIHostingController<DiscoveryView> else {
             return
         }
         vc.dismiss(animated: true, completion: completion)
     }
-    
+
     public func generateNonce() -> String {
         let letters = "0123456789abcdef"
-        return String((0..<64).map{ _ in letters.randomElement()! })
+        return String((0 ..< 64).map { _ in letters.randomElement()! })
     }
-    
+
     internal func getStategy() throws -> FCLStrategy {
         guard let methodString = config.get(.providerMethod),
-              let method = FCL.ServiceMethod(rawValue: methodString) else {
+              let method = FCL.ServiceMethod(rawValue: methodString)
+        else {
             throw FCLError.invalidWalletProvider
         }
         return method.provider

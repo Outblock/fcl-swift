@@ -19,7 +19,7 @@ public extension FCL {
               let address = data.address,
               let signatures = data.signatures,
               let appIdentifier = config.get(.appId),
-              let nonce = config.get(.nonce)
+              let nonce = data.nonce
         else {
             throw FCLError.invaildService
         }
