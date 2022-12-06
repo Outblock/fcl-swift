@@ -52,7 +52,6 @@ public struct DiscoveryView: View {
                             let info = provider.provider(chainId: .testnet)
                             Button {
                                 isShown = false
-                                
                                 fcl.closeDiscoveryIfNeed {
                                     Task {
                                         do {

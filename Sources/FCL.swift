@@ -142,8 +142,8 @@ public final class FCL: NSObject, ObservableObject {
             .put(.providerMethod, value: provider.provider(chainId: env).method.rawValue)
             .put(.env, value: env.name)
         
+        currentProvider = provider
         if provider.supportAutoConnect {
-            currentProvider = provider
             perferenceStorage.set(provider.id, forKey: .PreferenceKey.provider.rawValue)
             perferenceStorage.set(env.name, forKey: .PreferenceKey.env.rawValue)
         }

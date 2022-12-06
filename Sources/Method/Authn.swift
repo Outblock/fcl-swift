@@ -44,7 +44,9 @@ public extension FCL {
         
         let response = try await fcl.getStategy().execService(url: url, method: .authn, request: FCL.Status.approved)
         let currentUser = buildUser(authn: response)
-        fcl.currentUser = currentUser
+        await MainActor.run {
+            fcl.currentUser = currentUser
+        }
         
         if let currentUser, let data = try? JSONEncoder().encode(currentUser),
             let provider = fcl.currentProvider,
