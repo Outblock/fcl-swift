@@ -23,7 +23,9 @@ extension String {
 
 public extension FCL {
     func unauthenticate() async throws {
-        currentUser = nil
+        await MainActor.run {
+            currentUser = nil
+        }
         try await fcl.wcProvider?.disconnect()
         try fcl.keychain.deleteAll()
     }
