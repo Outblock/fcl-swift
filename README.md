@@ -25,7 +25,7 @@ SDKs are open source, and you can use them according to the licence.
 This is a Swift Package, and can be installed via Xcode with the URL of this repository:
 
 ```swift
-.package(name: "FCL", url: "https://github.com/outblock/fcl-swift.git", from: "0.0.7")
+.package(name: "FCL", url: "https://github.com/outblock/fcl-swift.git", from: "0.0.8")
 ```
 
 ## Config
