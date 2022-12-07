@@ -10,13 +10,16 @@ import Foundation
 
 public extension FCL {
     enum Provider: Equatable, Hashable, CaseIterable {
-        case dapper
+           
+        // Dapper remove HTTP/POST Service and new service is TBD
+        // case dapper
+        
         case dapperSC
         case blocto
         case lilico
         case custom(FCL.WalletProvider)
 
-        public static var allCases: [FCL.Provider] = [.dapper, .dapperSC, .lilico, .blocto]
+        public static var allCases: [FCL.Provider] = [.dapperSC, .lilico, .blocto]
 
         public static func getEnvCases(env: Flow.ChainID = fcl.currentEnv) -> [FCL.Provider] {
             allCases.filter { $0.supportNetwork.contains(env) }
@@ -28,8 +31,6 @@ public extension FCL {
 
         public var supportNetwork: [Flow.ChainID] {
             switch self {
-            case .dapper:
-                return [.mainnet]
             case .dapperSC:
                 return [.testnet]
             case .blocto:
@@ -43,8 +44,6 @@ public extension FCL {
 
         public func endpoint(chainId: Flow.ChainID = fcl.currentEnv) -> String {
             switch self {
-            case .dapper:
-                return "https://dapper-http-post.vercel.app/api/flow/authn"
             case .dapperSC:
                 return "dapper-pro://"
             case .blocto:
@@ -67,13 +66,6 @@ public extension FCL {
 
         public func provider(chainId: Flow.ChainID = fcl.currentEnv) -> FCL.WalletProvider {
             switch self {
-            case .dapper:
-                return .init(id: "dapper",
-                             name: "Dapper",
-                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/dapper/logo.jpeg")!,
-                             method: .httpPost,
-                             endpoint: endpoint(chainId: chainId),
-                             supportNetwork: supportNetwork)
             case .dapperSC:
                 return .init(id: "dapper-sc",
                              name: "Dapper SC",

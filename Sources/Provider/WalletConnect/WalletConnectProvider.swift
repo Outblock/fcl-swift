@@ -258,7 +258,7 @@ extension FCL {
         func setUpWCSubscribing() {
             Sign.instance.socketConnectionStatusPublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] status in
+                .sink { status in
                     if status == .connected {
                         print("Client connected")
                     }
@@ -266,7 +266,7 @@ extension FCL {
 
             Sign.instance.sessionResponsePublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] response in
+                .sink { response in
                     print("Session Response ===> \(response)")
                 }.store(in: &publishers)
 
@@ -287,7 +287,7 @@ extension FCL {
 
             Sign.instance.sessionRequestPublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
+                .sink { _ in
                     print("[RESPONDER] WC: Did receive session request")
                 }.store(in: &publishers)
 
