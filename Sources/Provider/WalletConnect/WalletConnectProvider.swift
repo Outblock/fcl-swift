@@ -13,6 +13,7 @@ import UIKit
 import WalletConnectPairing
 import WalletConnectSign
 import WalletConnectUtils
+import Gzip
 
 extension WebSocket: WebSocketConnecting {}
 
@@ -138,10 +139,12 @@ extension FCL {
 
             guard let request = request,
                   let data = try? JSONEncoder().encode(request),
-                  let dataString = String(data: data, encoding: .utf8)
+                  let compressedData = try? data.gzipped(level: .bestCompression)
             else {
                 throw FCLError.encodeFailure
             }
+            
+            let dataString = compressedData.base64EncodedString()
 
             let request1 = Request(topic: sessionTopic,
                                    method: WCMethod(service: method).rawValue,

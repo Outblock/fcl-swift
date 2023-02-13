@@ -47,6 +47,15 @@
         }
       },
       {
+        "package": "Gzip",
+        "repositoryURL": "https://github.com/1024jp/GzipSwift",
+        "state": {
+          "branch": null,
+          "revision": "7a7f17761c76a932662ab77028a4329f67d645a4",
+          "version": "5.2.0"
+        }
+      },
+      {
         "package": "PromiseKit",
         "repositoryURL": "https://github.com/mxcl/PromiseKit.git",
         "state": {
