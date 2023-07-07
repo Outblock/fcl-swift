@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Flow
 
 public struct BaseConfigRequest: Encodable {
     var app: [String: String] = fcl.config.configLens("^app\\.detail\\.")
@@ -14,6 +15,12 @@ public struct BaseConfigRequest: Encodable {
 
     var appIdentifier: String = fcl.config.get(.appId) ?? ""
     var accountProofNonce: String = fcl.config.get(.nonce) ?? ""
+    
+    var config = AppConfig()
+}
+
+public struct AppConfig: Encodable {
+    var app: [String: String] = fcl.config.configLens("^app\\.detail\\.")
 }
 
 public struct ClientInfo: Encodable {
