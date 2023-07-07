@@ -17,9 +17,10 @@ public extension FCL {
         case dapperSC
         case blocto
         case lilico
+        case devWallet
         case custom(FCL.WalletProvider)
 
-        public static var allCases: [FCL.Provider] = [.dapperSC, .lilico, .blocto]
+        public static var allCases: [FCL.Provider] = [.dapperSC, .lilico, .blocto, .devWallet]
 
         public static func getEnvCases(env: Flow.ChainID = fcl.currentEnv) -> [FCL.Provider] {
             allCases.filter { $0.supportNetwork.contains(env) }
@@ -37,6 +38,8 @@ public extension FCL {
                 return [.mainnet, .testnet]
             case .lilico:
                 return [.mainnet, .testnet]
+            case .devWallet:
+                return [.emulator]
             case let .custom(provider):
                 return provider.supportNetwork
             }
@@ -51,6 +54,8 @@ public extension FCL {
                     URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!.absoluteString
             case .lilico:
                 return URL(string: "https://link.lilico.app")!.absoluteString
+            case .devWallet:
+                return URL(string: "http://127.0.0.1:8701/api/authn")!.absoluteString
             case let .custom(fclWalletProvider):
                 return fclWalletProvider.endpoint
             }
@@ -86,6 +91,13 @@ public extension FCL {
                              logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/lilico/logo.png")!,
                              method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
+                             supportNetwork: supportNetwork)
+            case .devWallet:
+                return .init(id: "devWallet",
+                             name: "Dev Wallet",
+                             logo: URL(string: "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/6395e6749db8fe00a41cc279_flow-flow-logo.svg")!,
+                             method: .httpPost,
+                             endpoint: URL(string: "http://127.0.0.1:8701/api/authn")!.absoluteString,
                              supportNetwork: supportNetwork)
             case let .custom(provider):
                 return provider
