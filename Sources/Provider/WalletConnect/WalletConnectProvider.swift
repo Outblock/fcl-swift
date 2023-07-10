@@ -230,7 +230,7 @@ extension FCL {
             }
 
             let blockchains: Set<Blockchain> = Set([blockchain])
-            let namespaces: [String: ProposalNamespace] = [blockchain.namespace: ProposalNamespace(chains: blockchains, methods: methods, events: [], extensions: nil)]
+            let namespaces: [String: ProposalNamespace] = [blockchain.namespace: ProposalNamespace(chains: blockchains, methods: methods, events: [])]
 
             if let topic {
                 try await Sign.instance.connect(requiredNamespaces: namespaces, topic: topic)
@@ -275,9 +275,9 @@ extension FCL {
 
             Sign.instance.sessionProposalPublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] sessionProposal in
+                .sink { [weak self] data in
                     print("[RESPONDER] WC: Did receive session proposal")
-                    self?.currentProposal = sessionProposal
+                    self?.currentProposal = data.proposal
                     self?.reloadSessionAndPair()
                 }.store(in: &publishers)
 

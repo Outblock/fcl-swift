@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/outblock/flow-swift.git", .exact("0.3.1")),
         .package(url: "https://github.com/daltoniam/Starscream", .exact("3.1.1")),
-        .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", .exact("1.0.6")),
+        .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", .exact("1.6.11")),
         .package(url: "https://github.com/1024jp/GzipSwift", .exact("5.2.0")),
     ],
     targets: [
