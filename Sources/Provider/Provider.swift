@@ -13,14 +13,12 @@ public extension FCL {
            
         // Dapper remove HTTP/POST Service and new service is TBD
         // case dapper
-        
-        case dapperSC
         case blocto
         case lilico
         case devWallet
         case custom(FCL.WalletProvider)
 
-        public static var allCases: [FCL.Provider] = [.dapperSC, .lilico, .blocto, .devWallet]
+        public static var allCases: [FCL.Provider] = [.lilico, .blocto, .devWallet]
 
         public static func getEnvCases(env: Flow.ChainID = fcl.currentEnv) -> [FCL.Provider] {
             allCases.filter { $0.supportNetwork.contains(env) }
@@ -32,8 +30,6 @@ public extension FCL {
 
         public var supportNetwork: [Flow.ChainID] {
             switch self {
-            case .dapperSC:
-                return [.testnet]
             case .blocto:
                 return [.mainnet, .testnet]
             case .lilico:
@@ -47,8 +43,6 @@ public extension FCL {
 
         public func endpoint(chainId: Flow.ChainID = fcl.currentEnv) -> String {
             switch self {
-            case .dapperSC:
-                return "dapper-pro://"
             case .blocto:
                 return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")!.absoluteString :
                     URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!.absoluteString
@@ -71,13 +65,6 @@ public extension FCL {
 
         public func provider(chainId: Flow.ChainID = fcl.currentEnv) -> FCL.WalletProvider {
             switch self {
-            case .dapperSC:
-                return .init(id: "dapper-sc",
-                             name: "Dapper SC",
-                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/dapper-sc/logo.png")!,
-                             method: .walletConnect,
-                             endpoint: endpoint(chainId: chainId),
-                             supportNetwork: supportNetwork)
             case .blocto:
                 return .init(id: "blocto",
                              name: "Blocto",
