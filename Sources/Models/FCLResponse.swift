@@ -223,7 +223,7 @@ extension FCL {
         }
     }
 
-    struct FCLDataResponse: Codable {
+    public struct FCLDataResponse: Codable {
         let fType: String
         let fVsn: String
         let nonce: String?
