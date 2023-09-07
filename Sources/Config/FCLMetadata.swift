@@ -35,8 +35,8 @@ public extension FCL {
         }
 
         public struct AccountProofConfig {
-            let appIdentifier: String
-            let nonce: String
+            public let appIdentifier: String
+            public let nonce: String
 
             public init(appIdentifier: String, nonce: String = fcl.generateNonce()) {
                 self.appIdentifier = appIdentifier

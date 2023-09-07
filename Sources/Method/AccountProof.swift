@@ -9,6 +9,20 @@ import Flow
 import Foundation
 
 public extension FCL {
+    func getAccountProof() async throws -> FCLDataResponse {
+        guard let currentUser = currentUser, currentUser.loggedIn else {
+            throw Flow.FError.unauthenticated
+        }
+
+        guard let service = serviceOfType(services: currentUser.services, type: .accountProof),
+              let data = service.data
+        else {
+            throw FCLError.invaildService
+        }
+
+        return data
+    }
+    
     func verifyAccountProof(includeDomainTag: Bool = false) async throws -> Bool {
         guard let currentUser = currentUser, currentUser.loggedIn else {
             throw Flow.FError.unauthenticated
