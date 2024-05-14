@@ -14,11 +14,11 @@ public extension FCL {
         // Dapper remove HTTP/POST Service and new service is TBD
         // case dapper
         case blocto
-        case lilico
+        case flowWallet
         case devWallet
         case custom(FCL.WalletProvider)
 
-        public static var allCases: [FCL.Provider] = [.lilico, .blocto, .devWallet]
+        public static var allCases: [FCL.Provider] = [.flowWallet, .blocto, .devWallet]
 
         public static func getEnvCases(env: Flow.ChainID = fcl.currentEnv) -> [FCL.Provider] {
             allCases.filter { $0.supportNetwork.contains(env) }
@@ -32,7 +32,7 @@ public extension FCL {
             switch self {
             case .blocto:
                 return [.mainnet, .testnet]
-            case .lilico:
+            case .flowWallet:
                 return [.mainnet, .testnet]
             case .devWallet:
                 return [.emulator]
@@ -46,8 +46,8 @@ public extension FCL {
             case .blocto:
                 return chainId == .mainnet ? URL(string: "https://flow-wallet.blocto.app/api/flow/authn")!.absoluteString :
                     URL(string: "https://flow-wallet-testnet.blocto.app/api/flow/authn")!.absoluteString
-            case .lilico:
-                return URL(string: "https://link.lilico.app")!.absoluteString
+            case .flowWallet:
+                return URL(string: "https://frw-link.lilico.app")!.absoluteString
             case .devWallet:
                 return URL(string: "http://127.0.0.1:8701/api/authn")!.absoluteString
             case let .custom(fclWalletProvider):
@@ -72,10 +72,10 @@ public extension FCL {
                              method: .httpPost,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)
-            case .lilico:
-                return .init(id: "lilico",
-                             name: "lilico",
-                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/lilico/logo.png")!,
+            case .flowWallet:
+                return .init(id: "flowWallet",
+                             name: "Flow Wallet",
+                             logo: URL(string: "https://raw.githubusercontent.com/Outblock/fcl-swift/main/Assets/flowWallet/logo.png")!,
                              method: .walletConnect,
                              endpoint: endpoint(chainId: chainId),
                              supportNetwork: supportNetwork)

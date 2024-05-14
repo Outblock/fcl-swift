@@ -20,7 +20,7 @@ public final class FCL: NSObject, ObservableObject {
 
     public var config = Config()
 
-    private var providers: [FCL.Provider] = [.lilico, .blocto]
+    private var providers: [FCL.Provider] = [.flowWallet, .blocto]
 
     public let version = "@outblock/fcl-swift@0.0.9"
 

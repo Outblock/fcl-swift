@@ -115,7 +115,7 @@ let metadata = FCL.Metadata(appName: "xxx",
                             location: URL(string: "xxx")!,
                             accountProof: accountProof,
                             walletConnectConfig: walletConnect)
-let provider: FCL.Provider = .lilico
+let provider: FCL.Provider = .flowWallet
 fcl.config(metadata: metadata,
            env: env,
            provider: provider)

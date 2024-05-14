@@ -29,7 +29,7 @@ final class FCLTests: XCTestCase {
                                     accountProof: nil,
                                     walletConnectConfig: nil)
 
-        fcl.config(metadata: metadata, env: .mainnet, provider: .lilico)
+        fcl.config(metadata: metadata, env: .mainnet, provider: .flowWallet)
 
         let dict = fcl.config.configLens("^app\\.detail\\.")
         XCTAssertNotNil(dict)

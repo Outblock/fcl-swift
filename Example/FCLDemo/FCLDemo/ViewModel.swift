@@ -19,7 +19,7 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var preAuthz: String = ""
 
-    @Published var provider: FCL.Provider = fcl.currentProvider ?? .lilico
+    @Published var provider: FCL.Provider = fcl.currentProvider ?? .flowWallet
 
     @Published var env: Flow.ChainID = fcl.currentEnv
 
