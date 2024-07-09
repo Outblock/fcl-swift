@@ -45,9 +45,9 @@ class ViewModel: NSObject, ObservableObject {
 
     @Published var script: String =
         """
-        pub struct SomeStruct {
-          pub var x: Int
-          pub var y: Int
+        access(all) struct SomeStruct {
+          access(all) var x: Int
+          access(all) var y: Int
 
           init(x: Int, y: Int) {
             self.x = x
@@ -55,7 +55,7 @@ class ViewModel: NSObject, ObservableObject {
           }
         }
 
-        pub fun main(): [SomeStruct] {
+        access(all) fun main(): [SomeStruct] {
           return [SomeStruct(x: 1, y: 2),
                   SomeStruct(x: 3, y: 4)]
         }
@@ -64,7 +64,7 @@ class ViewModel: NSObject, ObservableObject {
     @Published var transactionScript: String =
         """
            transaction(test: String, testInt: Int) {
-               prepare(signer: AuthAccount) {
+               prepare(signer: &Account) {
                     log(signer.address)
                     log(test)
                     log(testInt)
@@ -229,9 +229,9 @@ class ViewModel: NSObject, ObservableObject {
                     import FungibleToken from 0xFungibleToken
                     import FUSD from 0xFUSD
 
-                    pub fun main(account: Address): UFix64 {
-                      let receiverRef = getAccount(account).getCapability(/public/fusdBalance)!
-                        .borrow<&FUSD.Vault{FungibleToken.Balance}>()
+                    access(all) fun main(account: Address): UFix64 {
+                      let receiverRef = getAccount(account).capabilities.get<&{FungibleToken.Balance}>(/public/fusdBalance)!
+                        .borrow()
 
                       return receiverRef!.balance
                     }
@@ -291,7 +291,7 @@ class ViewModel: NSObject, ObservableObject {
                 .transaction(
                     """
                        transaction(test: String, testInt: Int) {
-                           prepare(signer: AuthAccount) {
+                           prepare(signer: &Account) {
                                 log(signer.address)
                                 log(test)
                                 log(testInt)

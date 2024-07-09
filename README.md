@@ -78,9 +78,9 @@ fcl.query {
         import FungibleToken from 0xFungibleToken
         import FUSD from 0xFUSD
 
-        pub fun main(account: Address): UFix64 {
-          let receiverRef = getAccount(account).getCapability(/public/fusdBalance)!
-            .borrow<&FUSD.Vault{FungibleToken.Balance}>()
+        access(all) fun main(account: Address): UFix64 {
+          let receiverRef = getAccount(account).capabilities.get<&FUSD.Vault>(/public/fusdBalance)
+            .borrow()
 
           return receiverRef!.balance
         }
@@ -137,7 +137,7 @@ A **convenience method** that produces the needed authorization details for the 
 try await fcl.mutate(cadence: 
                     """
                        transaction(test: String, testInt: Int) {
-                           prepare(signer: AuthAccount) {
+                           prepare(signer: &Account) {
                                 log(signer.address)
                                 log(test)
                                 log(testInt)
@@ -189,7 +189,7 @@ _Pass in the following as a single object with the following keys.All keys are o
 fcl.query {
     cadence {
         """
-        pub fun main(a: Int, b: Int, addr: Address): Int {
+        access(all) fun main(a: Int, b: Int, addr: Address): Int {
             log(addr)
             return a + b
         }
@@ -231,7 +231,7 @@ _Pass in the following as a single object with the following keys. All keys are 
 try await fcl.mutate(cadence: 
                     """
                        transaction(test: String, testInt: Int) {
-                           prepare(signer: AuthAccount) {
+                           prepare(signer: &Account) {
                                 log(signer.address)
                                 log(test)
                                 log(testInt)
