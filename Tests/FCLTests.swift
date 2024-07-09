@@ -42,7 +42,7 @@ final class FCLTests: XCTestCase {
         let response: Int = try await fcl.query {
             cadence {
                 """
-                pub fun main(a: Int, b: Int, addr: Address): Int {
+                access(all) fun main(a: Int, b: Int, addr: Address): Int {
                   log(addr)
                   return a + b
                 }
