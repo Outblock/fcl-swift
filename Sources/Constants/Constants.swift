@@ -11,7 +11,7 @@ extension FCL {
     enum Constants {
         static var verifyAccountProofSignaturesCadence = """
               import FCLCrypto from 0xFCLCrypto
-              pub fun main(
+              access(all) fun main(
                   address: Address,
                   message: String,
                   keyIndices: [Int],
@@ -23,7 +23,7 @@ extension FCL {
 
         static var verifyUserSignaturesCadence = """
               import FCLCrypto from 0xFCLCrypto
-              pub fun main(
+              access(all) fun main(
                   address: Address,
                   message: String,
                   keyIndices: [Int],
